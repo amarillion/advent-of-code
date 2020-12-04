@@ -7,7 +7,7 @@ Reads file, returns array of lines.
 If last line is empty, it is left out
 */
 export async function readLines(fileName) {
-	const data = await fsp.readFile(fileName, "UTF-8")
+	const data = await fsp.readFile(fileName, { encoding: "UTF-8" })
 	const lines = data.split("\n"); 
 	// remove last line if it's empty
 	if (lines[lines.length-1] === '') lines.splice(lines.length-1);

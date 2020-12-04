@@ -2,7 +2,7 @@
 
 // Of course this works only in NodeJS, not in the Browser.
 import fs from 'fs/promises';
-import { readLinesGenerator } from '../common/readers.mjs';
+import { readLinesGenerator } from '../common/readers.js';
 
 async function *lineGroupGenerator(file) {
 	let group = []

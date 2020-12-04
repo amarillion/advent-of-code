@@ -2,7 +2,7 @@
 
 // Of course this works only in NodeJS, not in the Browswer.
 import fs from 'fs/promises';
-import { readLinesGenerator } from '../common/readers.mjs';
+import { readLinesGenerator } from '../common/readers.js';
 
 async function *passportGenerator() {
 	let group = []
