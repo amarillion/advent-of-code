@@ -2,6 +2,10 @@ import fsp from 'fs/promises';
 import fs from 'fs';
 import readline from "readline";
 
+/*
+Reads file, returns array of lines.
+If last line is empty, it is left out
+*/
 export async function readLines(fileName) {
 	const data = await fsp.readFile(fileName, "UTF-8")
 	const lines = data.split("\n"); 
@@ -10,11 +14,18 @@ export async function readLines(fileName) {
 	return lines;
 }
 
+/*
+Reads file, returns matrix: an array of arrays of characters.
+If last line is empty, it is left out
+*/
 export async function readMatrix(fileName) {
 	const lines = await readLines(fileName); 
 	return lines.map(line => line.split(''));
 }
 
+/*
+Read file line by line, but as a generator
+*/
 export async function *readLinesGenerator(fileName) {
 	const fileStream = fs.createReadStream(fileName);
 
@@ -30,7 +41,12 @@ export async function *readLinesGenerator(fileName) {
 	}
 }
 
-export async function *lineGroupGenerator(file) {
+/*
+Read file in paragraphs.
+Each paragraph is a group of lines separated by an empty line.
+Each yield is a single paragraph, as an array of lines 
+*/
+export async function *paragraphGenerator(file) {
 	let group = []
 	for await (const line of readLinesGenerator(file)) {
 		if (line === '') {
