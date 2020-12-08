@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
-import { paragraphGenerator, readLines } from '../common/readers.js';
-
-function assert(condition, message) {
-	if (!condition) throw new Error(message);
-}
+import { assert } from '../common/assert.js';
+import { readLines } from '../common/readers.js';
 
 class VM {
 
@@ -18,7 +15,7 @@ class VM {
 		let result = [];
 		for (const line of lines) {
 			const [ opcode, param ] = line.split(' ');
-			result.push ({ opcode, param });
+			result.push ({ opcode, param: +param }); // NB: force conversion of param to number
 		}
 		return result;
 	}
@@ -26,9 +23,9 @@ class VM {
 	step() {
 		const { opcode, param } = this.program[this.ip];
 		switch(opcode) {
-			case 'acc': this.acc += (+param); this.ip++; break;
+			case 'acc': this.acc += param; this.ip++; break;
 			case 'nop': this.ip++; break;
-			case 'jmp': this.ip += (+param); break;
+			case 'jmp': this.ip += param; break;
 			default: assert(false, `Invalid ${opcode}`);
 		}
 	}
