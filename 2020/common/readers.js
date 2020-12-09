@@ -1,17 +1,28 @@
 import fsp from 'fs/promises';
 import fs from 'fs';
-import readline from "readline";
+import readline from 'readline';
+import { assert } from './assert.js';
 
 /*
 Reads file, returns array of lines.
 If last line is empty, it is left out
 */
 export async function readLines(fileName) {
-	const data = await fsp.readFile(fileName, { encoding: "UTF-8" })
-	const lines = data.split("\n"); 
+	const data = await fsp.readFile(fileName, { encoding: 'utf-8' });
+	const lines = data.split('\n'); 
 	// remove last line if it's empty
 	if (lines[lines.length-1] === '') lines.splice(lines.length-1);
 	return lines;
+}
+
+/** read a list of numbers, one per line. 
+ * includes conversion to numbers */
+export async function readNumbers(file) {
+	let data = [];
+	for await (const line of readLinesGenerator(file)) {
+		data.push(+line);
+	}
+	return data;
 }
 
 /*
@@ -47,14 +58,14 @@ Each paragraph is a group of lines separated by an empty line.
 Each yield is a single paragraph, as an array of lines 
 */
 export async function *paragraphGenerator(file) {
-	let group = []
+	let group = [];
 	for await (const line of readLinesGenerator(file)) {
 		if (line === '') {
 			yield group;
 			group = [];
 			continue;
 		}
-		group = group.concat(line.split(' '))
+		group = group.concat(line.split(' '));
 	}
 	yield group;
 }
@@ -66,7 +77,7 @@ i.e. Blocks until there is input
 export function readChar() {
 	// source: https://stackoverflow.com/a/64235311/3306
 	let buffer = Buffer.alloc(1);
-	let num = fs.readSync(0, buffer, 0, 1);
+	let num = fs.readSync(0, buffer, 0, 1, null);
 	assert(num === 1);
 	return buffer[0];
 }
