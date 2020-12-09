@@ -58,3 +58,25 @@ export async function *paragraphGenerator(file) {
 	}
 	yield group;
 }
+
+/* 
+read a single char from STDIN synchronously
+i.e. Blocks until there is input
+*/
+export function readChar() {
+	// source: https://stackoverflow.com/a/64235311/3306
+	let buffer = Buffer.alloc(1);
+	let num = fs.readSync(0, buffer, 0, 1);
+	assert(num === 1);
+	return buffer[0];
+}
+
+/* 
+Write a single char to STDOUT synchronously
+*/
+export function writeChar(ch) {
+	let buffer = Buffer.alloc(1);
+	assert (ch >= 0 && ch < 256);
+	buffer[0] = ch;
+	fs.writeSync(0, buffer);
+}
