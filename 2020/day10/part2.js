@@ -41,11 +41,10 @@ async function main() {
 	
 	console.log(data);
 
-	// divide and conquer
 	let part2 = nextPossibilities(0, 0, data);
-	console.log(part2);
 	console.log(cache);
-	console.log(cacheMisses);
+	console.log('Cache misses', cacheMisses);
+	console.log(part2);
 }
 
 main();
