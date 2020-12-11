@@ -45,12 +45,24 @@ export class Grid {
 		}
 	}
 
+	/** yield each cell in a line, until the edge of the map is reached */
+	*scan(x, y, dx, dy) {
+		let xx = x;
+		let yy = y;
+		while (this.inRange(xx, yy)) {
+			yield(this.get(xx, yy));
+			xx += dx;
+			yy += dy;
+		}
+	}
+
 	static async fromFile(fname) {
 		const lines = await readLines(fname);
 		const width = lines[0].length;
 		const height = lines.length;
 		const result = new Grid(width, height);
 		result.data = lines.join('').split('');
+		assert(result.data.length === width * height);
 		return result;
 	}
 

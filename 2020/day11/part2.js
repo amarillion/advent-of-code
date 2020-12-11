@@ -47,12 +47,23 @@ class Grid {
 		}
 	}
 
+	*scan(x, y, dx, dy) {
+		let xx = x;
+		let yy = y;
+		while (this.inRange(xx, yy)) {
+			yield(this.get(xx, yy));
+			xx += dx;
+			yy += dy;
+		}
+	}
+
 	static async fromFile(fname) {
 		const lines = await readLines(fname);
 		const width = lines[0].length;
 		const height = lines.length;
 		const result = new Grid(width, height);
 		result.data = lines.join('').split('');
+		assert(result.data.length === width * height);
 		return result;
 	}
 
@@ -65,22 +76,11 @@ class Grid {
 }
 
 
-// note, doesn't check for match at x, y
 function look(grid, x, y, dx, dy) {
-	let xx = x;
-	let yy = y;
-	xx += dx;
-	yy += dy;
-		
-	while(grid.inRange(xx, yy)) {
-		if (grid.get(xx, yy) === '#') {
-			return true;
-		}
-		if (grid.get(xx, yy) === 'L') {
-			return false;
-		}
-		xx += dx;
-		yy += dy;
+	// note skip position at x, y
+	for (const ch of grid.scan(x + dx, y + dy, dx, dy)) {
+		if (ch === '#') return true;
+		if (ch === 'L') return false;
 	}
 	return false;
 }
