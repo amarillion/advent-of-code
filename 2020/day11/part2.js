@@ -67,6 +67,17 @@ class Grid {
 		return result;
 	}
 
+	/** create a copy of the grid, applying the transform function to each (x,y) pair */
+	transform(cellFunc) {
+		let result = new Grid(this.width, this.height);
+		for (let y = 0; y < this.height; ++y) {
+			for (let x = 0; x < this.width; ++x) {
+				result.set(x, y, cellFunc(x, y));
+			}
+		}
+		return result;
+	}
+
 	print() {
 		for (let y = 0; y < this.height; ++y) {
 			let row = this.data.slice(y * this.width, (y + 1) * this.width);
@@ -77,7 +88,7 @@ class Grid {
 
 
 function look(grid, x, y, dx, dy) {
-	// note skip position at x, y
+	// note: we skip position at x, y
 	for (const ch of grid.scan(x + dx, y + dy, dx, dy)) {
 		if (ch === '#') return true;
 		if (ch === 'L') return false;
@@ -104,23 +115,19 @@ function look8(grid, x, y) {
 }
 
 function tick(grid) {
-	let newGrid = new Grid(grid.width, grid.height); 
-
-	for (let x = 0; x < grid.width; ++x) {
-		for (let y = 0; y < grid.height; ++y) {
+	return grid.transform(
+		(x, y) => {
 			let count = look8(grid, x, y);
 			let seat = grid.get(x, y);
-			let newSeat = seat;
 			if (seat === 'L' && count === 0) {
-				newSeat = '#';	
+				return '#';	
 			}
 			else if (seat === '#' && count >= 5) {
-				newSeat = 'L';
+				return 'L';
 			}
-			newGrid.set(x, y, newSeat);
+			return seat;
 		}
-	}
-	return newGrid;
+	);
 }
 
 async function main() {	

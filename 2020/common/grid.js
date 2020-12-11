@@ -66,6 +66,17 @@ export class Grid {
 		return result;
 	}
 
+	/** create a copy of the grid, applying the transform function to each (x,y) pair */
+	transform(cellFunc) {
+		let result = new Grid(this.width, this.height);
+		for (let y = 0; y < this.height; ++y) {
+			for (let x = 0; x < this.width; ++x) {
+				result.set(x, y, cellFunc(x, y));
+			}
+		}
+		return result;
+	}	
+
 	print() {
 		for (let y = 0; y < this.height; ++y) {
 			let row = this.data.slice(y * this.width, (y + 1) * this.width);
