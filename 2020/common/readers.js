@@ -65,7 +65,7 @@ export async function *paragraphGenerator(file) {
 			group = [];
 			continue;
 		}
-		group = group.concat(line.split(' '));
+		group.push(line);
 	}
 	yield group;
 }
