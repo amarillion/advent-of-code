@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-import { assert } from '../common/assert.js';
-import { paragraphGenerator, readLinesGenerator } from '../common/readers.js';
+import { readLinesGenerator } from '../common/readers.js';
 
 function findSum(data, sum) {
 

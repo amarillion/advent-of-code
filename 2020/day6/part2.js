@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { paragraphGenerator, readLinesGenerator } from '../common/readers.js';
+import { paragraphGenerator } from '../common/readers.js';
 
 async function main() {	
 	let sum = 0;
@@ -10,7 +10,7 @@ async function main() {
 			const chars = line.split('');
 			for(const cur of chars) {
 				if (cur in data) {
-					data[cur] += 1
+					data[cur] += 1;
 				}
 				else {
 					data[cur] = 1;

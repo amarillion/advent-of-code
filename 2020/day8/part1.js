@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { paragraphGenerator, readLines } from '../common/readers.js';
+import { readLines } from '../common/readers.js';
 
 function assert(condition, message) {
 	if (!condition) throw new Error(message);
