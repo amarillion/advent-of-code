@@ -55,36 +55,28 @@ struct vec(int N, V) {
 	/** addition */
 	vec!(N, V) opBinary(string op)(vec!(N, V) rhs) const if (op == "+") {
 		vec!(N, V) result;
-		foreach (i; 0..N) {
-			result.val[i] = val[i] + rhs.val[i];
-		}
+		result.val[] = val[] + rhs.val[];
 		return result;
 	}
 
 	/** substraction */
 	vec!(N, V) opBinary(string op)(vec!(N, V) rhs) const if (op == "-") {
 		vec!(N, V) result;
-		foreach (i; 0..N) {
-			result.val[i] = val[i] - rhs.val[i];
-		}
+		result.val[] = val[] - rhs.val[];
 		return result;
 	}
 
 	/** add a scalar */
 	vec!(N, V) opBinary(string op)(V rhs) const if (op == "+") {
 		vec!(N, V) result;
-		foreach (i; 0..N) {
-			result.val[i] = val[i] + rhs;
-		}
+		result.val[] = val[] + rhs;
 		return result;
 	}
 
 	/** substract a scalar */
 	vec!(N, V) opBinary(string op)(V rhs) const if (op == "-") {
 		vec!(N, V) result;
-		foreach (i; 0..N) {
-			result.val[i] = val[i] - rhs;
-		}
+		result.val[] = val[] - rhs;
 		return result;
 	}
 }
