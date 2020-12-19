@@ -4,6 +4,7 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.algorithm;
+import std.array;
 
 struct Rule {
 	bool isLiteral;
@@ -18,12 +19,7 @@ Rule[int] rules;
 void parse(string[] rawRules) {
 	
 	int[] splitNumbers(string str) {
-		string[] fields = str.split(' ');
-		int[] result;
-		foreach (f; fields) {
-			result ~= to!int(f);
-		}
-		return result;
+		return str.split(' ').map!(to!int).array();
 	}
 
 	foreach (raw; rawRules) {
@@ -105,15 +101,7 @@ string[] readLines(string fname) {
 	return result;
 }
 
-void main()
-{
-
-	File file = File("input", "rt");
-	// while (!file.eof())
-	string[] rawRules = readParagraph(file);
-	string[] lines = readParagraph(file);	
-	parse(rawRules);
-	
+long countMatches(string[] lines) {
 	long sum = 0;
 	foreach (line; lines) {
 		int[] result = matches(line, 0, 0);
@@ -121,7 +109,17 @@ void main()
 			sum++;
 		}
 	}
-	writeln(sum);
+	return sum;
+}
+
+void main()
+{
+	File file = File("input", "rt");
+	string[] rawRules = readParagraph(file);
+	string[] lines = readParagraph(file);	
+	parse(rawRules);
+	
+	writeln("Part 1: ", countMatches(lines));
 
 	// part2: insert extra rules;
 	Rule rule8;
@@ -135,13 +133,6 @@ void main()
 	rules[8] = rule8;
 	rules[11] = rule11;
 
-	sum = 0;
-	foreach (line; lines) {
-		int[] result = matches(line, 0, 0);
-		if (result.canFind(line.length)) {
-			sum++;
-		}
-	}
-	writeln(sum);
+	writeln("Part 2: ", countMatches(lines));
 
 }
