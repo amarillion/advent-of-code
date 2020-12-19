@@ -5,6 +5,7 @@ import std.string;
 import std.conv;
 import std.algorithm;
 import std.array;
+import std.format : formattedRead;
 
 struct Rule {
 	bool isLiteral;
@@ -24,20 +25,20 @@ void parse(string[] rawRules) {
 
 	foreach (raw; rawRules) {
 		Rule rule;
-		string[] fields = raw.split(": ");
-		int idx = to!int(fields[0]);
-		if (fields[1].indexOf('|') >= 0) {
-			rule.isBinary = true;
-			string[] parts = fields[1].split(" | ");
-			rule.left = splitNumbers(parts[0]);
-			rule.orRight = splitNumbers(parts[1]);
-		}
-		else if (fields[1].indexOf('"') >= 0) {
+		int idx;
+		string remain;
+		raw.formattedRead!"%s: %s"(idx, remain);
+		if (remain.indexOf('"') >= 0) {
 			rule.isLiteral = true;
-			rule.literal = fields[1][1];
+			remain.formattedRead!"\"%s\""(rule.literal);
 		}
 		else {
-			rule.left = splitNumbers(fields[1]);
+			string[] parts = remain.split(" | ");
+			rule.left = splitNumbers(parts[0]);
+			if (parts.length == 2) {
+				rule.isBinary = true;
+				rule.orRight = splitNumbers(parts[1]);
+			}
 		}
 		rules[idx] = rule;
 	}
