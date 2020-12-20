@@ -36,7 +36,7 @@ class SparseInfiniteGrid(T, U) {
 		bool firstBlock = true;
 		bool firstLine = true;
 		bool firstCell = true;
-		foreach (base; CoordRange!T(min, max)) {
+		foreach (base; CoordRange!T(min, max + 1)) {
 			if (i % blockSize == 0 && !firstBlock) {
 				result ~= blockSep;
 				firstLine = true;
@@ -62,7 +62,7 @@ class SparseInfiniteGrid(T, U) {
 
 	void transform(U delegate(T) transformCell) {
 		auto newData = new SparseInfiniteGrid!(T, U)();
-		foreach (p; CoordRange!T(min - 1, max + 1)) {
+		foreach (p; CoordRange!T(min - 1, max + 2)) {
 			newData.set(p, transformCell(p));
 		}
 		data = newData.data;
@@ -73,13 +73,19 @@ class SparseInfiniteGrid(T, U) {
 
 class Grid(T) {
 	T[] data;
-	ulong width, height;
+	Point size;
 	
+	@property int width() const { return size.x; }
+	@property int height() const { return size.y; }
+
 	this(ulong width, ulong height, T initialValue = T.init) {
-		this.width = width;
-		this.height = height;
+		this(Point(cast(int)width, cast(int)height), initialValue);
+	}
+
+	this(Point size, T initialValue = T.init) {
+		this.size = size;
 		data = [];
-		data.length = width * height;
+		data.length = size.x * size.y;
 		if (initialValue != T.init) {
 			foreach(ref cell; data) {
 				cell = initialValue;
@@ -88,11 +94,11 @@ class Grid(T) {
 	}
 
 	bool inRange(Point p) const {
-		return (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
+		return (p.x >= 0 && p.x < size.x && p.y >= 0 && p.y < size.y);
 	}
 
 	ulong toIndex(Point p) const {
-		return p.x + (width * p.y);
+		return p.x + (size.x * p.y);
 	}
 
 	void set(Point p, T val) {
@@ -109,13 +115,10 @@ class Grid(T) {
 		char[] result;
 		int i = 0;
 		
-		// TODO: make part of class
-		const Point size = Point(cast(int)width, cast(int)height);
-
 		const int lineSize = size.x;
 		bool firstLine = true;
 		bool firstCell = true;
-		foreach (base; PointRange(Point(0), size - 1)) {
+		foreach (base; PointRange(size)) {
 			if (i % lineSize == 0 && !firstLine) {
 				result ~= lineSep;
 				firstCell = true;

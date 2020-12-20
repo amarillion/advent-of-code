@@ -91,23 +91,19 @@ alias vec3i = vec!(3, int);
 alias vec4i = vec!(4, int);
 
 
-// TODO: wouldn't this work better with endExclusive???
 struct CoordRange(T) {
 	
-	T pos;
-	T start;
-	T endInclusive;
+	T pos, start, end;
 
-	this(T start, T endInclusive) {
+	/* End is exclusive */
+	this(T start, T endExclusive) {
 		pos = start;
 		this.start = start;
-		this.endInclusive = endInclusive;
+		this.end = endExclusive;
 	}
 
-	this(T endInclusive) {
-		start = T(0);
-		pos = this.start;
-		this.endInclusive = endInclusive;
+	this(T endExclusive) {
+		this(T(0), endExclusive);
 	}
 
 	T front() {
@@ -117,9 +113,9 @@ struct CoordRange(T) {
 	void popFront() {
 		pos.val[0]++;
 		foreach (i; 0 .. pos.val.length - 1) {
-			if (pos.val[i] > endInclusive.val[i]) {
+			if (pos.val[i] > end.val[i] - 1) {
 				pos.val[i] = start.val[i];
-				pos.val[i+1]++;		
+				pos.val[i+1]++;
 			}
 			else {
 				break;
@@ -128,7 +124,7 @@ struct CoordRange(T) {
 	}
 
 	bool empty() const {
-		return pos.val[$-1] > endInclusive.val[$-1]; 
+		return pos.val[$-1] >= end.val[$-1]; 
 	}
 
 }
