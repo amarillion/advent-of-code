@@ -6,43 +6,10 @@ import std.conv;
 import std.algorithm;
 import std.array;
 import std.format : formattedRead;
+import std.range;
 
 import helix.vec;
-
-struct CoordRange(T) {
-	
-	T pos;
-	T start;
-	T endInclusive;
-
-	this(T start, T endInclusive) {
-		pos = start;
-		this.start = start;
-		this.endInclusive = endInclusive;
-	}
-
-	T front() {
-		return pos;
-	}
-
-	void popFront() {
-		pos.val[0]++;
-		foreach (i; 0 .. pos.val.length - 1) {
-			if (pos.val[i] > endInclusive.val[i]) {
-				pos.val[i] = start.val[i];
-				pos.val[i+1]++;		
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	bool empty() const {
-		return pos.val[$-1] > endInclusive.val[$-1]; 
-	}
-
-}
+import helix.io;
 
 class SparseInfiniteGrid(T, U) {
 
@@ -68,26 +35,37 @@ class SparseInfiniteGrid(T, U) {
 		}
 	}
 
-	override string toString() {
+	string format(string cellSep = ", ", string lineSep = "\n", string blockSep = "\n\n") {
 		char[] result;
 		int i = 0;
 		const T size = (max - min) + 1;
 		const int lineSize = size.x;
 		const int blockSize = size.x * size.y;
+		bool firstBlock = true;
+		bool firstLine = true;
+		bool firstCell = true;
 		foreach (base; CoordRange!T(min, max)) {
-			if (i % lineSize == 0) {
-				result ~= "\n";
+			if (i % blockSize == 0 && !firstBlock) {
+				result ~= blockSep;
+				firstLine = true;
 			}
-			static if (base.val.length > 2) {
-				if (i % blockSize == 0) {
-					result ~= format("%s\n", base);
-				}
+			if (i % lineSize == 0 && !firstLine) {
+				result ~= lineSep;
+				firstCell = true;
 			}
-			result ~= format("%s %s ", base, get(base));
+			if (!firstCell) result ~= cellSep;
+			result ~= to!string(get(base));
 			i++;
+			
+			firstBlock = false;
+			firstLine = false;
+			firstCell = false;
 		}
-		result ~= '\n';
 		return result.idup;
+	}
+
+	override string toString() {
+		return format();
 	}
 
 	void transform(U delegate(T) transformCell) {
@@ -101,129 +79,180 @@ class SparseInfiniteGrid(T, U) {
 	}
 }
 
-class Grid {
-	char[] data;
+class Grid(T) {
+	T[] data;
 	ulong width, height;
 	
-	this(ulong width, ulong height) {
+	this(ulong width, ulong height, T initialValue = T.init) {
 		this.width = width;
 		this.height = height;
-	}
-}
-
-string[] readParagraph(File file) {
-	string[] result = [];
-	while (!file.eof()) {
-		string line = chomp(file.readln()); 
-		if (line.length == 0) {
-			if (result.length == 0) continue;
-			else break;
+		data = [];
+		data.length = width * height;
+		if (initialValue != T.init) {
+			foreach(ref cell; data) {
+				cell = initialValue;
+			}
 		}
-		result = result ~ line;
 	}
-	return result;
-}
 
-string[] readLines(string fname) {
-	File file = File(fname, "rt");
-	string[] result = [];
-	while (!file.eof()) {
-		string line = chomp(file.readln()); 
-		result = result ~ line;
+	bool inRange(Point p) {
+		return (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
 	}
-	// Remove empty line...
-	if (result[$-1].length == 0) { result = result[0..$-1]; }
-	return result;
+
+	ulong toIndex(Point p) {
+		return p.x + (width * p.y);
+	}
+
+	void set(Point p, T val) {
+		assert(inRange(p));
+		data[toIndex(p)] = val;
+	}
+
+	T get(Point p) {
+		assert(inRange(p));
+		return data[toIndex(p)];
+	}
+
+	string format(string cellSep = ", ", string lineSep = "\n") {
+		char[] result;
+		int i = 0;
+		
+		// TODO: make part of class
+		const Point size = Point(cast(int)width, cast(int)height);
+
+		const int lineSize = size.x;
+		bool firstLine = true;
+		bool firstCell = true;
+		foreach (base; PointRange(Point(0), size - 1)) {
+			if (i % lineSize == 0 && !firstLine) {
+				result ~= lineSep;
+				firstCell = true;
+			}
+			if (!firstCell) result ~= cellSep;
+			result ~= to!string(get(base));
+			i++;
+			
+			firstLine = false;
+			firstCell = false;
+		}
+		return result.idup;
+	}
+
+	override string toString() {
+		return format();
+	}
+
 }
 
 enum Side { TOP, RIGHT, BOTTOM, LEFT };
 
-struct Fingerprint {
-	int tileIdx;
-	Side side;
-	bool reverse;
+Point transformPoint(Point p, int rotation, bool flip, int pivot) {
+	// transform p according to rotation/reverse...
+	Point o;
+	switch(rotation) {
+		case 0: o = p; break;
+		case 1: o = Point(p.y, pivot-p.x); break;
+		case 2: o = Point(pivot-p.x, pivot-p.y); break;
+		case 3: o = Point(pivot-p.y, p.x); break;
+		default: assert(false);
+	}
+	if (flip) {
+		o = Point(pivot-o.x, o.y);
+	}
+	return o;
 }
 
 struct Tile {
-	
-	string[] lines;
-	ulong width, height;
-	string[4] sides;
+	Grid!char grid;	
 	int idx;
+	int rotation = 0;
+	bool flip = false;
 
 	this(int idx, string[] lines) {
 		this.idx = idx;
-		width = lines[0].length;
-		height = lines.length;	
-		this.lines = lines;
-		sides[Side.TOP] = lines[0];
-		sides[Side.BOTTOM] = lines[$-1];
-		sides[Side.LEFT] = lines.map!(l => l[0]).array;
-		sides[Side.RIGHT] = lines.map!(l => l[$-1]).array;
+		int width = cast(int)lines[0].length;
+		int height = cast(int)lines.length;
+		grid = new Grid!char(width, height);
+		foreach (pos; PointRange(Point(width, height) - 1)) {
+			grid.set(pos, lines[pos.y][pos.x]);
+		}
 	}
 
-	bool hasSide(string side) {
-		foreach (s; sides) {
-			if (s == side) return true;
-			if (s == reverse(side.dup).idup) return true;
+	string sides(Side s) {
+		const int height = cast(int)grid.height;
+		const int width = cast(int)grid.width;
+		final switch (s) {
+			case Side.TOP:
+				return Walk!Point(Point(0, 0), Point(1, 0), 10).map!(i => get(i)).array.idup;
+			case Side.BOTTOM:
+				return Walk!Point(Point(0, height-1), Point(1, 0), 10).map!(i => get(i)).array.idup;
+			case Side.LEFT:
+				return Walk!Point(Point(0, 0), Point(0, 1), 10).map!(i => get(i)).array.idup;
+			case Side.RIGHT:
+				return Walk!Point(Point(width-1, 0), Point(0, 1), 10).map!(i => get(i)).array.idup;
 		}
-		return false;
 	}
 
-	bool matchTile(Side s, string needle) {
-		// modifies tile in place to match rotation - TODO refactor
-		string[4] rev;
-		foreach (i, x; sides) {
-			rev[i] = reverse(x.dup).idup;
-		}
-		foreach (i; 0..4) {
-			if (sides[(s + i) % 4] == needle) {
-				auto result = sides[i..$] ~ sides[0..i];
-				writefln("Rotating %s times: %s => %s", i, sides, result);
-				sides = result;
-				return true;
+	char get(Point p) {
+		Point o = transformPoint(p, rotation, flip, 9);
+
+		// writefln("%s %s; %s => %s", rotation, flip, p, o);
+		return grid.get(o);
+	}
+
+	string echo() {
+		// TODO: causes segfault??? // Maybe when called on Tile.init ???
+		char[] result = format("Tile %s: %s %s\n", idx, rotation, flip).dup;
+		int i = 0;
+		
+		const Point size = Point(cast(int)grid.width, cast(int)grid.height);
+
+		const int lineSize = size.x;
+		bool firstLine = true;
+		foreach (base; PointRange(Point(0), size - 1)) {
+			if (i % lineSize == 0 && !firstLine) {
+				result ~= "\n";
 			}
-			
-			if (rev[(s + i) % 4] == needle) {
-				auto result = rev[i..$] ~ rev[0..i];
-				writefln("Rotating %s times and reverse: %s => %s", i, sides, result);
-				sides = result;
-				return true;
-			}
-			
+			result ~= get(base);
+			i++;			
+			firstLine = false;
 		}
-		return false;
+		return result.idup;
 	}
 
 	string toString() {
-		return format("%s: sides %s", idx, sides);
+		return format(flip ? "%s r%s flip" : "%s r%s", idx, rotation);
 	}
+
 }
 
 Tile[int] tiles;
-Fingerprint[][string] fprints;
 int[string] fprintFreq;
 
-int findTopLeftCornerPiece() {
+Tile findTopLeftCornerPiece() {
 
 	foreach(idx, tile; tiles) {	
-		// count matches on top-left of this tile
-
-		int count = 0;
-		count += fprints[tile.sides[Side.TOP]].length;
-		count += fprints[tile.sides[Side.LEFT]].length;
-		
-		if ((fprintFreq[tile.sides[Side.LEFT]] == 1) && (fprintFreq[tile.sides[Side.TOP]] == 1)) {
-			return idx;
+		// count matches on top-left of this tile		
+		if ((fprintFreq[tile.sides(Side.LEFT)] == 1) && (fprintFreq[tile.sides(Side.TOP)] == 1)) {
+			return tile;
 		}
 	}
-	return 0; // not found
+	assert(false);
+}
 
+void copyTile(Point pos, SparseInfiniteGrid!(Point, Tile) tilemap, Grid!(char) grid) {
+	Tile tile = tilemap.get(pos);
+	Point dest = pos * 8;
+	foreach (base; CoordRange!(Point)(Point(0), Point(7))) {
+		grid.set(dest + base, tile.get(base + 1));
+	}
 }
 
 void main()
 {
-	File file = File("test", "rt");
+	File file = File("input", "rt");
+	Tile[] tileVariants;
+
 	while (!file.eof) {
 		string[] paragraph = readParagraph(file);
 		int idx;
@@ -234,44 +263,51 @@ void main()
 		tiles[idx] = tile;
 
 		for (auto s = Side.min; s <= Side.max; ++s) {
-			fprints[tile.sides[s]] ~= Fingerprint(idx, s, false);
-			fprints[tile.sides[s].dup.reverse().idup] ~= Fingerprint(idx, s, true);
-
-			fprintFreq[tile.sides[s]]++;
-			fprintFreq[tile.sides[s].dup.reverse().idup]++;
+			string side = tile.sides(s).idup;
+			string rev = tile.sides(s).dup.reverse().idup;
+			fprintFreq[side]++;
+			fprintFreq[rev]++;
 		}
 
+		foreach (i; 0..4) {
+			Tile tile2 = tile;
+			tile2.flip = false;
+			tile2.rotation = i;
+			tileVariants ~= tile2;
+			Tile tile3 = tile;
+			tile3.rotation = i;
+			tile3.flip = true;
+			tileVariants ~= tile3;
+		}
 	}
 
-	writeln(fprintFreq);
-
 	long result = 1;
-	int topLeftCornerIdx = findTopLeftCornerPiece();
+	Tile topLeftCorner = findTopLeftCornerPiece();
+	writefln("Identified corner piece %s", topLeftCorner.idx);
 
-	auto tilemap = new SparseInfiniteGrid!(Point, int)();
+	auto tilemap = new SparseInfiniteGrid!(Point, Tile)();
 	
 	Point pos = Point(0, 0);
-	tilemap.set(pos, topLeftCornerIdx);
+	tilemap.set(pos, topLeftCorner);
 
-	Tile[] remain = tiles.values;
-	remain = remain.filter!(t => t.idx != topLeftCornerIdx).array;
+	Tile[] remain = tileVariants;
+	remain = remain.filter!(t => t.idx != topLeftCorner.idx).array;
 
 	for (int y = 0;; y++) {
 		for (int x = 0;; x++) {
 			pos = Point(x, y); 
-			if (tilemap.get(pos) > 0) { continue; }
+			if (tilemap.get(pos).idx > 0) { continue; }
 			
-			int leftSide = tilemap.get(Point(x-1, y));
-			int topSide = tilemap.get(Point(x, y-1));
+			Tile leftSide = tilemap.get(Point(x-1, y));
+			Tile topSide = tilemap.get(Point(x, y-1));
 			
-			writefln("Finding match at pos %s bordering %s %s", pos, leftSide, topSide);
+			writefln("Finding match at pos %s bordering %s on the left and %s on the top", pos, leftSide, topSide);
 			
 			auto f = remain;
-
-			writeln("Before", f.length);
-			if (leftSide != 0) {
-				f = f.filter!(tile => tile.matchTile(Side.LEFT, tiles[leftSide].sides[Side.RIGHT])).array;
-				writeln("After filtering left side: ", f.length, "\n", f);
+			writeln(f);
+			if (leftSide.idx != 0) {
+				f = f.filter!(tile => tile.sides(Side.LEFT) == leftSide.sides(Side.RIGHT)).array;
+				writeln("After filtering left side: ", f.length, ": ", f);
 			}
 			else {
 				// f = f.filter!(tile => fprintFreq[tile.sides[Side.LEFT]] == 1).array;
@@ -279,27 +315,29 @@ void main()
 			}
 			
 
-			if (topSide != 0) {
-				f = f.filter!(tile => tile.matchTile(Side.TOP, tiles[topSide].sides[Side.BOTTOM])).array;
-				writeln("After filtering top side: ", f.length, "\n", f);
+			if (topSide.idx != 0) {
+				f = f.filter!(tile => tile.sides(Side.TOP) ==  topSide.sides(Side.BOTTOM)).array;
+				writeln("After filtering top side: ", f.length, ": ", f);
 			}
 			else {
 				// f = f.filter!(tile => fprintFreq[tile.sides[Side.TOP]] == 1).array;
 				// writeln("Is edge piece on top: ", f.length, "\n", f);
 			}
 
-			readln();
-
 			if (f.empty) {
 				break;
 			}
 
+			// foreach(ff; f) {
+			// 	writeln(ff.echo());
+			// }
+
 			assert(f.length == 1);
 
-			tilemap.set(pos, f[0].idx);
-			remain = remain.filter!(t => t != f[0]).array;
+			tilemap.set(pos, f[0]);
+			remain = remain.filter!(t => t.idx != f[0].idx).array;
 
-			writefln("Remaining tiles: %s", remain);
+			// writefln("Remaining tiles: %s", remain);
 		}
 		
 		if (remain.empty) {
@@ -307,5 +345,70 @@ void main()
 		}
 	}
 
+	auto grid = new Grid!(char)((tilemap.max.x + 1) * 8, (tilemap.max.y + 1) * 8, '`');
+	
+	foreach (p; PointRange(tilemap.max)) {
+		copyTile(p, tilemap, grid);
+	}
+
+	writeln(grid.format("", "\n"));
 	writeln(tilemap);
+
+	// now let's find some monsters...
+	Point[] monster = [
+			Point( 0,0), 
+				Point( 1,1),
+			
+			
+				Point( 4,1),
+			Point( 5,0),
+			Point( 6,0),
+				Point( 7,1),
+			
+			
+				Point(10,1),
+			Point(11,0),
+			Point(12,0),
+				Point(13,1),
+				
+				
+				Point(16,1),
+			Point(17,0),
+		Point(18,0), Point(18,-1),
+			Point(19,0)
+	];
+
+	foreach(base; PointRange(Point(cast(int)grid.width - 1, cast(int)grid.height - 1))) {
+		foreach(flip; [ false, true ]) {
+			foreach(rotation; 0..4) {
+				bool match = true;
+				foreach(i, mpoint; monster) {
+					Point o = base + transformPoint(mpoint, rotation, flip, 0);
+					if (!grid.inRange(o)) {
+						match = false;
+						break;
+					}
+					if(grid.get(o) != '#' && grid.get(o) != 'O') {
+						match = false;
+						break;
+					}
+				}
+				if (match) {
+					writefln("Match at %s", base);
+					foreach(mpoint; monster) {
+						Point o = base + transformPoint(mpoint, rotation, flip, 0);
+						grid.set(o, 'O');
+					}
+				}
+			}
+		}
+	}
+
+	writeln(grid.format("", "\n"));
+
+	long roughness = 0;
+	foreach(base; PointRange(Point(cast(int)grid.width - 1, cast(int)grid.height - 1))) {
+		if (grid.get(base) == '#') roughness++;
+	}
+	writefln("Roughness: %s", roughness);
 }

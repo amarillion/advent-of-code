@@ -70,6 +70,13 @@ struct vec(int N, V) {
 		return result;
 	}
 
+	/** scale up */
+	vec!(N, V) opBinary(string op)(V rhs) const if (op == "*") {
+		vec!(N, V) result;
+		result.val[] = val[] * rhs;
+		return result;
+	}
+
 	/** substract a scalar */
 	vec!(N, V) opBinary(string op)(V rhs) const if (op == "-") {
 		vec!(N, V) result;
@@ -82,3 +89,73 @@ alias vec2i = vec!(2, int);
 alias Point = vec!(2, int);
 alias vec3i = vec!(3, int);
 alias vec4i = vec!(4, int);
+
+
+// TODO: wouldn't this work better with endExclusive???
+struct CoordRange(T) {
+	
+	T pos;
+	T start;
+	T endInclusive;
+
+	this(T start, T endInclusive) {
+		pos = start;
+		this.start = start;
+		this.endInclusive = endInclusive;
+	}
+
+	this(T endInclusive) {
+		start = T(0);
+		pos = this.start;
+		this.endInclusive = endInclusive;
+	}
+
+	T front() {
+		return pos;
+	}
+
+	void popFront() {
+		pos.val[0]++;
+		foreach (i; 0 .. pos.val.length - 1) {
+			if (pos.val[i] > endInclusive.val[i]) {
+				pos.val[i] = start.val[i];
+				pos.val[i+1]++;		
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	bool empty() const {
+		return pos.val[$-1] > endInclusive.val[$-1]; 
+	}
+
+}
+
+alias PointRange = CoordRange!Point;
+
+struct Walk(T) {
+	T pos;
+	T delta;
+	int remain;
+
+	this(T start, T delta, int steps) {
+		pos = start;
+		this.delta = delta;
+		remain = steps;
+	}
+
+	T front() {
+		return pos;
+	}
+
+	void popFront() {
+		remain--;
+		pos = pos + delta;
+	}
+
+	bool empty() const {
+		return remain <= 0;
+	}
+}
