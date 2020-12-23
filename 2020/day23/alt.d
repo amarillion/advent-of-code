@@ -9,6 +9,7 @@ import std.array;
 import std.format : formattedRead;
 import std.exception;
 import std.range;
+import std.container : DList;
 
 enum part1 = false;
 
@@ -32,208 +33,156 @@ int max(int[] array) {
 	return m;
 }
 
-struct RingBuffer {
-	private size_t[int] searchIdx;
-	int[] data;
+class Node {
 
-	size_t pos = 0;
-	
-	this(int[] data, size_t pos = 0) {
-		this.data = data;
-		this.pos = pos;
-		foreach (i, j; data) {
-			searchIdx[j] = i;
+	this(int val) {
+		this.val = val;
+	}
+	int val;
+	Node next = null;
+}
+
+struct OrderedMap {
+	private Node first = null;
+	private Node last = null;
+	private Node [int] searchIdx;
+	size_t length; // NOTE: initalized, never updated
+
+	this(int[] data) {
+		foreach (val; data) {
+			pushBack(val);
+		}
+		length = data.length;
+	}
+
+	void pushBack(int val) {
+		auto node = new Node(val);
+		searchIdx[val] = node;
+		if (last is null) {
+			assert(first is null);
+			first = node;
+			last = node;
+		}
+		else {
+			auto temp = last;
+			assert(temp.next is null);
+			// node.prev = temp;
+			temp.next = node;
+			last = node;
 		}
 	}
 
-	@property size_t length() {
-		return data.length;
+	int unshift() {
+		assert(first !is null);
+		assert(last !is null);
+		auto temp = first;
+		searchIdx.remove(temp.val);
+		first = temp.next;
+		return temp.val;
 	}
 
-	int get(size_t idx) {
-		ulong p = (pos + idx) % data.length;
-		return data[p];
+	Node insertAfter(Node before, int val) {
+		assert(first !is null);
+		assert(last !is null);
+		auto node = new Node(val);
+		searchIdx[val] = node;
+		auto after = before.next;
+		before.next = node;
+		node.next = after;
+		if (last == before) {
+			last = node;
+		}
+		return node;
 	}
 
-	void set(size_t idx, int val) {
-		ulong p = (pos + idx) % data.length;
-		data[p] = val;
-		searchIdx[val] = p;
-	}
-
-	long indexOf(int needle) const {
-		size_t len = data.length;
+	Node find(int needle) {
 		if (needle in searchIdx) {
-			return (len + searchIdx[needle] - pos) % len;
+			return searchIdx[needle];
 		}
-		return -1;
+		return null;
 	}
 
-	void copyRangeReverse(size_t _src, size_t _dest, size_t num) {
-		// writefln("copyRangeReverse(%s, %s, %s)", _src, _dest, num);
-		for (size_t i = num; i > 0; i--) {
-			// int[] before = data.dup;
-			// int datum = get(i - 1 + _src);
-			set(i + _dest, get(i - 1 + _src));
-			// writefln("Copying '%s' from %s to %s: %s => %s", datum, i - 1 + _src, i - 1 + _dest, before, data);
+	int[] toArray() {
+		int[] result;
+		for(Node n = first; n !is null; n = n.next) {
+			result ~= n.val;
 		}
+		return result;
 	}
-
-
-	void copyRange(size_t _src, size_t _dest, size_t num) {
-		// writefln("copyRange(%s, %s, %s)", _src, _dest, num);
-		foreach (i; 0 .. num) {
-			// int[] before = data.dup;
-			// int datum = get(i + _src);
-			set(i + _dest, get(i + _src));
-			// writefln("Copying '%s' from %s to %s: %s => %s", datum, i + _src, i + _dest, before, data);
-		}
-
-	/*
-		// copy a bit
-		size_t remain = num;
-		size_t len = buffer.data.length;
-		size_t src = (_src + buffer.pos) % len;
-		size_t dest = (_dest + buffer.pos) % len;
-		// writefln("%s %s %s", src, dest, num);
-		while (remain > 0) {
-			// copy suitable section
-			size_t amount = min(remain, len - src, len - dest);
-			// int[] before = buffer.data;
-			// writefln("Copying %s from %s to %s; %s => %s", amount, src, dest, before, buffer.data);
-			// writeln(buffer.data[dest..dest + amount]);
-			// writeln(buffer.data[src..src + amount]);
-
-			// int[] temp = buffer.data[src..src + amount].dup;
-			// buffer.data[dest..dest + amount] = temp;
-
-			// can't copy overlapping ranges this way???
-			// buffer.data[dest..dest + amount] = buffer.data[src..src + amount];
-
-			src = (src + amount) % len;
-			dest = (dest + amount) % len;
-			remain -= amount;
-		}
-	*/
-	}
-
 }
 
 unittest {
-	auto buffer = RingBuffer(10.iota.array, 5L);
-	assert (buffer.get(0) == 5);
-	assert (buffer.get(5) == 0);
-}
-
-void copyRange(ref int[] buffer, size_t src, size_t dest, size_t num) {
-	assert (src > dest); // otherwise, copy in reverse order?
-	// int[] before = buffer.dup;
-	// foreach (i; 0 .. num) {
-	// 	buffer[i + dest] = buffer[i + start];
-	// }
-	buffer[dest .. dest + num] = buffer [src .. src + num];
-	// writefln("copying num: %s from %s to %s, %s => %s", num, start, dest, before, buffer);
-}
-
-unittest {
-	auto buffer = RingBuffer(4.iota.array, 0);
-	assert(buffer.data == [0, 1, 2, 3]);
-	buffer.copyRange(1, 0, 2);
-	assert(buffer.data == [1, 2, 2, 3]);
+	auto cups = OrderedMap();
 	
-	// TODO: edge case
-	// buffer = RingBuffer(4.iota.array, 0);
-	// buffer.copyRange(3, 0, 2);
-	// writeln(buffer.data);
-	// assert(buffer.data == [3, 0, 2, 3]);
+	cups.pushBack(1);
+	cups.pushBack(4);
+	cups.pushBack(9);
+	assert(cups.toArray == [1, 4, 9]);
+	
+	Node mid = cups.find(4);
+	mid.val = 5;
+	assert(cups.toArray == [1, 5, 9]);
+	
+	cups.insertAfter(mid, 7);
+	assert(cups.toArray == [1, 5, 7, 9]);
 
-	buffer = RingBuffer(4.iota.array, 3);
-	buffer.copyRange(1, 0, 2);
-	assert(buffer.data == [1, 1, 2, 0]);
+	assert(cups.last.next is null);
+	cups.insertAfter(cups.last, 12);
+	assert(cups.toArray == [1, 5, 7, 9, 12]);
+	assert(cups.last.next is null);
 
+	int val = cups.unshift();
+	assert(val == 1);
+	assert(cups.toArray == [5, 7, 9, 12]);
 }
 
-alias Cups = RingBuffer;
+
+alias Cups = OrderedMap;
 
 void playRound(ref Cups cups, int move, bool log = false) {
 	// NB: cups is always arranged so that pos is first.
-	// pos is just there for display purposes...
-
-	size_t numCups = cups.length;
-	
 	if (log) {
 		writefln("-- Move %s --", move+1);
-		foreach(i, cup; cups.data) {
-			writef(i == cups.pos ? "(%s) " : "%s ", cup);
+		foreach(i, cup; cups.toArray()) {
+			writef(i == 0 ? "(%s) " : "%s ", cup);
 		}
 		writeln();
 	}
 
 	// take 3 out
+	int first = cups.unshift();
 	int[] taken = [
-		cups.get(1L),
-		cups.get(2L),
-		cups.get(3L)
+		cups.unshift(),
+		cups.unshift(),
+		cups.unshift()
 	];
 	
 	if (log) writeln("pick up: ", taken);
 
 	// select destination.
-	int first = cups.get(0L);
 	int destVal = first;
 	do {
 		destVal -= 1;
-		if (destVal <= 0) destVal += numCups;
+		if (destVal <= 0) destVal += cups.length;
 	} while (taken.indexOf(destVal) >= 0);
 	
-	size_t destPos = cups.indexOf(destVal);
-	if (log) writeln("Destination: ", destVal, " pos ", destPos);
+	if (log) writeln("Destination: ", destVal);
+	Node destNode = cups.find(destVal);
 	
-	size_t leftPart = destPos - 3;
-	size_t rightPart = numCups - destPos;
-	// writefln("Copying %s and %s", leftPart, rightPart);
-
 	// now re-shuffle
-	/*
-	copyRange(cups, 4, 0, (destPos - 3));
-	cups[destPos - 3] = taken[0];
-	cups[destPos - 2] = taken[1];
-	cups[destPos - 1] = taken[2];
-	copyRange(cups, destPos + 1, destPos, numCups - destPos - 1);
-	cups[$-1] = first;
-	*/
-	// This also works...
-	// cups = cups[4 .. destPos+1] ~ taken ~ cups[destPos + 1 .. $] ~ cups[0];
+	
+	Node node = destNode;
+	node = cups.insertAfter(node, taken[0]);
+	node = cups.insertAfter(node, taken[1]);
+	node = cups.insertAfter(node, taken[2]);
+	cups.pushBack(first);
 
-	// adjust pos
-
-
-	if (rightPart > leftPart) {
-
-		cups.copyRange(4, 1, (destPos - 3));
-		// cups.set(destPos - 3, destVal); // redundant
-		cups.set(destPos - 2, taken[0]);
-		cups.set(destPos - 1, taken[1]);
-		cups.set(destPos - 0, taken[2]);
-
-		cups.pos = (cups.pos + 1) % numCups;
-		// cups.set(pos, 0, destVal);
-	}
-	else {
-		cups.copyRangeReverse(destPos + 1, destPos + 3, (numCups - destPos));
-		cups.set(destPos + 1, taken[0]);
-		cups.set(destPos + 2, taken[1]);
-		cups.set(destPos + 3, taken[2]);
-
-		cups.pos = (cups.pos + numCups - 5) % numCups;
-	}
-
-	// writeln(cups.data, cups.pos);
 }
 
-int[] part1result (ref RingBuffer cups) {
-	size_t split = cups.data.indexOf(1);
-	return cups.data[split+1..$] ~ cups.data[0..split];
+int[] part1result (ref Cups cups) {
+	auto data = cups.toArray();
+	size_t split = data.indexOf(1);
+	return data[split+1..$] ~ data[0..split];
 }
 
 unittest {
@@ -257,7 +206,7 @@ void main() {
 	enum ROUNDS = part1 ? 100 : 10_000_000;
 	bool FILL = !part1;
 	
-	int[] data = readLines("test")[0].map!(ch => to!int(ch - '0')).array;
+	int[] data = readLines("input")[0].map!(ch => to!int(ch - '0')).array;
 	
 	if (FILL) {
 		int i = cast(int)data.length;
@@ -274,6 +223,7 @@ void main() {
 
 		if (round % 1000 == 0) {
 			if (round % 20_000 == 0) {
+				cups.searchIdx.rehash;
 				writeln();
 				writeln(round);
 			}
@@ -285,15 +235,17 @@ void main() {
 
 	writeln("Final result:");
 
-	size_t split = cups.data.indexOf(1);
-
 	if (part1) {
-	// part 1
-		int[] output = cups.data[split+1..$] ~ cups.data[0..split];
+		// part 1
+		int[] output = part1result(cups);
 		writeln(format("%(%s%)", output));
 	}
 	else {
 		// part 2
-		writeln(cups.data[split+1], " * ", cups.data[split+2], " = ", cups.data[split+1] * cups.data[split+2]);
+		Node split = cups.find(1);
+		Node n1 = split.next;
+		Node n2 = split.next.next;
+		assert(split.val == 1);
+		writeln(n1.val, " * ", n2.val, " = ", cast(long)n1.val * cast(long)n2.val);
 	}
 }
