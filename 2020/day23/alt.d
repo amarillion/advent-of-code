@@ -33,27 +33,38 @@ int max(int[] array) {
 }
 
 struct RingBuffer {
+	private size_t[int] searchIdx;
 	int[] data;
+
 	size_t pos = 0;
 	
+	this(int[] data, size_t pos = 0) {
+		this.data = data;
+		this.pos = pos;
+		foreach (i, j; data) {
+			searchIdx[j] = i;
+		}
+	}
+
 	@property size_t length() {
 		return data.length;
 	}
 
 	int get(size_t idx) {
-		return data[(pos + idx) % data.length];
+		ulong p = (pos + idx) % data.length;
+		return data[p];
 	}
 
 	void set(size_t idx, int val) {
-		data[(pos + idx) % data.length] = val;
+		ulong p = (pos + idx) % data.length;
+		data[p] = val;
+		searchIdx[val] = p;
 	}
 
 	long indexOf(int needle) const {
-		size_t p = pos;
 		size_t len = data.length;
-		foreach(size_t i; 0..len) {
-			if (data[p] == needle) { return cast(long)i; }
-			p = (p + 1) % len;
+		if (needle in searchIdx) {
+			return (len + searchIdx[needle] - pos) % len;
 		}
 		return -1;
 	}
@@ -109,7 +120,7 @@ struct RingBuffer {
 }
 
 unittest {
-	auto buffer = RingBuffer(10.iota.array, 5);
+	auto buffer = RingBuffer(10.iota.array, 5L);
 	assert (buffer.get(0) == 5);
 	assert (buffer.get(5) == 0);
 }
