@@ -110,5 +110,3 @@ void main() {
 	long sum = calculateScore(player[winner]);
 	writeln(sum);
 }
-
-// answered: 2632: too low...
