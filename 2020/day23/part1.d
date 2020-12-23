@@ -10,7 +10,7 @@ import std.format : formattedRead;
 import std.exception;
 
 //TODO: why is this not in standard library?
-ulong indexOf(int[] array, int needle) {
+size_t indexOf(int[] array, int needle) {
 	foreach(i, a; array) {
 		if (a == needle) {
 			return i;
@@ -67,7 +67,7 @@ void main() {
 
 	writeln("Final result:");
 
-	ulong split = cups.indexOf(1);
+	size_t split = cups.indexOf(1);
 	cups = cups[split+1..$] ~ cups[0..split];
 	writeln(format("%(%s%)", cups));	
 }

@@ -31,7 +31,7 @@ int max(int[] array) {
 	return m;
 }
 
-int getCircular(ref int[] buffer, ulong pos) {
+int getCircular(ref int[] buffer, size_t pos) {
 	return buffer[pos % buffer.length];
 }
 
@@ -43,7 +43,7 @@ int getCircular(ref int[] buffer, ulong pos) {
 // 	return -1;
 // }
 
-void copyRange(ref int[] buffer, ulong start, ulong dest, ulong num) {
+void copyRange(ref int[] buffer, size_t start, size_t dest, size_t num) {
 	assert (start > dest); // otherwise, copy in reverse order?
 	// int[] before = buffer.dup;
 	// foreach (i; 0 .. num) {
@@ -53,18 +53,18 @@ void copyRange(ref int[] buffer, ulong start, ulong dest, ulong num) {
 	// writefln("copying num: %s from %s to %s, %s => %s", num, start, dest, before, buffer);
 }
 
-void playRound(ref int[] cups, ref ulong pos, int move) {
+void playRound(ref int[] cups, ref size_t pos, int move) {
 	enum log = part1;
 
 	// NB: cups is always arranged so that pos is first.
 	// pos is just there for display purposes...
 
-	ulong numCups = cups.length;
+	size_t numCups = cups.length;
 	
 	if (log) {
 		writefln("-- Move %s --", move+1);
 		foreach(i; 0..numCups) {
-			ulong virtualPos = (i + numCups - pos) % numCups;
+			size_t virtualPos = (i + numCups - pos) % numCups;
 			writef(virtualPos == 0 ? "(%s) " : "%s ", cups[virtualPos]);
 		}
 		writeln();
@@ -84,7 +84,7 @@ void playRound(ref int[] cups, ref ulong pos, int move) {
 		if (destNumber <= 0) destNumber += numCups;
 	} while (taken.indexOf(destNumber) >= 0);
 	
-	ulong destPos = cups.indexOf(destNumber);
+	size_t destPos = cups.indexOf(destNumber);
 	if (log) writeln("Destination: ", destNumber, " pos ", destPos);
 	
 	// now re-shuffle
@@ -122,19 +122,19 @@ void main() {
 
 	int[] cups = data;
 
-	ulong pos = 0;
+	size_t pos = 0;
 	foreach (round; 0 .. ROUNDS) {
 		playRound(cups, pos, round);
 
 		if (round % 10_000 == 0) {
-			ulong split = cups.indexOf(1);
+			size_t split = cups.indexOf(1);
 			writefln("Round %s. Split - %s: %s * %s = %s", round, split, cups[split+1], cups[split+2], cups[split+1] * cups[split+2]);
 		}
 	}
 
 	writeln("Final result:");
 
-	ulong split = cups.indexOf(1);
+	size_t split = cups.indexOf(1);
 	writeln(split);
 	
 	if (part1) {
