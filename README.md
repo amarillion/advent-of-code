@@ -1,4 +1,4 @@
-# advent-of-code-2021
+# Advent of Code solutions in D
 
 My solutions for [advent of code](https://adventofcode.com/)
 
