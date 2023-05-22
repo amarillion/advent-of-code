@@ -45,8 +45,17 @@ bool fullyContains(const RangePair &p) {
 	       (p.second.start >= p.first.start && p.second.end <= p.first.end);
 }
 
+bool anyOverlap(const RangePair &p) {
+	return !(p.first.start > p.second.end ||
+			p.first.end < p.second.start);
+}
+
 auto countContains(const vector<RangePair> &data) {
 	return count_if(data.begin(), data.end(), [=](const RangePair &p){ return fullyContains(p); });
+}
+
+auto countOverlap(const vector<RangePair> &data) {
+	return count_if(data.begin(), data.end(), [=](const RangePair &p){ return anyOverlap(p); });
 }
 
 int main() {
@@ -54,4 +63,7 @@ int main() {
 	assert(countContains(testInput) == 2);
 	auto input = parseInput("input");
 	cout << countContains(input) << '\n';
+
+	assert(countOverlap(testInput) == 4);
+	cout << countOverlap(input) << '\n';
 }
