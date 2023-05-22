@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <set>
 
 using namespace std;
 
@@ -13,16 +14,18 @@ string readInput(const string &fname) {
 	return line;
 }
 
-int findMarker(const string &input) {
-	for (int pos = 0; pos < input.length() - 4; ++pos) {
-		auto s = input.substr(pos, pos + 4);
-		bool dup = false;
-		for (int i = 0; i < 4; ++i) {
-			for (int j = i + 1; j < 4; ++j) {
-				if (s[i] == s[j]) dup = true;
-			}
-		}
-		if (!dup) return pos + 4;
+bool distinctChars(const string &s) {
+	set<char> chars;
+	for (auto ch : s) {
+		chars.insert(ch);
+	}
+	return chars.size() == s.length();
+}
+
+int findMarker(const string &input, int size = 4) {
+	for (int pos = 0; pos < input.length() - size; ++pos) {
+		auto s = input.substr(pos, size);
+		if (distinctChars(s)) return pos + size;
 	}
 	return -1;
 }
@@ -35,4 +38,11 @@ int main() {
 	assert(findMarker("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 11);
 	string input = readInput("day6/input");
 	cout << findMarker(input) << endl;
+
+	assert(findMarker("mjqjpqmgbljsphdztnvjfqwrcgsmlb", 14) == 19);
+	assert(findMarker("bvwbjplbgvbhsrlpgdmjqwftvncz", 14) == 23);
+	assert(findMarker("nppdvjthqldpwncqszvftbrmjlhg", 14) == 23);
+	assert(findMarker("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", 14) == 29);
+	assert(findMarker("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", 14) == 26);
+	cout << findMarker(input, 14) << endl;
 }
