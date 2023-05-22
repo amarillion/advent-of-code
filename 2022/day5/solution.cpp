@@ -10,7 +10,9 @@
 using namespace std;
 
 using Model = vector<deque<char>>;
+using MoveFunc = void(int, deque<char>&, deque<char>&);
 
+// debugging function, outputs state in neat format.
 ostream &operator<<(ostream &os, const Model &model) {
 	size_t maxSize = 0;
 	for (const auto &stack: model) {
@@ -60,7 +62,28 @@ Model parseInitial(istream &is) {
 	return result;
 }
 
-void processMoves(istream &is, Model &model) {
+void move1(int num, deque<char> &from, deque<char> &to) {
+	for (int i = 0; i < num; ++i) {
+		auto item = from.back();
+		from.pop_back();
+		to.push_back(item);
+	}
+}
+
+void move2(int num, deque<char> &from, deque<char> &to) {
+	deque<char> temp;
+	for (int i = 0; i < num; ++i) {
+		auto item = from.back();
+		from.pop_back();
+		temp.push_front(item);
+	}
+	for (char item: temp) {
+		to.push_back(item);
+	}
+}
+
+
+void processMoves(istream &is, Model &model, MoveFunc *moveFunc) {
 	string line;
 
 	while(getline(is, line)) {
@@ -71,11 +94,7 @@ void processMoves(istream &is, Model &model) {
 		int from = stoi(fields[3]) - 1;
 		int to = stoi(fields[5]) - 1;
 
-		for (int i = 0; i < num; ++i) {
-			auto item = model[from].back();
-			model[from].pop_back();
-			model[to].push_back(item);
-		}
+		moveFunc(num, model[from], model[to]);
 
 	}
 //	cout << model << "\n";
@@ -89,14 +108,24 @@ string top(const Model &model) {
 	return ss.str();
 }
 
-string solve1(const string &fname) {
+string solve(const string &fname, MoveFunc *moveFunc) {
 	ifstream fis(fname);
 	Model model = parseInitial(fis);
-	processMoves(fis, model);
+	processMoves(fis, model, moveFunc);
 	return top(model);
 }
 
+auto solve1(const string &fname) {
+	return solve(fname, &move1);
+}
+
+auto solve2(const string &fname) {
+	return solve(fname, &move2);
+}
+
 int main() {
-	assert(solve1("day5/test-input") == "CMZ");
-	cout << solve1("day5/input");
+	assert(solve1("test-input") == "CMZ");
+	assert(solve2("test-input") == "MCD");
+	cout << solve1("input") << '\n';
+	cout << solve2("input") << '\n';
 }
