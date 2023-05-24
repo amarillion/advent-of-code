@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <vector>
+#include "point.h"
 
 // -> size_t
 #include <cstddef>
@@ -15,8 +16,7 @@ protected:
 	int dim_mx;
 	int dim_my;
 
-	inline int indexFromXY(int mx, int my) const
-	{
+	inline int indexFromXY(int mx, int my) const {
 		return mx + dim_mx * my;
 	}
 
@@ -86,6 +86,18 @@ public:
 		return data[indexFromXY(mx, my)];
 	}
 
+	T& operator[](const Point &p) {
+		assert (inBounds(p));
+		assert (data);
+		return data[indexFromXY(p.x(), p.y())];
+	}
+
+	const T& operator[](const Point &p) const {
+		assert (inBounds(p));
+		assert (data);
+		return data[indexFromXY(p.x(), p.y())];
+	}
+
 	/** use parentheses to simulate array notation */
 	T& operator()(unsigned int mx, unsigned int my)
 	{
@@ -133,10 +145,14 @@ public:
 	size_t getDimMX() const { return dim_mx; }
 	size_t getDimMY() const { return dim_my; }
 
-	inline bool inBounds(int mx, int my) const
-	{
+	inline bool inBounds(int mx, int my) const {
 		return (mx >= 0) && (my >= 0) && (mx < dim_mx) && (my < dim_my);
 	}
+
+	inline bool inBounds(const Point &p) const {
+		return (p.x() >= 0) && (p.y() >= 0) && (p.x() < dim_mx) && (p.y() < dim_my);
+	}
+
 };
 
 template <class T>

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "deprecated.h"
-
-class Rect;
+#include <iostream>
 
 template<typename T>
 class Vec2
@@ -74,6 +73,13 @@ public:
 		return (x() != p.x()) || (y() != p.y());
 	}
 
+	// needed for e.g. inserting in a std::set.
+	bool operator<(const Vec2<T> &p) const {
+		return y() == p.y()
+			? x() < p.x()
+			: y() < p.y();
+	}
+
 	/* Get and set functions */
 	T x() const { return posx; }
 	T y() const { return posy; }
@@ -86,6 +92,12 @@ public:
 	DEPRECATED void w(T v) { posx = v; }
 	DEPRECATED void h(T v) { posy = v; }
 };
+
+template<typename T>
+std::ostream &operator<<(std::ostream &os, const Vec2<T> &p) {
+	os << "[" << p.x() << "," << p.y() << "]";
+	return os;
+}
 
 typedef Vec2<int> Point;
 typedef Vec2<float> Vec2f;
