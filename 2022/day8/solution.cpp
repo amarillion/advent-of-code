@@ -72,9 +72,47 @@ int countVisible(const Map2D<short> &grid) {
 	return result.size();
 }
 
+int scan2(Point start, Point delta, const Map2D<short> &grid) {
+	Point pos = start;
+	int count = 0;
+	int min = grid[pos];
+	pos += delta;
+	while(grid.inBounds(pos)) {
+		count++;
+		if (grid[pos] < min) {
+			pos += delta;
+		}
+		else {
+			break;
+		}
+	}
+	return count;
+}
+
+int getScenicScore(const Point &p, const Map2D<short> &grid) {
+	return scan2(p, Point(0, 1), grid) *
+			scan2(p, Point(0, -1), grid) *
+			scan2(p, Point(1, 0), grid) *
+			scan2(p, Point(-1, 0), grid);
+}
+
+
+int getMaxScenicScore(const Map2D<short> &grid) {
+	int max = 0;
+	for(int x = 0; x < grid.getDimMX(); ++x) {
+		for(int y = 0; y < grid.getDimMY(); ++y) {
+			int score = getScenicScore(Point(x, y), grid);
+			if (score > max) { max = score; }
+		}
+	}
+	return max;
+}
+
 int main() {
 	Map2D<short> testInput = readGrid("day8/test-input");
 	assert(countVisible(testInput) == 21);
+	assert(getMaxScenicScore(testInput) == 8);
 	Map2D<short> input = readGrid("day8/input");
 	cout << countVisible(input) << endl;
+	cout << getMaxScenicScore(input) << endl;
 }
