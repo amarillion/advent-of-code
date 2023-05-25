@@ -15,7 +15,6 @@ vector<int> simulate(const string &fname) {
 	ifstream infile(fname);
 	int x = 1;
 	vector<int> result;
-	result.push_back(0); // 0th cycle...
 	while(getline(infile, line)) {
 		if (line == "noop") {
 			result.push_back(x); // one cycle
@@ -33,16 +32,35 @@ vector<int> simulate(const string &fname) {
 	return result;
 }
 
-int solve1(vector<int> data) {
+int solve1(const vector<int> &data) {
 	int sum = 0;
 	for (int i = 20; i <= 220; i += 40) {
-		cout << i << ": " << data[i] << endl;
-		sum += data[i] * i;
+		sum += data[i-1] * i;
 	}
 	return sum;
 }
 
+void render(ostream &os, const vector<int> &data) {
+	for (int pos = 0; pos < 240; ++pos) {
+		int xco = (pos % 40);
+		int signal = data[pos];
+		if (abs(signal - xco) <= 1) {
+			cout << '#';
+		}
+		else {
+			cout << '.';
+		}
+		if (pos % 40 == 39) os << '\n';
+	}
+}
+
 int main() {
-	assert(solve1(simulate("day10/test-input")) == 13140);
-	cout << solve1(simulate("day10/input"));
+	auto testInput = simulate("day10/test-input");
+	assert(solve1(testInput) == 13140);
+	auto input = simulate("day10/input");
+	cout << solve1(input) << '\n';
+
+	render(cout, testInput);
+	cout << '\n';
+	render(cout, input);
 }
