@@ -66,7 +66,7 @@ public:
 	bool operator<(const Vec3<T> &p) const {
 		return posz == p.z()
 				? (posy == p.y()
-					   ? posz < p.x()
+					   ? posx < p.x()
 					   : posy < p.y())
 			   : posz < p.z();
 	}
