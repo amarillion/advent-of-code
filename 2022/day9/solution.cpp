@@ -7,13 +7,9 @@
 #include <fstream>
 #include <string>
 #include <set>
+#include <deque>
 
 using namespace std;
-
-struct State {
-	Point head {0, 0};
-	Point tail {0, 0 };
-};
 
 struct Step {
 	Point dir {0, 0};
@@ -38,30 +34,37 @@ template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
-size_t simulate(const string &fname) {
-	State state;
+size_t simulate(const string &fname, int nodes = 2) {
+	deque<Point> state;
+	size_t tail = nodes - 1;
 	ifstream infile(fname);
 	string line;
 	set<Point> visited;
 
-	visited.insert(state.tail);
+	// init state
+	for (int i = 0; i < nodes; ++i) {
+		state.push_back(Point(0,0));
+	}
+
+	visited.insert(state[tail]);
 
 	while(getline(infile, line)) {
 		Step step = parseStep(line);
 
 		for (int i = 0; i < step.num; ++i) {
 			// head movement
-			state.head += step.dir;
+			state[0] += step.dir;
 			// tail movement
 
-			Point delta = state.head - state.tail;
-			bool hasTwo = (abs(delta.x()) >= 2) || (abs(delta.y()) >= 2);
-			if (hasTwo) {
-				Point move = Point(sgn(delta.x()), sgn(delta.y()));
-				state.tail += move;
+			for (int j = 1; j < state.size(); ++j) {
+				Point delta = state[j-1] - state[j];
+				bool hasTwo = (abs(delta.x()) >= 2) || (abs(delta.y()) >= 2);
+				if (hasTwo) {
+					Point move = Point(sgn(delta.x()), sgn(delta.y()));
+					state[j] += move;
+				}
 			}
-
-			visited.insert(state.tail);
+			visited.insert(state[tail]);
 		}
 	}
 
@@ -69,6 +72,8 @@ size_t simulate(const string &fname) {
 }
 
 int main() {
-	assert(simulate("day9/test-input") == 13);
-	cout << simulate("day9/input");
+	assert(simulate("test-input") == 13);
+	assert(simulate("test-input", 10) == 1);
+	cout << simulate("input") << '\n';
+	cout << simulate("input", 10) << '\n';
 }
