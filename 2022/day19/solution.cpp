@@ -84,22 +84,18 @@ vector<Option> getOptions(const Blueprint &bp, const State &state) {
 	if (canGeode) {
 		result.push_back(Res::GEODE_ROBOT);
 	}
-	if (canObs) {
-		result.push_back(Res::OBSIDIAN_ROBOT);
-	}
-	if (!canGeode && !canObs) {
-		if (canOre && state[Res::ORE_ROBOT] < 10) {
+	else {
+		if (canObs) {
+			result.push_back(Res::OBSIDIAN_ROBOT);
+		}
+		if (canOre && state[Res::ORE_ROBOT] < 5) {
 			result.push_back(Res::ORE_ROBOT);
 		}
-		if (canClay && state[Res::CLAY_ROBOT] < 10) {
+		if (canClay && state[Res::CLAY_ROBOT] < 21) {
 			result.push_back(Res::CLAY_ROBOT);
 		}
-	}
-	// if we can't do both, we may want to hold off...
-	if (!(canClay && canOre)) {
 		result.push_back(Res::SKIP);
 	}
-
 	return result;
 };
 
@@ -121,13 +117,26 @@ State applyOption(const Blueprint &bp, const State &state, const Option &opt) {
 	return next;
 }
 
-int search(const Blueprint &bp) {
+
+int score(const State &s) {
+	return
+			s[GEODE] * 16 +
+			s[GEODE_ROBOT] * 16 +
+//			s[OBSIDIAN] * 1 +
+			s[OBSIDIAN_ROBOT] * 8 +
+//			s[CLAY] * 1 +
+			s[CLAY_ROBOT] * 4 +
+//			s[ORE] * 1 +
+			s[ORE_ROBOT] * 2;
+}
+
+int search(const Blueprint &bp, int maxMinutes) {
 	int it = 0;
 	State start { 0 };
 	start[Res::ORE_ROBOT] = 1;
 	vector<State> open { start };
 	vector<State> next;
-	for (int minute = 1; minute <= 24; ++minute) {
+	for (int minute = 1; minute <= maxMinutes; ++minute) {
 		next.clear();
 
 		while(!open.empty()) {
@@ -140,10 +149,17 @@ int search(const Blueprint &bp) {
 				next.push_back(newState);
 			}
 		}
-//		cout << "Minute " << minute << " Open set " << next.size() << endl;
-		open = next;
+		sort(next.begin(), next.end(), [&](const State &a, const State &b){ return score(b) < score(a); });
+		int maxSize = 100'000;
+		if (next.size() > maxSize) {
+			open = vector<State>(next.begin(), next.begin() + maxSize);
+		}
+		else {
+			open = next;
+		}
+		cout << "." << flush;
 	}
-//	cout << "Total iterations: " << it << endl;
+	cout << "Total iterations: " << it;
 	int max = -1;
 	for (const auto &state: open) {
 		int val = state[Res::GEODE];
@@ -152,13 +168,14 @@ int search(const Blueprint &bp) {
 		}
 	}
 
+	cout << ", Result: " << max << endl;
 	return max;
 }
 
-int solve1(const vector<Blueprint> &bps) {
+int solve1(const vector<Blueprint> &bps, int maxMinutes = 24) {
 	int sum = 0;
 	for (int i = 0; i < bps.size(); ++i) {
-		int value = search(bps[i]);
+		int value = search(bps[i], maxMinutes);
 		sum += value * (i + 1);
 		cout << "Blueprint " << i + 1 << " " << value << endl;
 	}
@@ -167,7 +184,17 @@ int solve1(const vector<Blueprint> &bps) {
 
 int main() {
 	auto testInput = readData("day19/test-input");
+
+	assert(search(testInput[0], 32) == 56);
+	assert(search(testInput[1], 32) == 62);
+
 	assert(solve1(testInput) == 33);
+
+
 	auto input = readData("day19/input");
-	cout << solve1(input);
+
+	cout << solve1(input) << endl;
+	// 2193
+	cout << search(input[0], 32) * search(input[1], 32) * search(input[2], 32) << endl;
+	// 18 * 16 * 25 -> 7200
 }
