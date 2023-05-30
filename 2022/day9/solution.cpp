@@ -2,6 +2,7 @@
 
 #include "../common/strutil.h"
 #include "../common/map2d.h"
+#include "../common/mathutil.h"
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -27,11 +28,6 @@ Step parseStep(const string &line) {
 	}
 	int num = stoi(line.substr(2));
 	return Step { dir, num };
-}
-
-// after: https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
-template <typename T> int sgn(T val) {
-	return (T(0) < val) - (val < T(0));
 }
 
 size_t simulate(const string &fname, int nodes = 2) {
