@@ -8,8 +8,10 @@ import std.string;
 /**
 In groups of items, find an item that occurs in each group.
 Ends with an assertion failure if no such item can be found.
+
+TODO: can we take Range(T)[] instead of T[][]?
 */
-T findCommonElement(T)(T[][] groups) {
+T findCommonElement(T)(ref T[][] groups) {
 	int[T] found;
 	int i = 1;
 	foreach(group; groups) {
@@ -28,8 +30,9 @@ T findCommonElement(T)(T[][] groups) {
 int part1(string[] lines) {
 	int sum = 0;
 	foreach (line; lines) {
-		// TODO: use evenChunks... -> complains that string has no length property.
-		// auto parts = line.evenChunks(2);
+		// TODO: use evenChunks... -> complains that string has no length property -> need to use line.representation 
+		// see discussion: https://forum.dlang.org/post/dficgtrlagvggfadtiwz@forum.dlang.org
+		// auto parts = line.representation.evenChunks(2);
 		string[] parts = [ line[0..$/2], line[$/2..$] ];
 		char item = findCommonElement(parts);
 		int foundIndex = item >= 'a' ? (item - 'a' + 1) : (item - 'A' + 27);
