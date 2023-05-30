@@ -108,15 +108,28 @@ auto readGrid(const string &fname) {
 	return grid;
 }
 
-bool simulateSingleSand(Grid &grid) {
+bool simulateSingleSand(Grid &grid, bool hasFloor, int floorLevel) {
 	Point sand { 500, 0 };
 	const Point down { 0, 1 };
 	const Point downLeft { -1, 1 };
 	const Point downRight { 1, 1 };
 
+	if (grid[sand] == 'o') {
+		return false; // input blocked.
+	}
+
 	while(true) {
-		if (sand.y() > grid.max().y()) {
-			return false; // fell out the bottom
+		if (hasFloor) {
+			if (sand.y() == floorLevel) {
+				// come to rest.
+				grid.set(sand, 'o');
+				return true;
+			}
+		}
+		else {
+			if (sand.y() > grid.max().y()) {
+				return false; // fell out the bottom
+			}
 		}
 
 		// falling?
@@ -137,9 +150,10 @@ bool simulateSingleSand(Grid &grid) {
 	}
 }
 
-int simulateSand(Grid &grid) {
+int simulateSand(Grid &grid, bool hasFloor) {
 	int count = 0;
-	while (simulateSingleSand(grid)) {
+	int floorLevel = grid.max().y() + 1;
+	while (simulateSingleSand(grid, hasFloor, floorLevel)) {
 		count++;
 	}
 	grid.toStream(cout);
@@ -147,12 +161,15 @@ int simulateSand(Grid &grid) {
 	return count;
 }
 
-int solve(const string &fname) {
+int solve(const string &fname, bool hasFloor) {
 	auto grid = readGrid(fname);
-	return simulateSand(grid);
+	return simulateSand(grid, hasFloor);
 }
 
 int main() {
-	assert(solve("day14/test-input") == 24);
-	cout << solve("day14/input");
+	assert(solve("day14/test-input", false) == 24);
+	assert(solve("day14/test-input", true) == 93);
+
+	cout << solve("day14/input", false) << endl;
+	cout << solve("day14/input", true) << endl;
 }
