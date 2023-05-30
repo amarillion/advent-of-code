@@ -2,6 +2,7 @@
 
 #include "deprecated.h"
 #include <iostream>
+#include "mathutil.h"
 
 template<typename T>
 class Vec2
@@ -91,6 +92,14 @@ public:
 	DEPRECATED T h() const { return posy; }
 	DEPRECATED void w(T v) { posx = v; }
 	DEPRECATED void h(T v) { posy = v; }
+
+	/**
+	 * Reduces both x and y to -1, 0 or 1
+	 * For example Point(-9, 0) becomes Point(-1, 0)
+	 */
+	Vec2<T> sign() {
+		return Vec2<T>(sgn(posx), sgn(posy));
+	}
 };
 
 template<typename T>
