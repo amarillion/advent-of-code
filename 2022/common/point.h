@@ -100,6 +100,10 @@ public:
 	Vec2<T> sign() {
 		return Vec2<T>(sgn(posx), sgn(posy));
 	}
+
+	int manhattan() {
+		return abs(posx) + abs(posy);
+	}
 };
 
 template<typename T>

@@ -67,28 +67,111 @@ void crossSection(const Sensor &sensor, int y, vector<Range> &ranges) {
 		}
 	}
 	else {
-		cout << "Skipping sensor " << sensor << endl;
+//		cout << "Skipping sensor " << sensor << endl;
 	}
 }
 
-size_t solve(const string &fname, int y) {
-	auto sensors = read(fname);
+size_t rangeSum(const vector<Range> &ranges) {
+	size_t sum = 0;
+	for (const auto &range: ranges) {
+		sum += (range.end - range.start) + 1;
+	}
+	return sum;
+}
+
+vector<Range> mergeOverlapping(const vector<Range> &ranges) {
+	vector<Range> open = ranges;
+	sort(open.begin(), open.end(), [&](const Range &a, const Range &b){ return a.start < b.start; });
+	vector<Range> result;
+
+	int it = 0;
+	while (!open.empty()) {
+		size_t sum = rangeSum(open) + rangeSum(result);
+//		cout << "Iteration: " << (++it) << " Open: " << open << " Result: " << result << " total covered " << sum << endl;
+		Range current = open.back();
+		open.pop_back();
+
+		bool keep = true;
+		for (const auto &needle : open) {
+			if (current.start >= needle.start && current.end <= needle.end) {
+				// current is completely contained by needle, we can drop current from the list.
+				keep = false;
+			}
+			// current is left of needle...
+			else if (current.start < needle.start && current.end >= needle.start) {
+				open.push_back({current.start, needle.start - 1});
+				keep = false;
+				break;
+			}
+			// current is right of needle
+			else if (current.start <= needle.end && current.end > needle.end) {
+				open.push_back({needle.end + 1, current.end });
+				keep = false;
+				break;
+			}
+			// no overlap
+		}
+		if (keep) {
+			result.push_back(current);
+		}
+		sort(open.begin(), open.end(), [&](const Range &a, const Range &b){ return a.start < b.start; });
+		sort(result.begin(), result.end(), [&](const Range &a, const Range &b){ return a.start < b.start; });
+	}
+	size_t sum = rangeSum(open) + rangeSum(result);
+//	cout << "Iteration: " << (++it) << " Open: " << open << " Result: " << result << " total covered " << sum << endl;
+	return result;
+}
+
+size_t solve1(const vector<Sensor> &sensors, int y) {
 	vector<Range> ranges;
 	for (const auto &s: sensors) {
 		crossSection(s, y, ranges);
 	}
 
-	set<int> nonBeacon;
-	for (const auto &range: ranges) {
-		for (int i = range.start; i <= range.end; ++i) {
-			nonBeacon.insert(i);
+	auto nonOverlappingSet = mergeOverlapping(ranges);
+
+	return rangeSum(nonOverlappingSet);
+}
+
+Point find(const vector<Sensor> &sensors, int maxCoord) {
+	set<Point> knownBeacons;
+	for (const auto &s: sensors) {
+		knownBeacons.insert(s.nearestBeacon);
+	}
+	for (int y = 0; y < maxCoord; ++y) {
+		vector<Range> ranges;
+		for (const auto &s: sensors) {
+			crossSection(s, y, ranges);
+		}
+		auto nonOverlappingSet = mergeOverlapping(ranges);
+
+		// assuming sorted...
+		for (int i = 1; i < nonOverlappingSet.size(); ++i) {
+			const auto &r1 = nonOverlappingSet[i-1];
+			const auto &r2 = nonOverlappingSet[i];
+			if (r1.end > 0 && r2.start < maxCoord && r2.start - r1.end == 2) {
+				Point result { r1.end + 1, y };
+				if (!knownBeacons.contains(result)) {
+					cout << "Found! " << result << endl;
+					return result;
+				}
+			}
 		}
 	}
-//	cout << ranges << " -> " << nonBeacon << endl;
-	return nonBeacon.size();
+
+	assert(false); // we must find something
+}
+
+long solve2(const Point &p) {
+	return p.x() * 4'000'000L + p.y();
 }
 
 int main() {
-	assert(solve("day15/test-input", 10) == 26);
-	cout << solve("day15/input", 2'000'000) << endl;
+	auto testInput = read("day15/test-input");
+	assert(solve1(testInput, 10) == 26);
+	auto input = read("day15/input");
+	assert(solve1(input, 2'000'000) == 5'166'077); // solution part 1.
+
+	assert(solve2(find(testInput, 20)) == 56'000'011);
+	assert(solve2(find(input, 4'000'000)) == 13'071'206'703'981L); // solution part 2.
 }

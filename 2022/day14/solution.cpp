@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <regex>
 #include <unordered_set>
 
 using namespace std;
