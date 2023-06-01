@@ -33,14 +33,7 @@ Map2D<short> readGrid(const string &fname) {
 
 template<typename T>
 ostream &operator<<(ostream &os, const Map2D<T> &map) {
-	for (int y = 0; y < map.getDimMY(); ++y) {
-		bool rowFirst = true;
-		for (int x = 0; x < map.getDimMX(); ++x) {
-			if (rowFirst) { rowFirst = false; } else { os << ", "; }
-			os << map(x, y);
-		}
-		os << '\n';
-	}
+	map.repr(os);
 	return os;
 }
 
