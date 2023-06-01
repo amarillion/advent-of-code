@@ -1,10 +1,20 @@
-# Advent of Code solutions in D
+# Advent of Code
 
 My solutions for [advent of code](https://adventofcode.com/)
 
-I'm using the [programming language D](https://dlang.org/).
+## How to run C++
 
-## Instructions
+C++ solutions use the Clang "shebang" line so you can run them as script.
+With clang installed, just do
+
+```
+cd 2022/day4
+./solution.cpp
+```
+
+## How to run D
+
+Some solutions use the [programming language D](https://dlang.org/).
 
 To run a solution, with D installed, just do
 
