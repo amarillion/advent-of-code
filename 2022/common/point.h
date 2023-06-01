@@ -104,6 +104,13 @@ public:
 	int manhattan() {
 		return abs(posx) + abs(posy);
 	}
+
+	void mod(const Vec2<T> &bounds) {
+		while (posx < 0) posx += bounds.x();
+		while (posy < 0) posy += bounds.y();
+		posx %= bounds.x();
+		posy %= bounds.y();
+	}
 };
 
 template<typename T>

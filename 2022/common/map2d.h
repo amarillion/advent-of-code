@@ -153,6 +153,16 @@ public:
 		return (p.x() >= 0) && (p.y() >= 0) && (p.x() < dim_mx) && (p.y() < dim_my);
 	}
 
+	void repr(std::ostream &os, const char *sep = ", ", const char *rowSep = "\n") {
+		for (int y = 0; y < dim_my; ++y) {
+			bool rowFirst = true;
+			for (int x = 0; x < dim_mx; ++x) {
+				if (rowFirst) { rowFirst = false; } else { os << sep; }
+				os << get(x, y);
+			}
+			os << rowSep;
+		}
+	}
 };
 
 template <class T>
