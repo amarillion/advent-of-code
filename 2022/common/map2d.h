@@ -50,11 +50,12 @@ public:
 		}
 	}
 
-	Map2D (int w, int h)
+	Map2D (int w, int h, T defaultValue = T(0))
 	{
 		assert (w >= 0);
 		assert (h >= 0);
 		data = new T[w * h];
+		std::fill(data, data + (w * h), defaultValue);
 		dim_mx = w;
 		dim_my = h;
 	}
