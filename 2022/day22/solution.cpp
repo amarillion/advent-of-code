@@ -8,7 +8,6 @@
 #include <fstream>
 #include <string>
 
-// part 2: 10:46-11:40; 13:52-13:18, 8:44-9:03, 18:22-20:06   9:15-9:30  17:00-17:41
 using namespace std;
 
 using Grid = Map2D<char>;
@@ -45,7 +44,7 @@ struct Map {
 			}
 			link(dest, src, reverseDirection, reverseOrientation, false);
 
-			repr(std::cout);
+//			repr(std::cout);
 		}
 	}
 
@@ -65,50 +64,6 @@ struct Map {
 		}
 	}
 };
-
-
-Map initTest() {
-	enum {
-		A, B, C, D, E, F
-	};
-/*
-
- 4x4
-
-  A
-BCD
-  EF
-
- */
-	Map result;
-	result.tileSize = 4;
-	Face *faces = result.faces;
-	faces[A] = Face({ 8, 0 } );
-	faces[B] = Face({ 0, 4 } );
-	faces[C] = Face({ 4, 4 } );
-	faces[D] = Face({ 8, 4 } );
-	faces[E] = Face({ 8, 8 } );
-	faces[F] = Face({12, 8 } );
-	result.link(A, A, 0);
-	result.link(A, D, 1);
-
-	result.link(B, C, 0);
-	result.link(B, B, 1);
-
-	result.link(C, D, 0);
-	result.link(C, C, 1);
-
-	result.link(D, B, 0);
-	result.link(D, E, 1);
-
-	result.link(E, F, 0);
-	result.link(E, A, 1);
-
-	result.link(F, E, 0);
-	result.link(F, F, 1);
-
-	return result;
-}
 
 struct State {
 	Point pos;
@@ -138,7 +93,6 @@ void testMap(Map &map, bool cube = true) {
 	// create an empty map;
 	Grid grid { map.tileSize * 4, map.tileSize * 4, ' ' };
 	for (const auto &face : map.faces) {
-		cout << face.uv << endl;
 		for (int x = 0; x < map.tileSize; ++x) {
 			for (int y = 0; y < map.tileSize; ++y) {
 				Point pos = face.uv + Point(x, y);
@@ -147,38 +101,30 @@ void testMap(Map &map, bool cube = true) {
 		}
 	}
 
-	State init { {0, 0}, &map.faces[0], 0 };
-	State state = init;
+	for (int facing = 0; facing < 3; ++facing) {
+		State init{{0, 0}, &map.faces[0], facing};
+		State state = init;
 
-	// try moving on the map from start all the way around...
-	for (int i = 0; i < 4; ++i) {
-		move(grid, map, state, map.tileSize);
+		// try moving on the map from start all the way around the cube in one direction
+		for (int i = 0; i < 4; ++i) {
+			move(grid, map, state, map.tileSize);
+		}
+		assert(init == state); // should arrive back where we started
 	}
-	grid.repr(cout, ""); cout << endl;
-
-	assert(init == state);
-
-	init = State { {0, 0}, &map.faces[0], 3 };
-	state = init;
-
-	// try moving on the map from start all the way around...
-	for (int i = 0; i < 4; ++i) {
-		move(grid, map, state, map.tileSize);
-	}
-	grid.repr(cout, ""); cout << endl;
-
-	assert(init == state);
 }
 
-Map initTest2() {
+Map initTest(bool isCube) {
 	enum {
 		A, B, C, D, E, F
 	};
 /*
+
  4x4
+
   A
 BCD
   EF
+
  */
 	Map result;
 	result.tileSize = 4;
@@ -190,28 +136,36 @@ BCD
 	faces[E] = Face({ 8, 8 } );
 	faces[F] = Face({12, 8 } );
 
-	result.link(A, F, 0, 2);
 	result.link(A, D, 1);
-	result.link(A, B, 3, 2);
-	result.link(A, C, 2, 1);
-
 	result.link(B, C, 0);
-	result.link(B, E, 1, 2);
-
 	result.link(C, D, 0);
-	result.link(C, E, 1, 1);
-
-	result.link(D, F, 0, 3);
 	result.link(D, E, 1);
-
 	result.link(E, F, 0);
-	result.link(F, B, 1, 1);
 
-	testMap(result);
+	if (isCube) {
+		result.link(A, F, 0, 2);
+		result.link(A, B, 3, 2);
+		result.link(A, C, 2, 1);
+		result.link(B, E, 1, 2);
+		result.link(C, E, 1, 1);
+		result.link(D, F, 0, 3);
+		result.link(F, B, 1, 1);
+	}
+	else {
+		result.link(A, A, 0);
+		result.link(B, B, 1);
+		result.link(C, C, 1);
+		result.link(F, F, 1);
+		result.link(D, B, 0);
+		result.link(E, A, 1);
+		result.link(F, E, 0);
+	}
+
+	testMap(result, isCube);
 	return result;
 }
 
-Map initMain() {
+Map initMain(bool isCube) {
 	enum { A, B, C, D, E, F };
 
 	Map result;
@@ -235,65 +189,29 @@ F
 
 	result.link(A, B, 0);
 	result.link(A, C, 1);
-
-	result.link(B, A, 0);
-	result.link(B, B, 1);
-
-	result.link(C, C, 0);
 	result.link(C, E, 1);
-
 	result.link(D, E, 0);
 	result.link(D, F, 1);
 
-	result.link(E, D, 0);
-	result.link(E, A, 1);
-
-	result.link(F, F, 0);
-	result.link(F, D, 1);
-
-	return result;
-}
-
-Map initMain2() {
-	enum { A, B, C, D, E, F };
-
-	Map result;
-	result.tileSize = 50;
-	Face *faces = result.faces;
-	/*
-50x50
-
- AB
- C
-DE
-F
-*/
-
-	faces[A] = Face({ 50, 0 } );
-	faces[B] = Face({ 100, 0 } );
-	faces[C] = Face({ 50, 50 } );
-	faces[D] = Face({ 0, 100 } );
-	faces[E] = Face({ 50, 100 } );
-	faces[F] = Face({0, 150 } );
-
-	result.link(A, B, 0);
-	result.link(A, C, 1);
-	result.link(A, D, 2, 2);
-	result.link(A, F, 3, 3);
-
-	result.link(B, E, 0, 2);
-	result.link(B, C, 1, 3);
-	result.link(B, F, 3);
-
-	result.link(C, E, 1);
-	result.link(C, D, 2, 1);
-
-	result.link(D, E, 0);
-	result.link(D, F, 1);
-
-	result.link(E, F, 1, 3);
-
-	testMap(result);
+	if (isCube) {
+		result.link(A, D, 2, 2);
+		result.link(A, F, 3, 3);
+		result.link(B, E, 0, 2);
+		result.link(B, C, 1, 3);
+		result.link(B, F, 3);
+		result.link(C, D, 2, 1);
+		result.link(E, F, 1, 3);
+	}
+	else {
+		result.link(B, A, 0);
+		result.link(B, B, 1);
+		result.link(C, C, 0);
+		result.link(E, D, 0);
+		result.link(E, A, 1);
+		result.link(F, F, 0);
+		result.link(F, D, 1);
+	}
+	testMap(result, false);
 	return result;
 }
 
@@ -413,7 +331,6 @@ int solve1(const string &fname, const Map &map) {
 
 	string route;
 	getline(infile, route);
-	cout << route << endl;
 
 	auto state = walk(grid, map, route);
 
@@ -424,20 +341,19 @@ int solve1(const string &fname, const Map &map) {
 
 	auto gridPos = state.face->uv + state.pos;
 	int result = (gridPos.y() + 1) * 1000 + (gridPos.x() + 1) * 4 + state.facing;
-	cout << result << endl;
 	return result;
 }
 
 int main() {
-	Map testMap = initTest();
+	Map testMap = initTest(false);
 	assert(solve1("day22/test-input", testMap) == 6032);
 
-	Map input = initMain();
+	Map input = initMain(false);
 	cout << solve1("day22/input", input) << endl; // 89224
 
-	Map testMap2 = initTest2();
+	Map testMap2 = initTest(true);
 	assert(solve1("day22/test-input", testMap2) == 5031);
 
-	Map input2 = initMain2();
+	Map input2 = initMain(true);
 	cout << solve1("day22/input", input2) << endl; // 136182
 }
