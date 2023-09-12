@@ -1,0 +1,12 @@
+{
+  "name": "advent-of-code-2020",
+  "version": "1.0.0",
+  "description": "My solutions for adventofcode.com/2020",
+  "type": "module",
+  "author": "Martijn van Iersel",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.15.0"
+  }
+}
