@@ -91,3 +91,8 @@ export function writeChar(ch) {
 	buffer[0] = ch;
 	fs.writeSync(0, buffer);
 }
+
+export function readStdinLines() {
+	const buffer = fs.readFileSync(0); // STDIN_FILENO = 0$
+	return buffer.toString().split('\n');
+}
