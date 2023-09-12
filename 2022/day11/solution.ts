@@ -1,10 +1,14 @@
 #!/usr/bin/env ts-node
 
-// import { readFileSync } from 'fs';
-// let raw = readFileSync('input').toString('utf-8');
-// let lines = raw.split('\n');
+class Monkey {
+	items: number[];
+	op: (x: number) => number;
+	modulo: number;
+	ifTrue: number;
+	ifFalse: number;
+}
 
-const TEST_INPUT = [{
+const TEST_INPUT: Monkey[] = [{
 	items: [79, 98],
 	op: x => x * 19,
 	modulo: 23, ifTrue: 2, ifFalse: 3
@@ -22,7 +26,7 @@ const TEST_INPUT = [{
 	modulo: 17, ifTrue: 0, ifFalse: 1
 }];
 
-const INPUT = [{ 
+const INPUT: Monkey[] = [{ 
 	items: [54, 89, 94],
 	op: x => x * 7,
 	modulo: 17,
@@ -72,42 +76,64 @@ const INPUT = [{
 	ifFalse: 4
 }];
 
-const monkeys = INPUT;
-
-//TODO: use DefaultMap
-const activity = new Map<number, number>();
-for (let mi = 0; mi < monkeys.length; ++mi) {
-	activity.set(mi, 0);
-}
-
-for (let round = 0; round < 20; ++round) {
-	console.log(`ROUND ${round}`);
+function doRound(round: number, monkeys: Monkey[], activity: Map<number, number>, worryReduction: boolean, filter: number, log: boolean) {
+	if (log) console.log(`ROUND ${round}`);
 	let mi = 0;
 	for (const m of monkeys) {
-		console.log(`Monkey ${mi}:`);
+		if (log) console.log(`Monkey ${mi}:`);
 		while (m.items.length > 0) {
-			const i = m.items.shift();
-			console.log(`  Monkey inspects an item with worry level ${i}`);
+			let i = m.items.shift();
+			if (log) console.log(`  Monkey inspects an item with worry level ${i}`);
 			// TODO: use function to modify map
 			activity.set(mi, activity.get(mi) + 1);
-			const j = m.op(i);
-			console.log(`    New worry level: ${j}`);
-			const k = Math.floor(j / 3);
-			console.log(`    Divided by three: ${k}`);
-			const divisible = (k % m.modulo) === 0;
-			console.log(`    Current worry level ${divisible ? "" : "not "} divisible by ${m.modulo}`);
+			i = m.op(i);
+			if (log) console.log(`    New worry level: ${i}`);
+			if (worryReduction) {
+				i = Math.floor(i / 3);
+				if (log) console.log(`    Divided by three: ${i}`);
+			}
+			i %= filter; // alternative worry reduction
+			const divisible = (i % m.modulo) === 0;
+			if (log) console.log(`    Current worry level ${divisible ? "" : "not "} divisible by ${m.modulo}`);
 			const target = divisible ? m.ifTrue : m.ifFalse;
-			console.log(`    Item with worry level ${k} is thrown to monkey ${target}`);
-			monkeys[target].items.push(k);
+			if (log) console.log(`    Item with worry level ${i} is thrown to monkey ${target}`);
+			monkeys[target].items.push(i);
 		}
-		m.items = [];
 		mi++;
 	}
 }
 
-for (let mi = 0; mi < monkeys.length; ++mi) {
-	console.log(`Monkey ${mi} inspected items ${activity.get(mi)} times`);
+function run(monkeys: Monkey[], max_rounds: number, worryReduction = true) {
+	const filter = monkeys.reduce((acc, cur) => acc *= cur.modulo, 1);
+	console.log("Filter: ", filter);
+
+	//TODO: use DefaultMap
+	const activity = new Map<number, number>();
+	for (let mi = 0; mi < monkeys.length; ++mi) {
+		activity.set(mi, 0);
+	}
+
+	for (let round = 1; round <= max_rounds; ++round) {
+		doRound(round, monkeys, activity, worryReduction, filter, round === 1);
+
+		if (round == 1 || round == 20 || round % 1000 == 0) {
+			console.log(`End of round ${round}`);
+			for (let mi = 0; mi < monkeys.length; ++mi) {
+				console.log(`Monkey ${mi} inspected items ${activity.get(mi)} times`);
+			}
+		}
+	
+	}
+
+	const activities = [...activity.values()].sort((a, b) => b - a)
+	console.log(activities);
+	console.log("Total: ", activities[0] * activities[1]);
 }
-const activities = [...activity.values()].sort((a, b) => b - a)
-console.log(activities);
-console.log("Total: ", activities[0] * activities[1]);
+
+// run(TEST_INPUT, 20);
+// run(INPUT, 20);
+
+
+// TODO: make a deep copy of Monkeys array, so it can be re-used.
+run(TEST_INPUT, 10_000, false);
+run(INPUT, 10_000, false);
