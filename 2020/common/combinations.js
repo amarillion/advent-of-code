@@ -26,3 +26,25 @@ export function* allSlices(data) {
 		}
 	}
 }
+
+// source: https://stackoverflow.com/a/37580979/3306
+// using Heap's algorithm...
+export function* permute(permutation) {
+	const length = permutation.length;
+	const c = Array(length).fill(0);
+	let i = 1, k;
+
+	yield permutation.slice();
+	while (i < length) {
+		if (c[i] < i) {
+			k = i % 2 && c[i];
+			[ permutation[i], permutation[k] ] = [ permutation[k], permutation[i] ]; 
+			++c[i];
+			i = 1;
+			yield permutation.slice();
+		} else {
+			c[i] = 0;
+			++i;
+		}
+	}
+}
