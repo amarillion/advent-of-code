@@ -9,6 +9,12 @@ export class Grid {
 		this.data = [];
 	}
 
+	clear(value) {
+		for (let i = 0; i < this.width * this.height; ++i) {
+			this.data[i] = value;
+		}
+	}
+
 	indexOf(x, y) {
 		return (this.width * y) + x;
 	}
