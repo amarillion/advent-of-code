@@ -45,6 +45,8 @@ function drawGrid(grid: SparseGrid<string>) {
 
 function step(grid: SparseGrid<string>, mobs: Mob[], stepCount: number) {
 	const collisionMap = new SparseGrid<number>();
+	let moves = 0;
+
 	const adjacent = {
 		N: new Point(0, -1), 
 		NE: new Point(1, -1),
@@ -100,32 +102,51 @@ function step(grid: SparseGrid<string>, mobs: Mob[], stepCount: number) {
 	
 	const newGrid = new SparseGrid<string>();
 	for (const mob of mobs) {
+		let mobMoved = true;
+		if (mob.pos === mob.dest) mobMoved = false;
 		// console.log(`Mob at ${mob.pos} wants to move to ${mob.dest}, target: ${collisionMap.get(mob.dest)}`);
 		if (collisionMap.get(mob.dest) < 2) {
 			mob.pos = mob.dest;
-			mob.dest = null;
+		}
+		else {
+			mobMoved = false;
 		}
 		newGrid.set(mob.pos, '#');
+		if (mobMoved) moves++;
 	}
-	return newGrid;
+	return { grid: newGrid, moves };
 }
 
 function solve(fname: string) {
 
+	let moves = 0;
 	let { grid, mobs } = loadGrid(fname);
 	console.log(drawGrid(grid));
-	for (let i = 0; i < 10; ++i) {
-		grid = step(grid, mobs, i);
-		console.log(`After round ${i+1}`);
+	let i = 0;
+	for (; i < 10; ++i) {
+		const result = step(grid, mobs, i);
+		grid = result.grid;
+		moves = result.moves;
+		console.log(`After round ${i+1}, Moves: ${result.moves}`);
 		console.log(drawGrid(grid));
+	}
 
+	const part1 = ((grid.maxX - grid.minX + 1) * (grid.maxY - grid.minY + 1)) - mobs.length;
+
+	while (moves > 0) {
+		const result = step(grid, mobs, i);
+		grid = result.grid;
+		moves = result.moves;
+		console.log(`After round ${i+1}, Moves: ${result.moves}`);
+		++i;
 	}
 
 	// const result = drawGrid(grid);
-	const result = ((grid.maxX - grid.minX + 1) * (grid.maxY - grid.minY + 1)) - mobs.length;
-	return result;
+	return { part1, part2: i };
 }
 
 
-assert(solve('test-input') === 110);
-console.log(solve('input')); // 3920 -> correct
+const testResult = solve('test-input');
+console.log(testResult);
+assert(testResult.part1 === 110 && testResult.part2 === 20);
+console.log(solve('input')); // 3920, 889
