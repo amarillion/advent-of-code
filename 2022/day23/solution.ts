@@ -48,14 +48,14 @@ function step(grid: SparseGrid<string>, mobs: Mob[], stepCount: number) {
 	let moves = 0;
 
 	const adjacent = {
-		N: new Point(0, -1), 
-		NE: new Point(1, -1),
-		E: new Point(1, 0),
-		SE: new Point(1, 1),
-		S: new Point(0, 1),
-		SW: new Point(-1, 1),
-		W: new Point(-1, 0),
-		NW: new Point(-1, -1)
+		N: {x: 0, y: -1}, 
+		NE: {x: 1, y: -1},
+		E: {x: 1, y: 0},
+		SE: {x: 1, y: 1},
+		S: {x: 0, y: 1},
+		SW: {x: -1, y: 1},
+		W: {x: -1, y: 0},
+		NW: {x: -1, y: -1}
 	}
 
 	const options = [

@@ -1,4 +1,4 @@
-import { Point } from "./point.js";
+import { IPoint } from "./point.js";
 
 /**
  * Wraps a Map<hash(Point), V>, while keeping track of coordinate range.
@@ -19,8 +19,12 @@ export class SparseGrid<V> {
 	constructor() {
 	}
 	
-	set(p : Point, value: V) {
-		const key = p.toString();
+	private static toKey(p: IPoint) {
+		return `${p.x},${p.y}`;
+	}
+
+	set(p : IPoint, value: V) {
+		const key = SparseGrid.toKey(p);
 		if (!this.data.has(key)) {
 			if (p.x < this._minX) { this._minX = p.x; }
 			if (p.x > this._maxX) { this._maxX = p.x; }
@@ -30,16 +34,16 @@ export class SparseGrid<V> {
 		this.data.set(key, value)
 	}
 	
-	get(p : Point, fallback: V|undefined = undefined): V|undefined {
-		const key = p.toString()
+	get(p : IPoint, fallback: V|undefined = undefined): V|undefined {
+		const key = SparseGrid.toKey(p)
 		if (!this.data.has(key)) {
 			return fallback;
 		}
 		return this.data.get(key);
 	}
 
-	has(p: Point) {
-		const key = p.toString()
+	has(p: IPoint) {
+		const key = SparseGrid.toKey(p)
 		return this.data.has(key);
 	}
 
@@ -49,7 +53,7 @@ export class SparseGrid<V> {
 			let firstCol = true;
 			for (let x = this._minX; x <= this._maxX; ++x) {
 				if (firstCol) { firstCol = false; } else { result += colSep; }
-				result += this.get(new Point(x, y), fallback);
+				result += this.get({ x, y }, fallback);
 			}
 			result += rowTerm;
 		}
