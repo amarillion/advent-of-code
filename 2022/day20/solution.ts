@@ -1,8 +1,6 @@
 #!/usr/bin/env ts-node-esm
 
 import { readFileSync } from 'fs';
-import { SparseGrid } from '../common/sparsegrid.js';
-import { Point } from '../common/point.js';
 import { assert } from '../common/assert.js';
 
 function read(fname: string) {
@@ -75,7 +73,6 @@ function shiftUp(ptr: Node<Payload>, num: number) {
 		let c = ptr.next;
 		let d = ptr.next.next;
 
-		// console.log(`Before: ${ptr.prev.prev.payload.n} ${ptr.prev.payload.n}, ${ptr.payload.n}, ${ptr.next.payload.n} ${ptr.next.next.payload.n}`);
 		a.next = c;
 				
 		b.prev = c;
@@ -85,8 +82,6 @@ function shiftUp(ptr: Node<Payload>, num: number) {
 		c.next = b;
 
 		d.prev = b;
-
-		// console.log(`After: ${ptr.prev.prev.payload.n} ${ptr.prev.payload.n}, ${ptr.payload.n}, ${ptr.next.payload.n} ${ptr.next.next.payload.n}`);
 	}
 }
 
@@ -100,10 +95,6 @@ function toArray(begin: MyNode) {
 	return result;
 }
 
-function print(begin: MyNode) {
-	console.log(toArray(begin).join(', '));
-}
-
 function find(begin: MyNode, value: number) {
 	let current = begin;
 
@@ -113,49 +104,43 @@ function find(begin: MyNode, value: number) {
 	return current;
 }
 
-function solve1(raw: number[]) {
-
-	let begin = new MyNode(raw[0]);
+function solve1(raw: number[], key = 1, times = 1) {
+	const length = raw.length;
+	let begin = new MyNode(raw[0] * key);
 	begin.prev = begin;
 	begin.next = begin;
 
+	const order = [ begin ];
 	let head = begin;
 	for (const n of raw.slice(1, raw.length)) {
-		const node = new MyNode(n);
+		const node = new MyNode(n * key);
 		head.next = node;
 		node.prev = head;
 		node.next = begin;
 		begin.prev = node;
 		head = node;
+
+		order.push(node);
 	}
 
-	let pos = begin;
-	let remain = raw.length;
+	for (let i = 0; i < times; ++i) {
 
-	print(begin);
+		// function mix:
+		for (const pos of order) {
+			pos.payload.processed = true;
+			let keep = (pos === begin) ? begin.next : begin;
 
-	while (remain > 0) {
-		while (pos.payload.processed) pos = pos.next;
+			const value = pos.payload.n;
 
-		pos.payload.processed = true;
-		remain--;
-		let next = pos.next;
-		let keep = (pos === begin) ? begin.next : begin;
+			if (value < 0) {
+				shiftDown(pos, (-value) % (length - 1));
+			}
+			else {
+				shiftUp(pos, (value) % (length - 1));
+			}
 
-		const value = pos.payload.n;
-		console.log(`Processing ${value}`);
-
-		if (value < 0) {
-			shiftDown(pos, -value);
+			begin = keep;
 		}
-		else {
-			shiftUp(pos, value);
-		}
-
-		begin = keep;
-
-		pos = next;
-		print(begin);
 	}
 
 	let ptr = find(begin, 0);
@@ -169,4 +154,11 @@ function solve1(raw: number[]) {
 }
 
 assert(solve1(read("test-input")) === 3);
-console.log(solve1(read("input")));
+let result1 = solve1(read("input"));
+assert(result1 === 7278);
+
+assert(solve1(read("test-input"), 811589153, 10) === 1623178306);
+let result2 = solve1(read("input"), 811589153, 10); 
+assert(result2 === 14375678667089);
+
+console.log(result1, result2);
