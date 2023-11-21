@@ -76,4 +76,12 @@ export class Point implements IPoint {
 	static toString(p: IPoint) {
 		return "" + p.x + "," + p.y;
 	}
+
+	equals(other: IPoint) {
+		return Point.equals(this, other);
+	}
+
+	static equals(a: IPoint, b: IPoint) {
+		return a.x === b.x && a.y === b.y;
+	}
 }

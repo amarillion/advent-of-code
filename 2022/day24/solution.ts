@@ -100,8 +100,10 @@ function update(data: State) {
 	return next;
 }
 
-function solve(states: State[]) {
-	// return 0;
+function countSteps(states: State[], start: string, end: string) {
+
+	const endCoords = end.split(',').map(Number);
+	const endPos = new Point(endCoords[0], endCoords[1]);
 
 	function *getAdjacent(pos: string): Iterable<[string, string]> {
 		// five possible moves:
@@ -113,8 +115,8 @@ function solve(states: State[]) {
 		const t = coords[2];
 
 		// auto-vivify new states...
-		if (t + 1 >= states.length) { 
-			states[t + 1] = update(states[t]);
+		if (Number(t) + 1 >= states.length) { 
+			states[Number(t) + 1] = update(states[t]);
 		}
 		
 		const MOVES = {
@@ -124,20 +126,19 @@ function solve(states: State[]) {
 			const newPos = point.plus(delta);
 			
 			// special case: we can reach exit node...
-			if (newPos.x === states[0].width - 1 && newPos.y === states[0].height) {
+			if (endPos.equals(newPos)) {
 				yield [key, 'exit'];
 				continue;
 			}
 			
-			
 			const isStartNode = (newPos.x === 0 && newPos.y === -1);
-			if (isStartNode) {
-
+			const isExitNode = (newPos.x === states[0].width - 1 && newPos.y === states[0].height)
+			if (isStartNode || isExitNode) {
 			}
 			else {
 				const inRange = states[0].map.inRange(newPos.x, newPos.y);
 				if (!inRange) continue;
-				
+
 				// check for collision:
 				if (states[t + 1].map.get(newPos.x, newPos.y).mobs.length > 0) continue;	
 			}
@@ -147,21 +148,41 @@ function solve(states: State[]) {
 	}
 
 	// now run dijkstra...
-	const START = '0,-1,0';
-	const prev = breadthFirstSearch(START, 'exit', getAdjacent)
-	const result = trackbackNodes(START, 'exit', prev);
+	const prev = breadthFirstSearch(start, 'exit', getAdjacent)
+	const result = trackbackNodes(start, 'exit', prev);
 
 	console.log(result);
 
 	return result ? result.length - 1 : 0;
 }
 
+function solve(states: State[]) {
+	const width = states[0].width;
+	const height = states[0].height;
+	return countSteps(states, '0,-1,0', `${width-1},${height},*`);
+}
+
+function solve2(states: State[]) {
+	const width = states[0].width;
+	const height = states[0].height;
+	
+	const s1 = countSteps(states, '0,-1,0', `${width-1},${height},*`);
+	const s2 = countSteps(states, `${width-1},${height},${s1}`, '0,-1,*');
+	const s3 = countSteps(states, `0,-1,${s1+s2}`, `${width-1},${height},*`);
+
+	console.log({s1, s2, s3});
+	return s1 + s2 + s3;
+}
+
 // read and parse data
 const testData = readInput('test-input');
 const initialTestState = readInitialState(testData);
 
-let state = initialTestState;
-assert(solve([state, update(state)]) === 18);
+const testStates = [initialTestState, update(initialTestState)];
+assert(solve(testStates) === 18);
+
+console.log("PART 2");
+assert(solve2(testStates) === 54);
 
 // extract positions and directions of blizzards
 // apply dijkstra,
@@ -172,4 +193,5 @@ const input = readInput('input');
 const initialState = readInitialState(input);
 const states = [ initialState, update(initialState) ];
 console.log(`${states[0]}`);
-console.log(solve([initialState, update(initialState)]));
+console.log(solve(states));
+console.log(solve2(states));
