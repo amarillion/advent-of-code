@@ -2,6 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
+import { linearSolver } from '../common/linear.js';
 
 type OperatorType = '+'|'-'|'/'|'*';
 
@@ -209,32 +210,6 @@ function solve2(data: Statement) {
 	}
 
 	return linearSolver(f);
-}
-
-/** 
- * assuming linear function f(x),
- * find an integer where f(x) === 0
- * 
- * Iterates to increase accuracy
- */
-function linearSolver(f: (x: number) => number) {
-	let x = 1;
-	let dx = 1;
-
-	while (true) { 
-		
-		// do a linear projection...
-		const y1 = f(x);
-		const y2 = f(x + dx);
-
-		const a = (y2 - y1) / (-dx)
-		const b = y1 + (a * x);
-
-		// new accurate guess...
-		x = Math.floor(b / a);
-
-		if (f(x) === 0) { return x; }
-	}
 }
 
 const testInput = parse("test-input");
