@@ -34,7 +34,6 @@ std::vector<string> reverseStrings(const std::vector<string> &argument) {
 
 vector<string> digits {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 vector<string> numberStrings {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
-vector<string> reversedNumbers = reverseStrings(numberStrings);
 
 int detectStartPattern(const string &s, const vector<string> &patterns) {
 	for (int j = 0; j < patterns.size(); ++j) {
@@ -45,47 +44,36 @@ int detectStartPattern(const string &s, const vector<string> &patterns) {
 	return -1;
 }
 
+int scanPattern(const string &line, const vector<string> &patterns) {
+	int result = -1;
+	for (int i = 0; i < line.length(); ++i) {
+		auto subline = line.substr(i);
+		result = detectStartPattern(subline, patterns);
+		if (result >= 0) { break; }
+	}
+	return result;
+}
+
 auto calculate(const string &fname, bool secondPart) {
 	ifstream fin(fname);
 	string line;
 	int result = 0;
+
+	vector<string> patterns = digits;
+	if (secondPart) for(const auto &i: numberStrings) { patterns.push_back(i); }
+	vector<string> reversePatterns = reverseStrings(patterns);
+	
 	while(getline(fin, line)) {
-		int first = -1;
-		int last = -1;
-
-		for (int i = 0; i < line.length(); ++i) {
-			auto subline = line.substr(i);
-			if (first < 0) {
-				first = detectStartPattern(subline, digits);
-			}
-			if (first < 0 && secondPart) {
-				first = detectStartPattern(subline, numberStrings);
-			}
-			if (first >= 0) { break; }
-		}
-
+		int first = scanPattern(line, patterns) % 10;
 		string reverseLine = reverseString(line);
-		for (int i = 0; i < line.length(); ++i) {
-			auto subline = reverseLine.substr(i);
-			if (last < 0) {
-				last = detectStartPattern(subline, digits);
-			}
-			if (last < 0 && secondPart) {
-				last = detectStartPattern(subline, reversedNumbers);
-			}
-			if (last >= 0) { break; }
-		}
-
+		int last = scanPattern(reverseLine, reversePatterns) % 10;
 		result += first * 10 + last;
-		// get first and last digit from string
 	}
 	fin.close();
 	return result;
 }
 
-
 int main() {
-	
 	assert(calculate("test-input", false) == 142);
 	assert(calculate("test-input2", true) == 281);
 	
