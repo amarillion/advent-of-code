@@ -82,8 +82,34 @@ int sumPossible(const Data &data) {
 	return sum;
 }
 
+int sumPower(const Data &data) {
+	int sum = 0;
+	int id = 1;
+	for (auto &game: data) {
+		int minRed = 0;
+		int minGreen = 0;
+		int minBlue = 0;
+		for (auto &draw: game) {
+			int red = draw.at("red");
+			int green = draw.at("green");
+			int blue = draw.at("blue");
+			if (red > minRed) { minRed = red; }
+			if (green > minGreen) { minGreen = green; }
+			if (blue > minBlue) { minBlue = blue; }
+		}
+		int power = minRed * minGreen * minBlue;
+		sum += power;
+	}
+
+	return sum;
+}
+
 int main() {
-	auto data = parseInput("test-input");
-	assert(sumPossible(data) == 8);
-	cout << sumPossible(parseInput("input"));
+	auto testData = parseInput("test-input");
+	assert(sumPossible(testData) == 8);
+	assert(sumPower(testData) == 2286);
+
+	auto data = parseInput("input");
+	cout << sumPossible(data) << endl;
+	cout << sumPower(data) << endl;
 }
