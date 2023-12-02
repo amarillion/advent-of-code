@@ -3,37 +3,19 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <functional>
-#include <sstream>
-#include <algorithm>
 #include <map>
+#include "../common/strutil.h"
+#include <numeric> // accumulate, the C++ equivalent for reduce.
 
 using namespace std;
 
-// trim from start
-static inline std::string &ltrim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-        return s;
-}
-
-static inline std::vector<std::string> split(const std::string &s, char delim)
-{
-	std::vector<std::string> result;
-	std::stringstream ss;
-	ss.str(s);
-	std::string item;
-
-	while (std::getline(ss, item, delim))
-	{
-		result.push_back (item);
-	}
-	return result;
-}
-
 using Draw = map<string, int>;
-using Game = vector<Draw>;
+struct Game {
+	int id;
+	vector<Draw> draws;
+};
 using Data = vector<Game>;
 
 Data parseInput(const string &fname) {
@@ -41,19 +23,17 @@ Data parseInput(const string &fname) {
 	ifstream fin(fname);
 	string line;
 
+	int id = 1;
 	while(getline(fin, line)) {
 		auto gameStr = split(line, ':');
-		Game resultGame;
+		Game resultGame { id++, {} };
 		for (auto draw: split(ltrim(gameStr[1]), ';')) {
 			Draw resultDraw;
-			resultDraw["red"] = 0;
-			resultDraw["green"] = 0;
-			resultDraw["blue"] = 0;
 			for (auto colorGroup: split(draw, ',')) {
 				auto colorData = split(ltrim(colorGroup), ' ');
 				resultDraw[colorData[1]] = stoi(colorData[0]);
 			}
-			resultGame.push_back(resultDraw);
+			resultGame.draws.push_back(resultDraw);
 		}
 		result.push_back(resultGame);
 	}
@@ -61,47 +41,33 @@ Data parseInput(const string &fname) {
 	return result;
 }
 
-int sumPossible(const Data &data) {
-	int sum = 0;
-	int id = 1;
-	for (auto &game: data) {
-		bool possible = true;
-		for (auto &draw: game) {
-			int red = draw.at("red");
-			int green = draw.at("green");
-			int blue = draw.at("blue");
-			if (red > 12 || green > 13 || blue > 14) {
-				possible = false;
-			}
-		}
-		if (possible) {
-			sum += id;
-		}
-		id++;
+int maxColor(const Game &game, const string &color) {
+	return accumulate(
+		game.draws.begin(), game.draws.end(), 0,
+		[=](int acc, const Draw &draw){ return max(acc, draw.contains(color) ? draw.at(color) : 0); }
+	);
+}
+
+int ifPossible(int acc, const Game &game) {
+	if (
+		maxColor(game, "red") <= 12 &&
+		maxColor(game, "green") <= 13 &&
+		maxColor(game, "blue") <= 14
+	) {
+		return acc + game.id;
 	}
-	return sum;
+	return acc;
+}
+
+int sumPossible(const Data &data) {
+	return accumulate(data.begin(), data.end(), 0, ifPossible);
 }
 
 int sumPower(const Data &data) {
-	int sum = 0;
-	int id = 1;
-	for (auto &game: data) {
-		int minRed = 0;
-		int minGreen = 0;
-		int minBlue = 0;
-		for (auto &draw: game) {
-			int red = draw.at("red");
-			int green = draw.at("green");
-			int blue = draw.at("blue");
-			if (red > minRed) { minRed = red; }
-			if (green > minGreen) { minGreen = green; }
-			if (blue > minBlue) { minBlue = blue; }
-		}
-		int power = minRed * minGreen * minBlue;
-		sum += power;
-	}
-
-	return sum;
+	return accumulate(data.begin(), data.end(), 0,
+  []( int acc, const Game &g) {
+	  return acc + maxColor(g, "red") * maxColor(g, "green") * maxColor(g, "blue");
+  });
 }
 
 int main() {
@@ -110,6 +76,7 @@ int main() {
 	assert(sumPower(testData) == 2286);
 
 	auto data = parseInput("input");
-	cout << sumPossible(data) << endl;
-	cout << sumPower(data) << endl;
+	assert(sumPossible(data) == 2239);
+	assert(sumPower(data) == 83435);
+	cout << "DONE" << endl;
 }

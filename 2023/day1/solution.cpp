@@ -3,32 +3,15 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <functional>
+#include "../common/strutil.h" // reverseString, startsWith
 
 using namespace std;
 
-// check if argument starts with prefix
-static inline bool startsWith(const std::string &prefix, const std::string &argument)
-{
-	return (argument.substr(0, prefix.size()) == prefix);
-}
-
-static inline std::string reverseString(const std::string &argument) {
-	string result = argument;
-	size_t len = argument.length();
-	for (int i = 0; i < len / 2; ++i) {
-		swap(result[i], result[len - 1 - i]);
-	}
-	return result;
-}
-
-std::vector<string> reverseStrings(const std::vector<string> &argument) {
-	std::vector<string> result;
-	for (const string& i: argument) {
-		result.push_back(reverseString(i));
-	}
+vector<string> reverseStrings(const vector<string> &data) {
+	vector<string> result;
+	transform(data.begin(), data.end(), back_inserter(result), reverseString);
 	return result;
 }
 
@@ -47,8 +30,8 @@ int detectStartPattern(const string &s, const vector<string> &patterns) {
 int scanPattern(const string &line, const vector<string> &patterns) {
 	int result = -1;
 	for (int i = 0; i < line.length(); ++i) {
-		auto subline = line.substr(i);
-		result = detectStartPattern(subline, patterns);
+		auto subLine = line.substr(i);
+		result = detectStartPattern(subLine, patterns);
 		if (result >= 0) { break; }
 	}
 	return result;
@@ -79,6 +62,6 @@ int main() {
 	
 	assert(calculate("input", false) == 56397);
 	assert(calculate("input", true) == 55701);
-	
+
 	cout << "DONE" << endl;
 }
