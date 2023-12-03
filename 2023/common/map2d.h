@@ -50,7 +50,7 @@ public:
 		}
 	}
 
-	Map2D (int w, int h, T defaultValue = T(0))
+	Map2D (int w, int h, T defaultValue = T())
 	{
 		assert (w >= 0);
 		assert (h >= 0);
@@ -65,6 +65,15 @@ public:
 		data = nullptr;
 		dim_mx = 0;
 		dim_my = 0;
+	}
+
+	// copy constructor
+	Map2D(const Map2D &src) {
+		dim_mx = src.dim_mx;
+		dim_my = src.dim_my;
+		data = new T[dim_mx * dim_my];
+		std::copy(src.data, src.data + (dim_mx * dim_my), data);
+		std::cout << "WARNING: Map2D copy constructor invoked\n";
 	}
 
 	virtual ~Map2D()

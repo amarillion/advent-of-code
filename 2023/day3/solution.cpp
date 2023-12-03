@@ -4,9 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <functional>
 #include "../common/map2d.h"
-#include <ranges>
+#include "../common/area.h"
 
 using namespace std;
 
@@ -19,8 +18,6 @@ bool isDigit(char ch) {
 Grid parseInput(const string &fname) {
 	ifstream fin(fname);
 	string line;
-
-	int id = 1;
 
 	vector<string> lines;
 	while(getline(fin, line)) {
@@ -46,74 +43,48 @@ struct PartNumber {
 };
 
 vector<PartNumber> extractNumbers(const Grid &grid) {
-	vector<PartNumber> result {};
-
+	vector<PartNumber> result;
 	bool numberState = false;
 	int current = 0;
 	Point pos;
 	int w = 1;
-	for (int y = 0; y < grid.getDimMY(); ++y) {
-		for (int x = 0; x < grid.getDimMX(); ++x) {
-			// scan for numbers
-			char ch = grid(x, y);
+	// NOTE: callback is stateful and relies on x being in the inner loop, y in the outer loop.
+	forArea(0, 0, grid.getDimMX(), grid.getDimMY(), [&](int x, int y){
+		char ch = grid(x, y);
+		bool isEol = x == grid.getDimMX() - 1;
+		if (isDigit(ch)) {
 			int digit = ch - '0';
-			if (isDigit(ch)) {
-				if (!numberState) {
-					current = digit;
-					numberState = true;
-					pos = { x, y };
-					w = 1;
-				}
-				else {
-					w++;
-					current = current * 10 + digit;
-				}
+			if (!numberState) {
+				current = digit;
+				numberState = true;
+				pos = { x, y };
+				w = 1;
 			}
 			else {
-				if (numberState) {
-					result.push_back(PartNumber{pos, w,current});
-					numberState = false;
-				}
+				w++;
+				current = current * 10 + digit;
 			}
 		}
-
-		if (numberState) {
-			result.push_back(PartNumber { pos, w, current });
-			numberState = false;
+		if (!isDigit(ch) || isEol) {
+			if (numberState) {
+				result.push_back(PartNumber{pos, w, current});
+				numberState = false;
+			}
 		}
-	}
-
+	});
 	return result;
 }
 
 bool surroundingSymbol(const Grid &grid, const PartNumber &part) {
-	int y = part.pos.y() - 1;
-	int x = part.pos.x() - 1;
-	int h = 3;
-	int w = part.w + 2;
-
-	for (int dx = 0; dx < w; ++dx) {
-		for (int dy = 0; dy < h; ++dy) {
-			if (grid.inBounds(x + dx, y + dy)) {
-				char ch = grid.get(x + dx, y + dy);
-				if (!isDigit(ch) && ch != '.') {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
+	auto isSymbol = [&](int x, int y){
+		if (!grid.inBounds(x, y)) return false;
+		char ch = grid.get(x, y);
+		return (!isDigit(ch) && ch != '.');
+	};
+	return someArea(part.pos.x() - 1, part.pos.y() - 1, part.w + 2, 3, isSymbol);
 }
 
-int solve1(const Grid &grid) {
-	// extract numbers + positions
-	// for each number, filter with a surrounding check
-	auto parts = extractNumbers(grid);
-//	auto hasSurroundingSymbol = [=](PartNumber &p){ return surroundingSymbol(grid, p); };
-//	for (const auto &part : parts | std::views::filter(hasSurroundingSymbol)) {
-//		cout << part.pos << ": " << part.value << " " << surroundingSymbol(grid, part) << endl;
-//	}
-
+int solve1(const Grid &grid, const vector<PartNumber> &parts) {
 	int sum = 0;
 	for (const auto &part : parts) {
 		if (surroundingSymbol(grid, part)) {
@@ -137,36 +108,30 @@ vector<PartNumber> findAdjacentParts(const Point &pos, const vector<PartNumber> 
 	return result;
 }
 
-long solve2(const Grid &grid) {
-	auto parts = extractNumbers(grid);
-	vector<Point> asterisks;
-	for (int y = 0; y < grid.getDimMY(); ++y) {
-		for (int x = 0; x < grid.getDimMX(); ++x) {
-			char ch = grid.get(x, y);
-			if(ch == '*') {
-				asterisks.push_back({ x, y });
+long solve2(const Grid &grid, const vector<PartNumber> &parts) {
+	long result = 0;
+	forArea(0, 0, grid.getDimMX(), grid.getDimMY(), [&](int x, int y) {
+		char ch = grid.get(x, y);
+		if (ch == '*') {
+			Point p{x, y};
+			auto adj = findAdjacentParts(p, parts);
+			if (adj.size() == 2) {
+				result += (adj[0].value * adj[1].value);
 			}
 		}
-	}
-
-	long result = 0;
-	for (const auto &p: asterisks) {
-		auto adj = findAdjacentParts(p, parts);
-		cout << "For asterisk at " << p << " found " << adj.size() << endl;
-		if (adj.size() == 2) {
-			result += (adj[0].value * adj[1].value);
-		}
-	}
+	});
 	return result;
 }
 
 int main() {
 	auto testData = parseInput("test-input");
-	assert(solve1(testData) == 4361);
-	assert(solve2(testData) == 467835);
+	auto testParts = extractNumbers(testData);
+	assert(solve1(testData, testParts) == 4361);
+	assert(solve2(testData, testParts) == 467835);
 
 	auto data = parseInput("input");
-	assert(solve1(data) == 521515);
-	cout << solve2(data) << endl;
+	auto parts = extractNumbers(data);
+	assert(solve1(data, parts) == 521515);
+	assert(solve2(data, parts) == 69527306);
 	cout << "DONE" << endl;
 }
