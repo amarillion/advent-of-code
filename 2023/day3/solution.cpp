@@ -123,12 +123,50 @@ int solve1(const Grid &grid) {
 	return sum;
 }
 
+bool isAdjacent(const Point &pos, const PartNumber &part) {
+	return
+		pos.x() >= part.pos.x() - 1 &&
+		pos.y() >= part.pos.y() - 1 &&
+		pos.x() <= part.pos.x() + part.w &&
+		pos.y() <= part.pos.y() + 1;
+}
+
+vector<PartNumber> findAdjacentParts(const Point &pos, const vector<PartNumber> &parts) {
+	vector<PartNumber> result;
+	copy_if(parts.begin(), parts.end(), back_inserter(result), [=](PartNumber n){ return isAdjacent(pos, n); });
+	return result;
+}
+
+long solve2(const Grid &grid) {
+	auto parts = extractNumbers(grid);
+	vector<Point> asterisks;
+	for (int y = 0; y < grid.getDimMY(); ++y) {
+		for (int x = 0; x < grid.getDimMX(); ++x) {
+			char ch = grid.get(x, y);
+			if(ch == '*') {
+				asterisks.push_back({ x, y });
+			}
+		}
+	}
+
+	long result = 0;
+	for (const auto &p: asterisks) {
+		auto adj = findAdjacentParts(p, parts);
+		cout << "For asterisk at " << p << " found " << adj.size() << endl;
+		if (adj.size() == 2) {
+			result += (adj[0].value * adj[1].value);
+		}
+	}
+	return result;
+}
+
 int main() {
 	auto testData = parseInput("test-input");
 	assert(solve1(testData) == 4361);
+	assert(solve2(testData) == 467835);
 
 	auto data = parseInput("input");
-	cout << solve1(data) << endl;
-
+	assert(solve1(data) == 521515);
+	cout << solve2(data) << endl;
 	cout << "DONE" << endl;
 }
