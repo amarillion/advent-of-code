@@ -11,16 +11,33 @@ else
         cd $(dirname $0)
 fi
 
-YEAR=`date "+%Y"`
-MONTH=`date "+%m"`
-DAY=`date "+%-d"`
+# If there are exactly 2 arguments...
+if [[ $# -eq 2 ]]; then
+	YEAR=$1
+	DAY=$2
+	if [ $YEAR -lt 2015 -o $DAY -gt 25 ]; then
+		echo "Not a suitable AOC date"
+		echo "Expected: `aoc YEAR DAY`, or just `aoc` to get current day during the event"
+		exit 1
+	fi
+# Exactly zero arguments
+elif [[ $# -eq 0 ]]; then
+	YEAR=`date "+%Y"`
+	MONTH=`date "+%m"`
+	DAY=`date "+%-d"`
 
-if [ $MONTH -eq 12 -a $DAY -le 25 ]; then
-	echo "It's advent of code"
+	if [ $MONTH -ne 12 -o $DAY -gt 25 ]; then
+		echo "Arguments needed"
+		echo "Expected: `aoc YEAR DAY`, or just `aoc` to get current day during the event"
+		exit 1
+	fi
 else
-	echo "TODO: allow arbitrary days"
+	echo "Wrong number of arguments"
+	echo "Expected: `aoc YEAR DAY`, or just `aoc` to get current day during the event"
 	exit 1
 fi
+
+echo "Processing with year: $YEAR day: $DAY"
 
 TARGET_DIR="./$YEAR/day$DAY"
 TARGET_FILE="$TARGET_DIR/input"
