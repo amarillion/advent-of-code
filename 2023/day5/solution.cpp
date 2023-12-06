@@ -10,6 +10,11 @@
 
 using namespace std;
 
+struct Bound {
+	long x;
+	long value;
+};
+
 struct Range {
 	long x;
 	long w;
@@ -20,20 +25,98 @@ struct Range {
 
 };
 
+ostream &operator<<(ostream &os, const Bound &b) {
+	os << b.x << ':' << b.value;
+	return os;
+}
+
+ostream &operator<<(ostream &os, const Range &r) {
+	os << r.x << '-' << r.x + r.w;
+	return os;
+}
+
 struct Mapping {
 	Range range;
 	long dest;
 };
 
-using MappingSet = vector<Mapping>;
+ostream &operator<<(ostream &os, const Mapping &m) {
+	os << '{' << m.range << " delta " << m.dest << '}';
+	return os;
+}
 
-long mapRange(const MappingSet &ranges, long in) {
-	for (const auto &i : ranges) {
-		if (i.range.inRange(in)) {
-			return in - i.range.x + i.dest;
+using MappingSet = vector<Bound>;
+
+long mapRange(const MappingSet &bounds, long in) {
+	long offset = 0;
+	for (const auto &b : bounds) {
+		if (in > b.x) {
+			offset = b.value;
+		}
+		else {
+			break;
 		}
 	}
-	return in;
+	return in + offset;
+}
+
+vector<Range> mapRange2(const MappingSet &bounds, Range in) {
+	// take input range...
+
+	// bounds:  0     |   |      |   |
+	// range:           <----->
+	//
+	// bounds:  0     |   |        |   |
+	// range:               <----->
+	//
+	vector<Range> result;
+	Bound prev {0, 0};
+	for (const auto &b: bounds) {
+		if (in.x + in.w <= b.x) {
+			// we've past the complete range.
+			long start = max(prev.x, in.x);
+			long end = in.x + in.w;
+			long w = end - start;
+			Range oldRange{start, w};
+			Range newRange{start + prev.value, w};
+			cout << "Final range " << oldRange << " mapped to " << newRange << endl;
+			result.push_back(newRange);
+			break;
+		} else if (in.x <= b.x) {
+			// our range is overlapping the current boundary.
+			long start = max(prev.x, in.x);
+			long end = b.x;
+			long w = end - start;
+			Range oldRange{start, w};
+			Range newRange{start + prev.value, w};
+			cout << "Overlapping range " << oldRange << " mapped to " << newRange << endl;
+			result.push_back(newRange);
+		} else {
+			// we're still before...
+		}
+		prev = b;
+	}
+	Bound last = bounds[bounds.size()-1];
+	if (in.x + in.w > last.x) {
+		long start = max(last.x, in.x);
+		long end = in.x + in.w;
+		long w = end - start;
+		Range oldRange{start, w};
+		Range newRange{start + last.value, end - start};
+		cout << "Remainder " << oldRange << " mapped to " << newRange << endl;
+		result.push_back(in);
+	}
+	return result;
+}
+
+vector<Range> mapRange3(const MappingSet &bounds, vector<Range> in) {
+	cout << "mapRange3(" << bounds << ", " << in << ");" << endl;
+	vector<Range> result;
+	for (const auto &range: in) {
+		vector<Range> mapped = mapRange2(bounds, range);
+		for (const auto &i: mapped) { result.push_back(i); }
+	}
+	return result;
 }
 
 struct Data {
@@ -42,11 +125,39 @@ struct Data {
 };
 
 vector<long> readLongs(const string &line) {
-	cout << "Reading longs: " << line << endl;
 	vector<long> result;
 	for (const string &field: split(line, ' ')) {
 		result.push_back(stol(field));
 	}
+	return result;
+}
+
+MappingSet readMappings(ifstream &fin) {
+	MappingSet bounds;
+	string line;
+
+	getline(fin, line); // read header
+	while(getline(fin, line)) {
+		if (line == "") {
+			break;
+		}
+		else {
+			vector<long> data = readLongs(line);
+			bounds.push_back({data[1], data[0] - data[1]});
+			bounds.push_back({data[1] + data[2], 0});
+		}
+	}
+	auto comparator =  [](const Bound &a, const Bound &b){ return a.x == b.x ? b.value != 0 : b.x > a.x; };
+	sort(bounds.begin(), bounds.end(), comparator);
+
+	// filter consecutive x'es
+	vector<Bound> result;
+	for (int i = 0; i < bounds.size(); ++i) {
+		if (i < bounds.size() - 1 && bounds[i].x == bounds[i+1].x) continue;
+		result.push_back(bounds[i]);
+	}
+
+	// TODO filter zeroes...
 	return result;
 }
 
@@ -59,32 +170,21 @@ Data parse(const string &fname) {
 	result.seeds = readLongs(line.substr(7));
 
 	getline(fin, line); // skip line
-	getline(fin, line); // read header
 
-	MappingSet mapping;
-	while(getline(fin, line)) {
-		if (line == "") {
-			result.mappings.push_back(mapping);
-			mapping = {};
-			getline(fin, line); // read header
-		}
-		else {
-			vector<long> data = readLongs(line);
-			mapping.push_back({{data[1], data[2] }, data[0] });
-		}
+	while (!fin.eof()) {
+		auto mapping = readMappings(fin);
+		result.mappings.push_back(mapping);
 	}
-	result.mappings.push_back(mapping);
+
 	return result;
 }
 
 long solve1(const Data &data) {
 	vector<long> current = data.seeds;
-	cout << current << endl;
 	for (const auto &mapping: data.mappings) {
 		vector<long> next;
 		transform(current.begin(), current.end(), back_inserter(next), [&](long i){ return mapRange(mapping, i); });
 		current = next;
-		cout << current << endl;
 	}
 	bool first = true;
 	long min = 0;
@@ -99,15 +199,41 @@ long solve1(const Data &data) {
 }
 
 long solve2(const Data &data) {
-	long result = 0;
-	return result;
+	vector<Range> current;
+	for (int i = 0; i < data.seeds.size(); i += 2) {
+		current.push_back({ data.seeds[i], data.seeds[i+1] });
+	}
+
+	cout << current << endl;
+	for (const auto &mapping: data.mappings) {
+		vector<Range> next;
+		for (const auto &j: mapRange3(mapping, current)) {
+			if (j.w == 0) continue;
+			next.push_back(j);
+		}
+		current = next;
+		cout << current << endl;
+	}
+	bool first = true;
+	long min = 0;
+	// TODO: min on vector...
+	for (auto &i: current) {
+		if (first || min > i.x) {
+			min = i.x;
+			first = false;
+		}
+	}
+	return min;
 }
 
 int main() {
 	auto testData = parse("test-input");
-	assert(solve1(testData) == 35);
-//	assert(solve2(testData) == 30);
 	auto data = parse("input");
-	cout << solve1(data) << endl;
+	assert(solve1(testData) == 35);
+	assert(solve1(data) == 324724204L);
+
+	assert(solve2(testData) == 46);
+	cout << solve2(data) << endl;
+
 	cout << "DONE" << endl;
 }
