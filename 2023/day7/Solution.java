@@ -44,13 +44,14 @@ public class Solution {
 		}
 	}
 
-	private static class Hand implements Comparable<Hand> {
+	private static class Hand {
 
 		Hand(String init) {
 			for (int i = 0; i < 5; ++i) {
 				cards.add(Card.fromChar(init.charAt(i)));
 			}
 			type = detectType(cards);
+			typeWithJokers = detectTypeWithJokers(cards);
 		}
 
 		private static Type detectType(List<Card> cards) {
@@ -58,6 +59,26 @@ public class Solution {
 			List<Long> countsList = frqMap.entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
 			Collections.sort(countsList, Collections.reverseOrder());
 			Long[] counts = countsList.toArray(new Long[0]);
+			return typeFromFrq(counts);
+		}
+
+		private static Type detectTypeWithJokers(List<Card> cards) {
+			long jCount = cards.stream().filter(i -> i == Card.J).count();
+			Map<Card, Long> frqMap = cards.stream().filter(i -> i != Card.J).collect(Collectors.groupingBy(card -> card, Collectors.counting()));
+			List<Long> countsList = frqMap.entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+			Collections.sort(countsList, Collections.reverseOrder());
+			Long[] counts = countsList.toArray(new Long[0]);
+			//
+			if (counts.length == 0) {
+				counts = new Long[] { jCount };
+			}
+			else {
+				counts[0] += jCount;
+			}
+			return typeFromFrq(counts);
+		}
+
+		private static Type typeFromFrq(Long[] counts) {
 			if (Arrays.equals(counts, new Long[] { 5L })) {
 				return Type.FIVE_OF_A_KIND;
 			}
@@ -82,34 +103,62 @@ public class Solution {
 		}
 
 		Type type;
+		Type typeWithJokers;
+
 		List<Card> cards = new ArrayList<>();
 
+		public String toString() {
+			return String.join("", cards.stream().map(cards -> "" + cards.repr).toList()) + "(" + type + "|" + typeWithJokers + ")";
+		}
+	}
+
+	static Comparator<Hand> NORMAL_HAND_COMPARATOR = new Comparator<Hand>() {
+
 		@Override
-		public int compareTo(Hand o) {
-			if (o == this) return 0;
-			int result = o.type.compareTo(type);
+		public int compare(Hand o1, Hand o2) {
+			if (o1 == o2) return 0;
+			int result = o1.type.compareTo(o2.type);
 			if (result != 0) return result;
 
 			for (int i = 0; i < 5; ++i) {
-				result = o.cards.get(i).compareTo(cards.get(i));
+				result = o1.cards.get(i).compareTo(o2.cards.get(i));
 				if (result != 0) return result;
 			}
 
 			return result;
 		}
+	};
 
-		public String toString() {
-			return String.join("", cards.stream().map(cards -> "" + cards.repr).toList()) + "(" + type + ")";
-		}
-	}
-
-	private record Bid(Hand hand, int amount) implements Comparable<Bid> {
-
+	static Comparator<Hand> JOKER_RULE_HAND_COMPARATOR = new Comparator<Hand>() {
 		@Override
-		public int compareTo(Bid o) {
-			return this.hand.compareTo(o.hand);
+		public int compare(Hand o1, Hand o2) {
+			if (o1 == o2) return 0;
+			int result = o1.typeWithJokers.compareTo(o2.typeWithJokers);
+			if (result != 0) return result;
+
+			for (int i = 0; i < 5; ++i) {
+				Card c1 = o1.cards.get(i);
+				Card c2 = o2.cards.get(i);
+				if (c1 == c2) {
+					result = 0;
+				}
+				else if (c1 == Card.J) {
+					result = 1;
+				}
+				else if (c2 == Card.J) {
+					result = -1;
+				}
+				else {
+					result = o1.cards.get(i).compareTo(o2.cards.get(i));
+				}
+				if (result != 0) return result;
+			}
+
+			return result;
 		}
 	};
+
+	private record Bid(Hand hand, int amount) { };
 
 	private static Bid parseBid(String line) {
 		String[] fields = line.split(" ");
@@ -123,8 +172,9 @@ public class Solution {
 		return Files.lines(file).map(Solution::parseBid).collect(Collectors.toList());
 	}
 
-	private static long solve1(List<Bid> bids) {
-		Collections.sort(bids);
+	private static long solve(List<Bid> bids, Comparator<Hand> comparator) {
+		Collections.sort(bids, (a, b) -> comparator.compare(b.hand, a.hand));
+
 		long result = 0;
 		for (int i = 0; i < bids.size(); ++i) {
 			System.out.println(bids.get(i).hand + ": " + (i + 1) + " * " + bids.get(i).amount);
@@ -133,11 +183,21 @@ public class Solution {
 		return result;
 	}
 
+	private static long solve1(List<Bid> bids) {
+		return solve(bids, NORMAL_HAND_COMPARATOR);
+	}
+
+	private static long solve2(List<Bid> bids) {
+		return solve(bids, JOKER_RULE_HAND_COMPARATOR);
+	}
+
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day7/test-input"));
 		Util.assertEqual(solve1(testData), 6440);
+		Util.assertEqual(solve2(testData), 5905);
 		var data = parse(Path.of("day7/input"));
-		System.out.println(solve1(data));
+		System.out.println(solve1(data)); // 248453531
+		System.out.println(solve2(data)); // 248781813
 	}
 
 }
