@@ -11,9 +11,7 @@ import static common.Util.assertEqual;
 
 class Solution {
 
-	record RaceData(int time, int distance) {}
-
-	private static List<RaceData> parse(Path file) throws IOException {
+	private static List<RaceData> parse1(Path file) throws IOException {
 		List<String> lines = Files.lines(file).map(l -> l.substring(10)).toList();
 		List<Integer> times = Stream.of(lines.get(0).trim().split("\s+")).map(Integer::parseInt).toList();
 		List<Integer> distances = Stream.of(lines.get(1).trim().split("\s+")).map(Integer::parseInt).toList();
@@ -24,26 +22,45 @@ class Solution {
 		return result;
 	}
 
-	private static int numberOfWays(RaceData race) {
-		int ways = 0;
-		for (int hold = 0; hold < race.time; ++hold) {
-			int timeRemain = race.time - hold;
-			int distance = timeRemain * hold;
+	record RaceData(long time, long distance) {}
+
+	private static List<RaceData> parse2(Path file) throws IOException {
+		List<String> lines = Files.lines(file).map(l -> l.substring(10)).toList();
+		long time = Long.parseLong(lines.get(0).replaceAll(" ", ""));
+		long distance = Long.parseLong(lines.get(1).replaceAll(" ", ""));
+		List<RaceData> result = new ArrayList<>();
+		result.add(new RaceData(time, distance));
+		return result;
+	}
+
+	private static long numberOfWays(RaceData race) {
+		System.out.println("Race: " + race.time + " " + race.distance);
+		long ways = 0;
+		for (long hold = 0; hold < race.time; ++hold) {
+			long timeRemain = race.time - hold;
+			long distance = timeRemain * hold;
 			boolean success = distance > race.distance;
 			if (success) ways++;
 		}
 		return ways;
 	}
 
-	private static int solve1(List<RaceData> races) {
-		return races.stream().map(Solution::numberOfWays).reduce(1, (cur, acc) -> cur * acc);
+	private static long solve1(List<RaceData> races) {
+		return races.stream().map(Solution::numberOfWays).reduce(1L, (cur, acc) -> cur * acc);
 	}
 
 	public static void main(String[] args) throws IOException {
-		var testData = parse(Path.of("day6/test-input"));
-		assertEqual(solve1(testData), 288);
+		var testData1 = parse1(Path.of("day6/test-input"));
+		assertEqual(solve1(testData1), 288);
 
-		var data = parse(Path.of("day6/input"));
-		System.out.println(solve1(data));
+		var testData2 = parse2(Path.of("day6/test-input"));
+		assertEqual(solve1(testData2), 71503);
+
+		var data1 = parse1(Path.of("day6/input"));
+		System.out.println(solve1(data1));
+
+		var data2 = parse2(Path.of("day6/input"));
+		System.out.println(solve1(data2));
+
 	}
 }
