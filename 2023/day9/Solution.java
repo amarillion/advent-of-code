@@ -28,16 +28,23 @@ public class Solution {
 
 	private static List<Integer> extrapolate(List<Integer> input, int start) {
 		List<Integer> result = new ArrayList<>();
-		result.add(start);
 		int prev = start;
+		result.add(prev);
 		for (Integer val : input) {
-			result.add(prev + val);
-			prev = prev + val;
+			prev += val;
+			result.add(prev);
 		}
 		return result;
 	}
 
-	private static long processRow(List<Integer> data) {
+	/**
+	 * Model derived from a list of integers, ready for extrapolation
+	 * startValues go from bottom to top
+	 * length is the Length of last row of the model
+	*/
+	private record Model(List<Integer> startValues, int length) {}
+
+	private static Model deriveModel(List<Integer> data) {
 		// first take differences
 		List<Integer> current = data;
 		List<Integer> startValues = new ArrayList<>();
@@ -45,54 +52,42 @@ public class Solution {
 			startValues.add(current.get(0));
 			current = takeDifferences(current);
 		}
-
-
-		current.add(0);
 		Collections.reverse(startValues);
-		for (int startValue : startValues) {
+		return new Model(startValues, current.size());
+	}
+
+	private static long extrapolateRight(Model model) {
+		List<Integer> current = new ArrayList<>(Collections.nCopies(model.length, 0));
+		current.add(0);
+		for (int startValue : model.startValues) {
 			current = extrapolate(current, startValue);
 		}
-
 		return current.getLast();
 	}
 
-	private static long processRow2(List<Integer> data) {
-		System.out.println("-----");
-
-		// first take differences
-		List<Integer> current = data;
-		List<Integer> startValues = new ArrayList<>();
-		while (current.stream().anyMatch(i -> i != 0)) {
-			startValues.add(current.get(0));
-			current = takeDifferences(current);
+	private static long extrapolateLeft(Model model) {
+		int result = 0;
+		for (int startValue : model.startValues) {
+			result = startValue - result;
 		}
-
-		Collections.reverse(startValues);
-		int extrapolated = 0;
-		for (int startValue : startValues) {
-			extrapolated = startValue - extrapolated;
-			System.out.println(extrapolated);
-		}
-
-		return extrapolated;
+		return result;
 	}
 
 	private static long solve1(List<List<Integer>> data) {
-		return data.stream().map(Solution::processRow).mapToLong(Long::valueOf).sum();
+		return data.stream().map(Solution::deriveModel).map(Solution::extrapolateRight).mapToLong(Long::valueOf).sum();
 	}
 
 	private static long solve2(List<List<Integer>> data) {
-		return data.stream().map(Solution::processRow2).mapToLong(Long::valueOf).sum();
+		return data.stream().map(Solution::deriveModel).map(Solution::extrapolateLeft).mapToLong(Long::valueOf).sum();
 	}
 
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day9/test-input"));
 		Util.assertEqual(solve1(testData), 114);
+		Util.assertEqual(solve2(testData), 2);
+
 		var data = parse(Path.of("day9/input"));
 		Util.assertEqual(solve1(data), 2043677056);
-
-		Util.assertEqual(solve2(testData), 2);
-		System.out.println(solve2(data));
-
+		Util.assertEqual(solve2(data), 1062);
 	}
 }
