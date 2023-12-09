@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Solution {
@@ -22,7 +23,6 @@ public class Solution {
 		for (int i = 1; i < input.size(); ++i) {
 			result.add(input.get(i) - input.get(i-1));
 		}
-		System.out.println(result);
 		return result;
 	}
 
@@ -34,41 +34,65 @@ public class Solution {
 			result.add(prev + val);
 			prev = prev + val;
 		}
-		System.out.println(result);
 		return result;
 	}
 
 	private static long processRow(List<Integer> data) {
-		System.out.println("-----");
-
 		// first take differences
 		List<Integer> current = data;
-		int counter = 0;
 		List<Integer> startValues = new ArrayList<>();
 		while (current.stream().anyMatch(i -> i != 0)) {
 			startValues.add(current.get(0));
 			current = takeDifferences(current);
-			counter++;
 		}
 
-		current.add(0);
 
-		for (int i = 0; i < counter; ++i) {
-			int startValue = startValues.removeLast();
+		current.add(0);
+		Collections.reverse(startValues);
+		for (int startValue : startValues) {
 			current = extrapolate(current, startValue);
 		}
 
 		return current.getLast();
 	}
 
+	private static long processRow2(List<Integer> data) {
+		System.out.println("-----");
+
+		// first take differences
+		List<Integer> current = data;
+		List<Integer> startValues = new ArrayList<>();
+		while (current.stream().anyMatch(i -> i != 0)) {
+			startValues.add(current.get(0));
+			current = takeDifferences(current);
+		}
+
+		Collections.reverse(startValues);
+		int extrapolated = 0;
+		for (int startValue : startValues) {
+			extrapolated = startValue - extrapolated;
+			System.out.println(extrapolated);
+		}
+
+		return extrapolated;
+	}
+
 	private static long solve1(List<List<Integer>> data) {
 		return data.stream().map(Solution::processRow).mapToLong(Long::valueOf).sum();
+	}
+
+	private static long solve2(List<List<Integer>> data) {
+		return data.stream().map(Solution::processRow2).mapToLong(Long::valueOf).sum();
 	}
 
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day9/test-input"));
 		Util.assertEqual(solve1(testData), 114);
 		var data = parse(Path.of("day9/input"));
-		System.out.println(solve1(data));
+		Util.assertEqual(solve1(data), 2043677056);
+
+		Util.assertEqual(solve2(testData), 2);
+		System.out.println(solve2(data));
+
 	}
 }
