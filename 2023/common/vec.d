@@ -1,6 +1,7 @@
 module common.vec;
 
 import std.conv;
+import std.algorithm;
 
 struct vec(int N, V) {
 	V[N] val;
@@ -46,17 +47,40 @@ struct vec(int N, V) {
 		}
 	}
 
-	void lowestCorner(U)(vec!(N, U) p) {
+	vec!(N, V) eachMin(const vec!(N, V) p) const {
+		vec!(N, V) result;
 		foreach (i; 0..N) {
-			if (p.val[i] < val[i]) { val[i] = p.val[i]; }
+			result.val[i] = min(p.val[i], val[i]);
 		}
+		return result;
 	}
 
-	void highestCorner(U)(vec!(N, U) p) {
+	vec!(N, V) eachMax(const vec!(N, V) p) const {
+		vec!(N, V) result;
 		foreach (i; 0..N) {
-			if (p.val[i] > val[i]) { val[i] = p.val[i]; }
+			result.val[i] = max(p.val[i], val[i]);
 		}
+		return result;
 	}
+
+	bool allLt(U)(const vec!(N, U) p) const {
+		foreach (i; 0..N) {
+			if (!(val[i] < p.val[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool allGte(U)(const vec!(N, U) p) const {
+		foreach (i; 0..N) {
+			if (!(val[i] >= p.val[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/** 
 	Applies std.math.sgn to each element in the vector. For example, vec3i(5, 0, -10) becomes vec3i(1, 0, -1)
 	*/ 

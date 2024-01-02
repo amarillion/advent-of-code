@@ -13,111 +13,79 @@ import common.grid;
 import common.io;
 import common.vec;
 import common.coordrange;
+import common.bfs;
 
-// enum Dir {
-// 	E = 1,
-// 	S = 2,
-// 	W = 4,
-// 	N = 8
-// }
+enum Dir {
+	E = 1,
+	S = 2,
+	W = 4,
+	N = 8
+}
 
-auto getAdjacent(const Grid!char grid, const Point pos) {
-	byte[char] LOOKUP = [
-		//     NWSE
-		'|': 0b1010,
-		'-': 0b0101,
-		'L': 0b1001,
-		'J': 0b1100,
-		'7': 0b0110,
-		'F': 0b0011,
-		'.': 0b0000,
-		'S': 0b1111,
-		'X': 0b0000,
-	];
+enum Dir[Dir] REVERSE = [
+	Dir.N: Dir.S,
+	Dir.E: Dir.W,
+	Dir.S: Dir.N,
+	Dir.W: Dir.E
+];
 
-	Point[] deltas = [
-		Point(1, 0), Point(0, 1), Point(-1, 0), Point(0, -1)
-	];
-	int dir = 1;
-	int reverse = 4;
+enum byte[char] LOOKUP = [
+	//     NWSE
+	'|': 0b1010,
+	'-': 0b0101,
+	'L': 0b1001,
+	'J': 0b1100,
+	'7': 0b0110,
+	'F': 0b0011,
+	'.': 0b0000,
+	'S': 0b1111,
+];
 
-	byte b1 = LOOKUP[grid.get(pos)];
-		
-	Tuple!(int, Point)[] result = [];
-	foreach(delta; deltas) {
-		Point np = pos + delta;
-		if (grid.inRange(np)) {
-			// now test if there is a two-way path
-			byte b2 = LOOKUP[grid.get(np)];
-			if (((b1 & dir) > 0) && ((b2 & reverse) > 0)) {
-				result ~= tuple(dir, np);
-			}
+enum Point[Dir] DELTA = [
+	Dir.E: Point(1, 0), 
+	Dir.S: Point(0, 1), 
+	Dir.W: Point(-1, 0), 
+	Dir.N: Point(0, -1)
+];
+
+alias MyGrid = Grid!(2, char);
+
+bool isLink(const MyGrid grid, const Point pos, Dir dir) {
+	Point np = pos + DELTA[dir];
+	if (!grid.inRange(np)) return false;
+	return 
+		(LOOKUP[grid[pos]] & dir) &&
+		(LOOKUP[grid[np]] & REVERSE[dir]);
+}
+
+auto getAdjacent(const MyGrid grid, const Point pos) {
+	Tuple!(Dir, Point)[] result = [];
+	foreach(dir; [Dir.E, Dir.S, Dir.W, Dir.N]) {
+		if (isLink(grid, pos, dir)) {
+			Point np = pos + DELTA[dir];
+			result ~= tuple(dir, np);
 		}
-
-		dir *= 2;
-		reverse *= 2;
-		if (reverse == 16) reverse = 1;
 	}
 	return result;
 }
 
-auto bfs(N, E)(N source, N dest, Tuple!(E, N)[] delegate(N) getAdjacent) {
-	// Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
-	// Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all other nodes. Set the initial node as current.[13]
-	
-	struct Result {
-		int[N] dist;
-		N[N] prev;
-	}
-	Result result;
-	result.dist = [ source: 0 ];
-
-	bool[N] visited;
-	
-	const(N)[] open = [ source ];
-	visited[source] = true;
-
-	while (open.length > 0) {
-		
-		N current = open[0];
-		open.popFront();
-
-		// check adjacents
-		foreach(pair; getAdjacent(current)) {
-			N sibling = pair[1];
-			if (!(sibling in visited)) {
-				open ~= sibling;
-				visited[sibling] = true;
-				// set or update distance
-				result.dist[sibling] = result.dist[current] + 1;
-				// writefln("step %s: from %s to %s, visited: %s", result.dist[current] + 1, current, sibling, visited);
-				result.prev[sibling] = current;
-			}
-		}
-
-		if (dest == current) {
-			break;
-		}
-	}
-
-	return result;
-}
-
-auto windingRule(Grid!char grid) {
+auto windingRule(const MyGrid grid) {
 	int sum = 0;
 	for (int y = 0; y < grid.size.y; ++y) {
 		int rowCount = 0;
 		bool inside = false;
 		// start at 0
 		for (int x = 0; x < grid.size.x; ++x) {
+			
 			Point pos = Point(x, y);
-			char c = grid.get(pos);
-			switch(c) {
-				case '.': if (inside) rowCount++; break;
-				case '-': case '7': case 'F': /* do nothing */ break;
-				case '|': case 'J': case 'L': inside = !inside; break;
-				case 'S': inside = !inside; /* do nothing */ break; //TODO -> result is opposite for test. Derive correct result for test solution 
-				default: assert(false);
+			char c = grid[pos];
+			if (c == '.') {
+				if (inside) rowCount++;
+			}
+			// our winding test goes through the top side of the row.
+			// apply winding rule if there is a connection to above.
+			else if (isLink(grid, pos, Dir.N)) {
+				inside = !inside;
 			}
 		}
 		assert(inside == false); // winding rule must be even
@@ -129,75 +97,43 @@ auto solve(string fname) {
 	string[] lines = readLines(fname);
 	ulong w = lines[0].length;
 	ulong h = lines.length;
-	auto grid = new Grid!char(w, h);
+	auto grid = new MyGrid(to!int(w), to!int(h));
 
 	Point start;
 
+	// copy file into grid
 	foreach(y, line; lines) {
 		foreach(x, char c; line) {
 			Point pos = Point(to!int(x), to!int(y));
-			grid.set(pos, c);
+			grid[pos] = c;
 			if (c == 'S') {
 				start = pos;
 			}
 		}
 	}
 
-	auto data = bfs(start, Point(-1, -1), (Point node) { return getAdjacent(grid, node); });
-	// writeln(to!string(grid));
-	// writeln(to!string(start));
-	// writeln(to!string(data));
+	auto data = bfs(start, (Point node) => false, (Point node) => getAdjacent(grid, node) );
 
 	int maxDist = data.dist.values.maxElement;
 
-	Grid!char badGrid = new Grid!char(grid.size, '.');
+	// clear all junk that is not part of the loop
 	foreach(p; PointRange(grid.size)) {
-		if (p in data.prev) {
-			badGrid.set(p, grid.get(p));
+		if (!(p in data.dist)) {
+			grid[p] = '.';
 		}
 	}
 
-	Point endNode;
-	bool found = false;
-	foreach(k, v; data.dist) {
-		if (v == maxDist) {
-			endNode = k;
-			found = true;
-			break;
-		}
-	}
-	assert(found);
-	
-	Grid!char newGrid = new Grid!char(grid.size, '.');
-	Point current = data.prev[endNode];
-	while (current != start) {
-		newGrid.set(current, grid.get(current));
-		grid.set(current, 'X');
-		current = data.prev[current];
-	}
-
-	auto data2 = bfs(start, endNode, (Point node) { return getAdjacent(grid, node); });
-	current = data2.prev[endNode];
-	while (current != start) {
-		newGrid.set(current, grid.get(current));
-		grid.set(current, 'Y');
-		current = data2.prev[current];
-	}
-	newGrid.set(start, grid.get(start));
-	newGrid.set(endNode, grid.get(endNode));
-
-	writeln(grid.format(""));
-	writeln(badGrid.format(""));
-	writeln(newGrid.format(""));
-
+	// writeln(grid.format(""));
 	
 	return [
 		maxDist,
-		windingRule(newGrid)
+		windingRule(grid)
 	];
 }
 
 void main() {
-	// assert(solve("test-input")[0] == 8, "Incorrect solution");
+	assert(solve("test-input") == [8, 1], "Incorrect solution");
+	auto result = solve("input");
+	assert(result == [6867, 595]);
 	writeln(solve("input"));
 }
