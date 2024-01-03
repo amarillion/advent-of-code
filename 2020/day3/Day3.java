@@ -20,11 +20,11 @@ class Day3 {
 		System.out.println(solvePart2(input));
 	}
 
-	private static long solvePart1(List<String> data) throws IOException {
+	private static long solvePart1(List<String> data) {
 		return countSlope(data, 3, 1);
 	}
 
-	private static long solvePart2(List<String> data) throws IOException {
+	private static long solvePart2(List<String> data) {
 		return	countSlope(data, 1, 1) *
 				countSlope(data, 3, 1) *
 				countSlope(data, 5, 1) *
