@@ -32,22 +32,94 @@ bool compareArrangement(string pattern, string arrangement) {
 	return true;
 }
 
-long countArrangements(string pattern, int[] stretches) {
+bool printAndCompare(string pattern, int[] stretches, int[] gaps) {
+	int pos = 0;
+	int stretchRemain = stretches[0];
+	int gapRemain = gaps[0];
+	for(int i = 0; i < pattern.length; i++) {
+		// generate current characters
+		if (gapRemain == 0 && stretchRemain == 0) {
+			pos++;
+			if (pos < stretches.length) {
+				stretchRemain = stretches[pos];
+				gapRemain = gaps[pos] + 1; // +1, don't forget the minimum gap size.
+			}
+			else {
+				// remainder is a gap.
+				gapRemain = to!int(pattern.length) - 1;
+			}
+		}
 
-	int len = to!int(pattern.length);
-	int used = stretches.sum;
-	int freedom = len - used - (to!int(stretches.length) - 1);
+		char current;
+		if (gapRemain > 0) {
+			current = '.';
+			gapRemain--;
+		}
+		else if (stretchRemain > 0) {
+			current = '#';
+			stretchRemain--;
+		}
+				
+		// compare
+		if (pattern[i] == '?') continue;
+		if (pattern[i] != current) return false;
+	}
+	return true;
+}
+
+string printArrangement2(string pattern, int[] stretches, int[] gaps) {
+	int pos = 0;
+	int stretchRemain = stretches[0];
+	int gapRemain = gaps[0];
+	char[] result = [];
+	for(int i = 0; i < pattern.length; i++) {
+		// generate current characters
+		if (gapRemain == 0 && stretchRemain == 0) {
+			pos++;
+			if (pos < stretches.length) {
+				stretchRemain = stretches[pos];
+				gapRemain = gaps[pos] + 1; // +1, don't forget the minimum gap size.
+			}
+			else {
+				// remainder is a gap.
+				gapRemain = to!int(pattern.length) - 1;
+			}
+		}
+
+		char current;
+		if (gapRemain > 0) {
+			current = '.';
+			gapRemain--;
+		}
+		else if (stretchRemain > 0) {
+			current = '#';
+			stretchRemain--;
+		}
+		
+		result ~= current;
+	}
+	return to!string(result);
+}
+
+long countArrangements(Input input) {
+
+	int len = to!int(input.pattern.length);
+	int used = input.stretches.sum;
+	int gaps = to!int(input.stretches.length) - 1;
+	int freedom = len - used - gaps;
 	
-	writefln("[%s] %s %s", pattern, stretches, freedom);
+	writefln("[%s] %s %s %s %s %s", input.pattern, input.stretches, len, used, gaps, freedom);
 
-	int[] arrangement = repeat(0, stretches.length).array;
+	int[] arrangement = repeat(0, input.stretches.length).array;
 	int remain = freedom;
 	int count = 0;
 	int result = 0;
 	do {
-		string arr = printArrangement(len, stretches, arrangement);
-		bool valid = compareArrangement(pattern, arr);
-		// writefln("[%s] #%s: %s: %s, remain: %s", arr, count, arrangement, valid, remain);
+		// string arr = printArrangement(len, input.stretches, arrangement);
+		// string arr2 = printArrangement2(input.pattern, input.stretches, arrangement);
+		// bool valid = compareArrangement(input.pattern, arr);
+		bool valid = printAndCompare(input.pattern, input.stretches, arrangement);
+		// writefln("[%s] <%s> #%s: %s: %s, remain: %s", arr2, arr, count, arrangement, valid, remain);
 
 		if (valid) result++;
 		count++;
@@ -60,37 +132,58 @@ long countArrangements(string pattern, int[] stretches) {
 				arrangement[pos] = 0;
 				pos++;
 			}
-			if (pos == stretches.length) { break; }
+			if (pos == input.stretches.length) { break; }
 			arrangement[pos] += 1;
 			remain -= 1;
 		} while (remain < 0);
 
-		if (pos == stretches.length) { break; } // end condition
+		if (pos == input.stretches.length) { break; } // end condition
 		
 	}
 	while(true);
 
 	return result;
 }
-auto solve(string fname) {
-	string[] lines = readLines(fname);
-	
-	long sum = 0;
 
+struct Input {
+	string pattern;
+	int[] stretches;
+}
+
+auto parse(string fname) {
+	Input[] result;
+	string[] lines = readLines(fname);
 	foreach(string line; lines) {
 		string[] fields = line.split(" ");
 		int[] stretches = fields[1].split(",").map!(to!int).array;
-		sum += countArrangements(fields[0], stretches);
+		result ~= Input(fields[0], stretches);
 	}
+	return result;
+}
 
-	return [
-		sum
-	];
+Input unfold(Input input) {
+	string unfoldedPattern = repeat(input.pattern, 5).join("?");
+	int[] unfoldedStretches = repeat(input.stretches, 5).join;
+	return Input(unfoldedPattern, unfoldedStretches);
+}
+
+auto solve1(Input[] patterns) {
+	return patterns.map!countArrangements.sum;
+}
+
+auto solve2(Input[] patterns) {
+	return patterns.map!unfold.map!countArrangements.sum;
 }
 
 void main() {
-	assert(solve("test-input") == [ 21 ], "Incorrect solution");
-	auto result = solve("input");
-	assert(result == [ 7090 ]);
+	auto testData = parse("test-input");
+	auto data = parse("input");
+	
+	
+	assert(solve1(testData) == 21);
+	assert(solve1(data) == 7090);
+	
+	// assert(solve2(testData) == 525_152);
+	auto result = solve2(data);
 	writeln(result);
 }
