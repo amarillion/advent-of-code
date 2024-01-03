@@ -135,5 +135,5 @@ void main() {
 	assert(solve("test-input") == [8, 1], "Incorrect solution");
 	auto result = solve("input");
 	assert(result == [6867, 595]);
-	writeln(solve("input"));
+	writeln(result);
 }
