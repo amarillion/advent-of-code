@@ -16,7 +16,7 @@ import common.coordrange;
 import common.bfs;
 
 
-auto solve(string fname) {
+auto solve(string fname, long part2Factor) {
 	string[] lines = readLines(fname);
 	ulong w = lines[0].length;
 	ulong h = lines.length;
@@ -41,34 +41,37 @@ auto solve(string fname) {
 	writeln(emptyColumns);
 	writeln(galaxies);
 
-	long distance(Point g1, Point g2) {
+	long distance(Point g1, Point g2, long factor = 2) {
 		long result = 0;
 		for (int x = min(g1.x, g2.x); x < max(g1.x, g2.x); ++x) {
-			if (emptyColumns[x]) result += 2; else result += 1;
+			if (emptyColumns[x]) result += factor; else result += 1;
 		}
 		for (int y = min(g1.y, g2.y); y < max(g1.y, g2.y); ++y) {
-			if (emptyRows[y]) result += 2; else result += 1;
+			if (emptyRows[y]) result += factor; else result += 1;
 		}
 		return result;
 	}
 
-	long result = 0;
+	long result1 = 0;
+	long result2 = 0;
 	for(int i = 0; i < galaxies.length; ++i) {
 		for (int j = 0; j < i; ++j) {
-			long d = distance(galaxies[i], galaxies[j]);
-			writefln("Galaxy #%s: %s - #%s: %s distance: %s", i, galaxies[i], j, galaxies[j], d);
-			result += d;
+			long d1 = distance(galaxies[i], galaxies[j]);
+			long d2 = distance(galaxies[i], galaxies[j], part2Factor);
+			writefln("Galaxy #%s: %s - #%s: %s distance: %s %s", i, galaxies[i], j, galaxies[j], d1, d2);
+			result1 += d1;
+			result2 += d2;
 		}
 	}
-	// for all pairs...
+
 	return [
-		result,
+		result1, result2
 	];
 }
 
 void main() {
-	assert(solve("test-input") == [ 374 ], "Incorrect solution");
-	// auto result = solve("input");
-	// assert(result == [6867]);
-	writeln(solve("input"));
+	assert(solve("test-input", 100) == [ 374, 8410 ], "Incorrect solution");
+	auto result = solve("input", 1_000_000);
+	// assert(result == [9639160]);
+	writeln(result);
 }
