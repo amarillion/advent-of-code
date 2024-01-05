@@ -22,6 +22,7 @@ Will one day replace with libraries like
 */
 interface InputReader {
 	string readLine();
+	@property bool eof();
 }
 
 class FileReader : InputReader {
@@ -32,7 +33,11 @@ class FileReader : InputReader {
 	}
 
 	string readLine() {
-		return file.readln();
+		return file.readln().chomp();
+	}
+
+	@property bool eof() {
+		return file.eof;
 	}
 }
 
@@ -48,6 +53,10 @@ class StringReader : InputReader {
 		string result = data[0];
 		data = data[1..$];
 		return result;
+	}
+
+	@property bool eof() {
+		return data.empty;
 	}
 }
 
