@@ -33,6 +33,8 @@ class Grid(int N, T) {
 				cell = initialValue;
 			}
 		}
+		col = ColumnAccess(this);
+		row = RowAccess(this);
 	}
 
 	bool inRange(vec!(N, int) p) const {
@@ -102,6 +104,27 @@ class Grid(int N, T) {
 		}
 	}
 
+	struct ColumnAccess {
+		private Grid!(N, T) parent;
+		private this(Grid!(N, T) parent) { this.parent = parent; }
+
+		NodeRange opIndex(int col) {
+			return NodeRange(parent, parent.width, col, parent.height);
+		}
+	}
+	ColumnAccess col;
+
+	struct RowAccess {
+		private Grid!(N, T) parent;
+		private this(Grid!(N, T) parent) { this.parent = parent; }
+
+		NodeRange opIndex(int row) {
+			return NodeRange(parent, 1, parent.width * row, parent.width);
+		}
+	}
+	RowAccess row;
+
+	// TODO: const and non-const variants	
 	struct NodeRange {
 
 		Grid!(N, T) parent;
@@ -109,10 +132,11 @@ class Grid(int N, T) {
 		int stride = 1;
 		int remain;
 
-		this(Grid!(N, T) parent, int stride = 1) {
+		this(Grid!(N, T) parent, int stride = 1, int start = 0, int num = -1) {
 			this.parent = parent;
 			this.stride = stride;
-			remain = to!int(parent.data.length);
+			this.pos = start;
+			remain = num < 0 ? (to!int(parent.data.length) - start) / stride : num;
 		}
 
 		/* use ref to support in place-modification */
@@ -121,7 +145,7 @@ class Grid(int N, T) {
 		}
 
 		void popFront() {
-			pos++;
+			pos += stride;
 			remain--;
 		}
 
@@ -134,13 +158,7 @@ class Grid(int N, T) {
 	NodeRange eachNode() {
 		return NodeRange(this);
 	}
-/*
-	void eachNode(void delegate(T t) f) {
-		foreach(ref d; data) {
-			f(d);
-		}
-	}
-*/
+	
 	NodeRange eachNodeCheckered() {
 		const PRIME = 523;
 		assert(data.length % PRIME != 0);
@@ -158,8 +176,9 @@ unittest {
 	assert (grid.toIndex(vec3i(0, 1, 0)) == 32);
 	assert (grid.toIndex(vec3i(0, 0, 1)) == 32 * 16);
 	assert (grid.toIndex(vec3i(7, 7, 3)) == 7 + (32 * 7) + (16 * 32 * 3));
+}
 
-
+unittest {
 	// opIndex test
 	auto grid2 = new Grid!(2, bool)(2, 2, false);
 	assert (grid2[Point(0, 0)] == false);
@@ -168,6 +187,21 @@ unittest {
 
 	const grid3 = grid2;
 	assert (grid3[Point(0, 0)] == true);
-	grid2[Point(0, 0)] = false; // should not compile...
-	
+	// grid3[Point(0, 0)] = false; // does not compile...	
+}
+
+
+unittest {
+	auto grid = new Grid!(2, int)(3, 4);
+	for (int y = 0; y < 4; ++y) {
+		for (int x = 0; x < 3; ++x) {
+			grid[Point(x, y)] = x * 3 + y * 5;
+		}
+	}
+
+	import std.array;
+	assert(grid.row[0].array == [0,3,6]);
+	assert(grid.row[1].array == [5,8,11]);
+	assert(grid.col[0].array == [0,5,10,15]);
+	assert(grid.col[1].array == [3,8,13,18]);
 }
