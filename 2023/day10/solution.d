@@ -94,22 +94,12 @@ auto windingRule(const MyGrid grid) {
 	return sum;
 }
 auto solve(string fname) {
-	string[] lines = readLines(fname);
-	ulong w = lines[0].length;
-	ulong h = lines.length;
-	auto grid = new MyGrid(to!int(w), to!int(h));
+	
+	auto grid = readGrid(new FileReader(fname));
 
 	Point start;
-
-	// copy file into grid
-	foreach(y, line; lines) {
-		foreach(x, char c; line) {
-			Point pos = Point(to!int(x), to!int(y));
-			grid[pos] = c;
-			if (c == 'S') {
-				start = pos;
-			}
-		}
+	foreach(pos; PointRange(grid.size)) {
+		if (grid[pos] == 'S') start = pos;
 	}
 
 	auto data = bfs(start, (Point node) => false, (Point node) => getAdjacent(grid, node) );
