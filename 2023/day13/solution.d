@@ -32,32 +32,33 @@ long countRangeDifferences(Range)(Range a, Range b) {
 	return result;
 }
 
-long countSymmetricDifferences(Grid!(2, char) grid, int center, bool isVertical) {
+bool expectedSymmetricDifferences(Grid!(2, char) grid, int center, bool isVertical, long expected) {
 	int size = isVertical ? grid.width : grid.height;
 	long result = 0;
 	for (int x = 0; x < size; ++x) {
 		int x1 = center - x;
 		int x2 = center + x + 1;
-		if (x1 < 0 || x2 >= size) return result;
+		if (x1 < 0 || x2 >= size) return result == expected;
 		if (isVertical) {
 			result += countRangeDifferences(grid.col[x1], grid.col[x2]);
 		}
 		else {
 			result += countRangeDifferences(grid.row[x1], grid.row[x2]);
 		}
+		if (result > expected) return false;
 	}
-	return result;
+	return result == expected;
 }
 
 auto solve(Data data, long expected) {
 	long result = 0;
 	foreach(grid; data) {
-		// check for horizontal symmetry. Find consecutive matches
+		// check for horizontal symmetry. Count no. of differences for a given axis of symmetry.
 		int vsymmetry = -1;
 		for (int x = 0; x < grid.size.x - 1; ++x) {
-			long delta = countSymmetricDifferences(grid, x, true);
-			writefln(" Vertical: %s %s", x, delta);
-			if (delta == expected) {
+			bool valid = expectedSymmetricDifferences(grid, x, true, expected);
+			// writefln(" Vertical: %s %s", x, delta);
+			if (valid) {
 				vsymmetry = x + 1;
 				break;
 			}
@@ -65,20 +66,18 @@ auto solve(Data data, long expected) {
 
 		int hsymmetry = -1;
 		for (int y = 0; y < grid.size.y - 1; ++y) {
-			long delta = countSymmetricDifferences(grid, y, false);
-			writefln("Horizontal: %s %s", y, delta);
-			if (delta == expected) {
+			bool valid = expectedSymmetricDifferences(grid, y, false, expected);
+			// writefln("Horizontal: %s %s", y, delta);
+			if (valid) {
 				hsymmetry = y + 1;
 				break;
 			}
 		}
-
-		writeln(grid.size);
-		writeln(grid.format(""));
-
+		// writeln(grid.size);
+		// writeln(grid.format(""));
 		if (hsymmetry > 0) result += hsymmetry * 100;
 		if (vsymmetry > 0) result += vsymmetry;
-		writefln("HSymmetry: %s; VSymmetry: %s; sum: %s", hsymmetry, vsymmetry, result);
+		// writefln("HSymmetry: %s; VSymmetry: %s; sum: %s", hsymmetry, vsymmetry, result);
 	}
 	return result;
 }
@@ -89,9 +88,7 @@ void main() {
 	assert(solve(testData, 1) == 400, "Solution incorrect");
 
 	auto data = parse("input");
-	auto result = solve(data, 0);
-	assert(result == 31_739);
-	result = solve(data, 1);
-	// assert(result == 31_739);
+	auto result = [ solve(data, 0), solve(data, 1) ];
+	assert(result == [ 31_739, 31_539 ]);
 	writeln(result);
 }
