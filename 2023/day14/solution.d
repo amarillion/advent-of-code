@@ -41,7 +41,9 @@ long countLoad(Data grid) {
 	return result;
 }
 
-auto solve1(Data grid) {
+auto solve1(const Data cgrid) {
+	Data grid = cgrid.dup;
+
 	// move all 'O's up
 	foreach(Point p; PointRange(grid.size)) {
 		if(grid[p] == 'O') {
@@ -60,7 +62,7 @@ void spinCycle(Data grid) {
 			
 			Point pos = p;
 			if (delta.y > 0 || delta.x > 0) {
-				// examine in the other direction...
+				// transpose, examine in the other direction to ensure rocks are moved in the right order
 				pos = grid.size - pos - 1;
 			}
 
@@ -71,11 +73,15 @@ void spinCycle(Data grid) {
 	}
 }
 
-
-class CycleDetector {
-	long[long] lastOccurence;
-	long[long] differences;
-	void add(long pos, long val) {
+/** 
+ * Semi-generic cycle detection class.
+ * Collect occurences in a map, and calculate differences between last occurences
+ * Then do frequency analysis to return the most frequent cycle.
+ */
+class CycleDetector(T) {
+	long[T] lastOccurence;
+	long[T] differences;
+	void add(long pos, T val) {
 		if (val in lastOccurence) {
 			differences[val] = pos - lastOccurence[val];
 		}
@@ -100,27 +106,26 @@ class CycleDetector {
 		return maxPeriod;
 	}
 }
-
-long detectCycle(Data grid) {
-	auto detector = new CycleDetector();
-	for(long i = 0; i < 10_000; ++i) {
-		spinCycle(grid);
-		detector.add(i, countLoad(grid));
-	}
-	return detector.detect();
-}
-
-// we know cycle of test-input is 7...
-// cycle of input is ...
-auto solve2(Data grid, long cycleLen) {
+auto solve2(const Data cgrid) {
+	Data grid = cgrid.dup; // defensive copy
 	long remain = 1_000_000_000;
 
-	// stabilize loop first 1000 times...
-	foreach(int i; 0..1000) {
+	// stabilize loop first 200 times...
+	foreach(int i; 0..100) {
 		spinCycle(grid);
 		remain--;
 	}
 
+	// now start detecting cycles...
+	auto detector = new CycleDetector!long();
+	for(long i = 0; i < 200; ++i) {
+		spinCycle(grid);
+		remain--;
+		detector.add(i, countLoad(grid));
+	}
+	long cycleLen = detector.detect();
+
+	// last few spins to make the cycle match up...
 	foreach(i; 0..(remain % cycleLen)) {
 		spinCycle(grid);
 	}
@@ -129,20 +134,13 @@ auto solve2(Data grid, long cycleLen) {
 }
 
 void main() {
-	// auto testData = parse("test-input");
-	// assert(solve1(testData) == 136, "Solution incorrect");
-	// long testCycle = detectCycle(testData);
-	// assert(testCycle == 7); // empirical observation
-	// testData = parse("test-input");
-	// assert(solve2(testData, testCycle) == 64, "Solution incorrect");
+	auto testData = parse("test-input");
+	assert(solve1(testData) == 136, "Solution incorrect");
+	assert(solve2(testData) == 64, "Solution incorrect");
 
 	auto data = parse("input");
-	// assert(solve1(data) == 106_990);
-
-	long cycle = detectCycle(data);
-	assert(cycle == 39); // empirical observation
-	data = parse("input");
-	auto result = solve2(data, cycle);
-	// assert(result == 106_990);
+	assert(solve1(data) == 106_990);
+	auto result = solve2(data);
+	assert(result == 100_531);
 	writeln(result);
 }

@@ -8,7 +8,7 @@ import std.conv;
 class Grid(int N, T) {
 	T[] data;
 	vec!(N, int) size;
-	
+
 	@property int width() const { return size.x; }
 	@property int height() const { return size.y; }
 
@@ -22,6 +22,19 @@ class Grid(int N, T) {
 		this(int width, int height, int depth, T initialValue = T.init) {
 			this(vec!(N, int)(width, height, depth), initialValue);
 		}
+	}
+
+	// copy constructor
+	this(const Grid!(N, T) src) {
+		data = src.data.dup;
+		size = src.size;
+		col = ColumnAccess(this);
+		row = RowAccess(this);
+	}
+
+	// instantiate duplicate of this.
+	Grid!(N, T) dup() const {
+		return new Grid!(N, T)(this);
 	}
 
 	this(vec!(N, int) size, T initialValue = T.init) {
