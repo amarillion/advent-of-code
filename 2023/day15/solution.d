@@ -7,6 +7,7 @@ import std.conv;
 import std.array;
 import std.range;
 import std.algorithm;
+import std.regex;
 
 import common.io;
 
@@ -33,12 +34,89 @@ auto solve1(Data data) {
 	return result;
 }
 
+struct Lens {
+	string label;
+	int focalLength;
+
+	string toString() const {
+		return "[%s %s]".format(label, focalLength);
+	}
+}
+
+auto byHash(Lens[] lenses) {
+	Lens[][ubyte] hashmap;
+	foreach(ubyte i; 0..256) {
+		hashmap[i] = [];
+	}
+
+	foreach(lens; lenses) {
+		ubyte code = hash(lens.label);
+		hashmap[code] ~= lens;
+	}
+
+	return hashmap;
+}
+
+void print(Lens[][ubyte] hashmap) {
+	foreach(ubyte i; 0..256) {
+		if(hashmap[i].empty) continue;
+		writefln("Box %s: %s", i, hashmap[i]);
+	}
+}
+
+auto calculate(Lens[][ubyte] hashmap) {
+	long result;
+	foreach(ubyte i; 0..256) {
+		long boxResult = 0;
+		foreach(idx, lens; hashmap[i]) {
+			boxResult += ((to!int(i) + 1) * (idx + 1) * lens.focalLength);
+		}
+		// writefln("Box %s: %s -> %s", i, boxResult, result + boxResult);
+		result += boxResult;
+	}
+	return result;
+}
+
+auto solve2(Data instructions) {
+	Lens[] lensOrder;
+	foreach(instr; instructions.split(",")) {
+		// writefln("After \"%s\"", instr);
+		auto m1 = instr.matchFirst(regex(r"^(\w+)=(\d+)$"));
+		auto m2 = instr.matchFirst(regex(r"^(\w+)-$"));
+
+		if (!m1.empty) {
+			string label = m1[1];
+			int focalLength = to!int(m1[2]);
+			bool found = false;
+			foreach(ref lens; lensOrder) {
+				if (lens.label == label) {
+					lens.focalLength = focalLength;
+					found = true;
+				}
+			}
+			if (!found) {
+				lensOrder ~= Lens(label, focalLength);
+			}
+		}
+		else if(!m2.empty) {
+			string label = m2[1];
+			lensOrder = lensOrder.filter!(i => i.label != label).array;
+		}
+		// print(byHash(lensOrder));
+	}
+
+	auto hashmap = byHash(lensOrder);	
+	return calculate(hashmap);
+}
+
 void main() {
 	auto testData = parse("test-input");
 	assert(solve1(testData) == 1320, "Solution incorrect");
+	assert(solve2(testData) == 145, "Solution incorrect");
 
 	auto data = parse("input");
-	auto result = solve1(data);
-	assert(result == 521_341);
+	assert(solve1(data) == 521_341);
+	auto result = solve2(data);
+	assert(result == 252_782);
 	writeln(result);
 }
