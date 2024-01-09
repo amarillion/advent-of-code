@@ -9,87 +9,22 @@ import std.array;
 import std.concurrency;
 import std.math;
 import std.range;
+import std.typecons;
 import common.grid;
 import common.coordrange;
+import common.dijkstra;
 
 auto getAdjacent(const Grid!int grid, const Point pos) {
 	Point[] deltas = [
 		Point(0, 1), Point(1, 0), Point(0, -1), Point(-1, 0)
 	];
-	Point[] result = [];
+	Tuple!(Point, Point)[] result = [];
 	foreach(delta; deltas) {
 		Point np = pos + delta;
 		if (!grid.inRange(np)) continue;
-		result ~= np;
+		result ~= tuple(delta, np);
 	}
 	return result;
-}
-
-int dijkstra(N)(N source, N dest, N[] delegate(N) getAdjacent, int delegate(N) getWeight) {
-	// Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
-	// Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all other nodes. Set the initial node as current.[13]
-	int[N] dist = [ source: 0 ];
-	bool[N] visited;
-	N[N] prev;
-	
-	// TODO: more efficient to use a priority queue here
-	const(N)[] open = [ source ];
-
-
-	// int maxIterations = 1000;
-	// int i = maxIterations;
-	while (open.length > 0) {
-		
-		// i--; // 0 -> -1 means Infinite.
-		// if (i == 0) break;
-
-		// extract the element from Q with the lowest dist. Open is modified in-place.
-		// TODO: optionally use PriorityQueue
-		// O(N^2) like this, O(log N) with priority queue. But in my tests, priority queues only start pulling ahead in large graphs
-		N minElt;
-		bool found = false;
-		foreach (elt; open) {
-			if (!found || dist[elt] < dist[minElt]) {
-				minElt = elt;
-				found = true;
-			}
-		}
-		if (found) open = open.filter!(i => i != minElt).array;
-		
-		N current = minElt;
-		// check adjacents, calculate distance, or  - if it already had one - check if new path is shorter
-		foreach(sibling; getAdjacent(current)) {
-			
-			if (!(sibling in visited)) {
-				int alt = dist[current] + getWeight(sibling);
-				
-				// any node that is !visited and has a distance assigned should be in open set.
-				if (!open.canFind(sibling)) open ~= sibling; // may be already in there
-
-				int oldDist = sibling in dist ? dist[sibling] : int.max;
-
-				if (alt < oldDist) {
-					// set or update distance
-					dist[sibling] = alt;
-					// build back-tracking map
-					prev[sibling] = current;
-				}
-			}
-		}
-
-		// A visited node will never be checked again.
-		visited[current] = true;
-
-		if (dest == current) {
-			break;	
-		}
-	}
-
-	// N current = dest;
-	// while (current != source) {
-	// 	current = prev[current];
-	// }
-	return dist[dest];
 }
 
 Grid!N expandGrid(N)(Grid!N grid) {
@@ -115,9 +50,9 @@ auto solve (string fname) {
 		grid.set(pos, to!int(digit));
 	}
 
-	int cost = dijkstra!Point(
+	auto result1 = dijkstra!(Point, Point)(
 		Point(0),
-		size - 1,
+		n => n == (size - 1),
 		n => getAdjacent(grid, n),
 		n => grid.get(n)
 	);
@@ -125,18 +60,22 @@ auto solve (string fname) {
 	Grid!int grid2 = expandGrid(grid);
 	// writeln(grid2.format(""));
 
-	int cost2 = dijkstra!Point(
+	auto result2 = dijkstra!(Point, Point)(
 		Point(0),
-		grid2.size - 1,
+		n => n == (grid2.size - 1),
 		n => getAdjacent(grid2, n),
 		n => grid2.get(n)
 	);
 
-	return [ cost, cost2 ];
+	return [ result1.dist[result1.dest], result2.dist[result2.dest] ];
 }
 
 void main() {
-	writeln(solve("test"));
-	assert (solve("test") == [ 40, 315 ]);
-	writeln (solve("input")); // 714 is correct
+	auto result1 = solve("test");
+	assert(result1 == [40, 315]); // 714, 2948 is correct
+	writeln(result1);
+
+	auto result2 = solve("input");
+	assert(result2 == [714, 2948]);
+	writeln(result2);
 }
