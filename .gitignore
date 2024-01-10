@@ -4,3 +4,5 @@ test-input
 test-input2
 test
 test2
+node_modules/
+out/
