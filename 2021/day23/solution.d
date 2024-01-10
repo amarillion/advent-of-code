@@ -1,7 +1,5 @@
 #!/usr/bin/env -S rdmd -g -I..
 
-import common.io;
-import common.vec;
 import std.stdio;
 import std.conv;
 import std.algorithm;
@@ -10,66 +8,14 @@ import std.concurrency;
 import std.math;
 import std.range;
 import std.typecons;
+import std.container.binaryheap;
+
+import common.io;
+import common.vec;
 import common.util;
 import common.grid;
 import common.coordrange;
-import std.container.binaryheap;
-
-struct Step(N, E) {
-	N src;
-	E edge;
-	N dest;
-	int cost;
-}
-
-auto astar(N, E)(
-	N source, 
-	N dest, 
-	Tuple!(E, N)[] delegate(N) getAdjacent, 
-	int delegate(Tuple!(E, N)) getWeight,
-	int delegate(N) getHeuristic = (N) => 0,
-	int maxIterations = -1
-) {
-	int[N] dist = [ source: 0 ];
-	int[N] priority = [ source: 0 ];
-	Step!(N, E)[N] prev;
-
-	// priority queue	
-	auto open = heapify!((a, b) => priority[a] > priority[b])([ source ]);
-
-	int i = maxIterations;
-	while (open.length > 0) {
-		N current = open.front;
-		open.popFront;
-		
-		// check adjacents, calculate distance, or  - if it already had one - check if new path is shorter
-		foreach(Tuple!(E, N) adj; getAdjacent(current)) {
-			N sibling = adj[1];
-			E edge = adj[0];
-			const cost = dist[current] + getWeight(adj);
-			const oldCost = sibling in dist ? dist[sibling] : int.max;
-
-			if (cost < oldCost) {
-				dist[sibling] = cost;
-				priority[sibling] = cost + getHeuristic(sibling);
-				open.insert(sibling);
-				
-				// build back-tracking map
-				prev[sibling] = Step!(N, E)(current, edge, sibling, cost);
-			}
-		}
-
-		if (current == dest) {
-			break;	
-		}
-
-		i--; // 0 -> -1 means Infinite.
-		if (i == 0) break;
-		if (i % 10000 == 0) { writeln(-i, " ", open.length); }
-	}
-
-	return prev;
-}
+import common.astar;
 
 enum char[int] hallTarget = [
 	11: 'A',
@@ -207,9 +153,9 @@ Edge[] validMoves(State state) {
 		}
 		
 		// calculate cost for all Edges where this can go...
-		auto astarResult = astar!(int, int)(p.pos, -1, &adjFunc, (Tuple!(int,int)) => podCosts[p.type]);
+		auto astarResult = astar!(int, int)(p.pos, (int n) => false, &adjFunc, (Tuple!(int,int)) => podCosts[p.type]);
 
-		foreach(dest; astarResult.keys) {
+		foreach(dest; astarResult.prev.keys) {
 			State newState = state;
 			newState.pods[ii] = Pod(p.type, dest);
 			sortPods(newState);
@@ -227,7 +173,7 @@ Edge[] validMoves(State state) {
 			// EXTRA CONDITION to reduce search space: if we're in a room, check that the next spot isn't empty
 			if (dest >= 11 && ((dest-11) % 4 < 3) && ((dest + 1) !in occupancy)) continue;
 			
-			int cost = astarResult[dest].cost;
+			int cost = astarResult.prev[dest].cost;
 			result ~= tuple(Move(cost, p, dest), newState);
 		}
 	}
@@ -292,17 +238,19 @@ auto solve (string fname) {
 
 	auto astarResult = astar!(State, Move)(
 		state, 
-		goal, 
+		s => s == goal, 
 		s => s.validMoves, 
 		(Edge m) => m[0].cost,
 		s => s.heuristic
 	);
 	auto current = goal;
-	assert(current in astarResult);
-	return [ astarResult[goal].cost ];
+	assert(current in astarResult.prev);
+	return [ astarResult.prev[goal].cost ];
 }
 
 void main() {
 	assert (solve("test") == [ 44169 ]);
-	writeln (solve("input"));
+	auto result = solve("input");
+	assert(result == [ 43226 ]);
+	writeln(result);
 }
