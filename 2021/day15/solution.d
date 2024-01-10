@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rdmd -I..
+#!/usr/bin/env -S rdmd -O -I..
 
 import common.io;
 import common.vec;
@@ -18,11 +18,11 @@ auto getAdjacent(const Grid!int grid, const Point pos) {
 	Point[] deltas = [
 		Point(0, 1), Point(1, 0), Point(0, -1), Point(-1, 0)
 	];
-	Tuple!(Point, Point)[] result = [];
+	Point[] result = [];
 	foreach(delta; deltas) {
 		Point np = pos + delta;
 		if (!grid.inRange(np)) continue;
-		result ~= tuple(delta, np);
+		result ~= np;
 	}
 	return result;
 }
@@ -50,7 +50,7 @@ auto solve (string fname) {
 		grid.set(pos, to!int(digit));
 	}
 
-	auto result1 = dijkstra!(Point, Point)(
+	auto result1 = dijkstra!(Point)(
 		Point(0),
 		n => n == (size - 1),
 		n => getAdjacent(grid, n),
@@ -60,7 +60,7 @@ auto solve (string fname) {
 	Grid!int grid2 = expandGrid(grid);
 	// writeln(grid2.format(""));
 
-	auto result2 = dijkstra!(Point, Point)(
+	auto result2 = dijkstra!(Point)(
 		Point(0),
 		n => n == (grid2.size - 1),
 		n => getAdjacent(grid2, n),
