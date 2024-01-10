@@ -21,6 +21,8 @@ Data parse(string fname) {
 }
 
 // See: https://www.wikihow.com/Calculate-the-Area-of-a-Polygon
+// Also: https://www.mathopenref.com/coordpolygonarea.html
+// works for convex / concave polygons, as long as it's not self-intersecting.
 long irregularPolygonArea(vec2l[] points) {
 	
 	long sumA = 0;
@@ -68,7 +70,6 @@ auto parse2(Data lines) {
 		char dir = asDir[color[$-2]];
 		result ~= Instruction(num, dir);
 	}
-	writeln(result);
 	return result;
 }
 
@@ -91,11 +92,8 @@ auto solve(Instruction[] instructions) {
 	}
 	assert(current == vec2l(0, 0)); // must be enclosed.
 
-	writeln(polygon);
 	long result = irregularPolygonArea(polygon);
-	writeln(result);
 	result += circumference / 2;
-	writeln(result);
 	return result + 1;
 }
 
