@@ -177,7 +177,7 @@ long applyRange(const Data data, const PartRange partRange, string workflowLabel
 				Range conditionTrue;
 				switch(rule.operator[0]) {
 					case '<': conditionTrue = Range(1, rule.right); conditionFalse = Range(rule.right, 4001); break;
-					case '>': conditionFalse = Range(1, rule.right); conditionTrue = Range(rule.right, 4001);  break;
+					case '>': conditionFalse = Range(1, rule.right + 1); conditionTrue = Range(rule.right + 1, 4001);  break;
 					default: assert(false);
 				}
 				PartRange forward = current.dup;
@@ -190,7 +190,7 @@ long applyRange(const Data data, const PartRange partRange, string workflowLabel
 			}
 		}
 	}
-	writefln("%sWorkflow %s returning %s for part %s", ' '.repeat(recursionLevel), workflowLabel, result, partRange);
+	// writefln("%sWorkflow %s returning %s for part %s", ' '.repeat(recursionLevel), workflowLabel, result, partRange);
 	return result;
 }
 
@@ -204,12 +204,11 @@ void main() {
 	auto testData = parse("test-input");
 	writeln(testData);
 	assert(solve1(testData) == 19_114, "Solution incorrect");
-	writeln(solve2(testData));
 	assert(solve2(testData) == 167_409_079_868_000, "Solution incorrect");
+	
 	auto data = parse("input");
 	assert (solve1(data) == 376_008);
 	long result = solve2(data);
-	// assert(result == 1); 
-	// First answer 124078347779837 too high...
+	assert(result == 124078207789312); 
 	writeln(result);
 }
