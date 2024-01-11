@@ -111,13 +111,105 @@ auto solve1(Data data) {
 	return result;
 }
 
+struct Range {
+	int bottomIncl;
+	int topExcl;
+
+	@property long total() const {
+		return topExcl - bottomIncl;
+	}
+
+	void intersect(Range other) {
+		bottomIncl = max(bottomIncl, other.bottomIncl);
+		topExcl = min(topExcl, other.topExcl);
+		assert (topExcl >= bottomIncl);
+	}
+}
+
+class PartRange {
+	Range[char] ranges;
+	this() {
+		ranges['x'] = Range(1, 4001);
+		ranges['m'] = Range(1, 4001);
+		ranges['a'] = Range(1, 4001);
+		ranges['s'] = Range(1, 4001);
+	}
+	
+	this(const PartRange self) {
+		foreach(key, value; self.ranges) {
+			ranges[key] = value;
+		}
+	}
+
+	@property PartRange dup() const {
+		return new PartRange(this);
+	}
+
+	override string toString() const {
+		return "x:%s-%s,m:%s-%s,a:%s-%s,s:%s-%s".format(
+			ranges['x'].bottomIncl, ranges['x'].topExcl,
+			ranges['m'].bottomIncl, ranges['m'].topExcl,
+			ranges['a'].bottomIncl, ranges['a'].topExcl,
+			ranges['s'].bottomIncl, ranges['s'].topExcl,
+		);
+	}
+}
+
+long applyRange(const Data data, const PartRange partRange, string workflowLabel, int recursionLevel = 0) {
+	PartRange current = partRange.dup;
+
+	long result;
+	if (workflowLabel == "R") {
+		result = 0;
+	}
+	else if (workflowLabel == "A") {
+		result = 
+			partRange.ranges['x'].total *
+			partRange.ranges['m'].total *
+			partRange.ranges['a'].total *
+			partRange.ranges['s'].total;
+	}
+	else {
+		result = 0;
+		foreach(rule; data.workflows[workflowLabel]) {
+			if (rule.hasCondition) {
+				Range conditionFalse;
+				Range conditionTrue;
+				switch(rule.operator[0]) {
+					case '<': conditionTrue = Range(1, rule.right); conditionFalse = Range(rule.right, 4001); break;
+					case '>': conditionFalse = Range(1, rule.right); conditionTrue = Range(rule.right, 4001);  break;
+					default: assert(false);
+				}
+				PartRange forward = current.dup;
+				forward.ranges[rule.left[0]].intersect(conditionTrue);
+				current.ranges[rule.left[0]].intersect(conditionFalse);
+				result += applyRange(data, forward, rule.dest, recursionLevel + 1);
+			}
+			else {
+				result += applyRange(data, current, rule.dest, recursionLevel + 1);
+			}
+		}
+	}
+	writefln("%sWorkflow %s returning %s for part %s", ' '.repeat(recursionLevel), workflowLabel, result, partRange);
+	return result;
+}
+
+long solve2(Data data) {
+	auto partRange = new PartRange();
+	long result = applyRange(data, partRange, "in");
+	return result;
+}
+
 void main() {
 	auto testData = parse("test-input");
 	writeln(testData);
 	assert(solve1(testData) == 19_114, "Solution incorrect");
-
+	writeln(solve2(testData));
+	assert(solve2(testData) == 167_409_079_868_000, "Solution incorrect");
 	auto data = parse("input");
-	auto result = solve1(data);
-	// assert(result == 1);
+	assert (solve1(data) == 376_008);
+	long result = solve2(data);
+	// assert(result == 1); 
+	// First answer 124078347779837 too high...
 	writeln(result);
 }
