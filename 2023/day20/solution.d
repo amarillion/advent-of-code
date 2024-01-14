@@ -127,6 +127,28 @@ auto solve1(Data data) {
 	return lowSent * highSent;
 }
 
+auto solve2(Data data) {
+	long buttonPresses = 0;
+	bool rxLowSent = false;
+	Pulse[] queue;
+	while(!rxLowSent) {
+		queue ~= Pulse("button", false, "broadcaster");
+		buttonPresses++;
+		while (!queue.empty) {
+			auto pulse = queue.front;
+			// writefln("%s -%s-> %s", pulse.src, pulse.isHigh ? "high": "low", pulse.dest);
+			if (pulse.dest in data) {
+				queue ~= data[pulse.dest].sendPulse(pulse.src, pulse.isHigh);
+			}
+			if (pulse.dest == "rx" && pulse.isHigh == false) {
+				rxLowSent = true;
+			}
+			queue.popFront();
+		}
+	}
+	return buttonPresses;
+}
+
 void main() {
 	auto testData = parse("test-input");
 	assert(solve1(testData) == 32000000, "Solution incorrect");
@@ -138,4 +160,10 @@ void main() {
 	auto result = solve1(data);
 	assert(result == 812609846);
 	writeln(result);
+
+	data = parse("input");
+	result = solve2(data);
+	// assert(result == 812609846);
+	writeln(result);
+
 }
