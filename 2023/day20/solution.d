@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rdmd -I..
+#!/usr/bin/env -S rdmd -I.. -O
 module day20.solution;
 
 import std.stdio;
@@ -17,6 +17,8 @@ struct Pulse {
 }
 
 abstract class Module {
+	static long buttonCounter = 0;
+	long delta = 0;
 	string name;
 	string[] inputs = [];
 	string[] outputs = [];
@@ -34,6 +36,7 @@ abstract class Module {
 class Broadcast : Module {
 	this(string _name) { super(_name); }
 	override Pulse[] sendPulse(string from, bool isHigh) {
+		buttonCounter++;
 		return dispatch(isHigh);
 	}
 }
@@ -52,6 +55,7 @@ class FlipFlop : Module {
 class Conjunction : Module {
 	this(string _name) { super(_name); }
 	bool[string] memory;
+	long prev = 0;
 
 	override Pulse[] sendPulse(string from, bool isHigh) {
 		memory[from] = isHigh;
@@ -61,6 +65,10 @@ class Conjunction : Module {
 				allHigh = false;
 				break;
 			}
+		}
+		if (allHigh) {
+			delta = (buttonCounter - prev);
+			prev = buttonCounter;
 		}
 		return dispatch(!allHigh);
 	}
@@ -116,7 +124,7 @@ auto solve1(Data data) {
 		while (!queue.empty) {
 			auto pulse = queue.front;
 			if (pulse.isHigh) { highSent++; } else { lowSent++; }
-			writefln("%s -%s-> %s", pulse.src, pulse.isHigh ? "high": "low", pulse.dest);
+			// writefln("%s -%s-> %s", pulse.src, pulse.isHigh ? "high": "low", pulse.dest);
 			if (pulse.dest in data) {
 				queue ~= data[pulse.dest].sendPulse(pulse.src, pulse.isHigh);
 			}
@@ -128,25 +136,30 @@ auto solve1(Data data) {
 }
 
 auto solve2(Data data) {
-	long buttonPresses = 0;
-	bool rxLowSent = false;
 	Pulse[] queue;
-	while(!rxLowSent) {
+	foreach(i; 0..20_000) {
 		queue ~= Pulse("button", false, "broadcaster");
-		buttonPresses++;
 		while (!queue.empty) {
 			auto pulse = queue.front;
 			// writefln("%s -%s-> %s", pulse.src, pulse.isHigh ? "high": "low", pulse.dest);
 			if (pulse.dest in data) {
 				queue ~= data[pulse.dest].sendPulse(pulse.src, pulse.isHigh);
 			}
-			if (pulse.dest == "rx" && pulse.isHigh == false) {
-				rxLowSent = true;
-			}
 			queue.popFront();
 		}
 	}
-	return buttonPresses;
+
+	// through analysis of the network, we find that four 
+	// conjunction modules are recurring periodically, and that the period is a prime number around ~ 4000.
+	// As a guess, if we multiply the four prime numbers, do we get our answer?
+	// apparently, yes!
+	long result = 1;
+	foreach(mod; data.values) {
+		if (mod.delta > 1000) {
+			result *= mod.delta;
+		}
+	}
+	return result;
 }
 
 void main() {
@@ -159,11 +172,10 @@ void main() {
 	auto data = parse("input");
 	auto result = solve1(data);
 	assert(result == 812609846);
-	writeln(result);
 
-	data = parse("input");
-	result = solve2(data);
-	// assert(result == 812609846);
-	writeln(result);
+	auto data2 = parse("input");
+	auto result2 = solve2(data2);
+	assert(result2 == 245_114_020_323_037);
+	writeln(result2);
 
 }
