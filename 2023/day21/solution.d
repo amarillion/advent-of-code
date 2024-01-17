@@ -24,6 +24,18 @@ Point[] getAdjacent(const MyGrid grid, Point pos) {
 	Point[] result;
 	foreach(Point delta; DELTA.values) {
 		Point np = pos + delta;
+		Point wrapped = np.wrap(grid.size);
+		if (grid[wrapped] != '#') {
+			result ~= np;
+		}
+	}
+	return result;
+}
+
+Point[] getAdjacentOld(const MyGrid grid, Point pos) {
+	Point[] result;
+	foreach(Point delta; DELTA.values) {
+		Point np = pos + delta;
 		if (grid.inRange(np)) {
 			if (grid[np] != '#') {
 				result ~= np;
@@ -33,7 +45,9 @@ Point[] getAdjacent(const MyGrid grid, Point pos) {
 	return result;
 }
 
-auto solve1(MyGrid grid, int steps) {
+auto getDistanceCounts(MyGrid grid, long steps) {
+	long[] cumulativeResults = 0L.repeat(steps + 2).array;
+
 	Point start;
 	foreach(Point p; PointRange(grid.size)) {
 		if (grid[p] == 'S') {
@@ -42,19 +56,76 @@ auto solve1(MyGrid grid, int steps) {
 	}
 	auto result = bfs!Point(
 		start,
-		(Point p) => false,
+		(Point p, int dist) => dist >= steps,
 		(Point p) => getAdjacent(grid, p)
 	);
-	writeln(result.dist);
-	return result.dist.values.filter!(i => i <= steps && i % 2 == 0).count();
+	
+	foreach(long dist; result.dist.values) {
+		cumulativeResults[dist]++;
+	}
+	return cumulativeResults;
+}
+
+auto solve(long[] cumulativeResults, int steps) {
+	long cumulative = 0;
+	for(int i = 0; i <= steps; i += 2) {
+		cumulative += cumulativeResults[i];
+	}
+	return cumulative;
+}
+
+auto sliceSeries(long[] distanceCounts, long period) {
+	long[] unit = [];
+	long[][] series = unit.repeat(period).array;
+	for(long i = 0; i + 1 < distanceCounts.length; i++) {
+		long prev = i < period ? 0 : distanceCounts[i-period];
+		series[i % period] ~= distanceCounts[i] - prev;
+	}
+
+	foreach(i, serie; series) {
+		writefln("#%s: %s", i, serie);
+	}
+	return series;
+}
+
+auto extrapolate(long[][] series, long stepCount) {
+	long period = series.length;
+	long[] distances = repeat(0L, period).array;
+	long sum = 0;
+	long start = stepCount % 2;
+	for(long i = start; i <= stepCount; i += 2) {
+		long phase = i % period;
+		long iteration = i / period;
+		long delta = iteration < series[phase].length ? series[phase][iteration] : series[phase][$-1]; 
+		distances[phase] += delta;
+		sum += distances[phase];
+	}
+	writeln(sum);
+	return sum;
 }
 
 void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData, 6) == 16, "Solution incorrect");
+	auto testRaw = parse("test-input");
+	long testPeriod = testRaw.size.x + testRaw.size.y;
+	auto testData = getDistanceCounts(testRaw, testPeriod * 4);
+	auto testSeries = sliceSeries(testData, testPeriod);
+	assert(extrapolate(testSeries, 6) == 16, "Solution incorrect");
+	assert(extrapolate(testSeries, 10) == 50, "Solution incorrect");
+	assert(extrapolate(testSeries, 50) == 1594, "Solution incorrect");
+	assert(extrapolate(testSeries, 100) == 6536, "Solution incorrect");
+	assert(extrapolate(testSeries, 500) == 167004, "Solution incorrect");
+	assert(extrapolate(testSeries, 1000) == 668697, "Solution incorrect");
+	assert(extrapolate(testSeries, 5000) == 16733044, "Solution incorrect");
 
-	auto data = parse("input");
-	auto result = solve1(data, 64);
+	auto raw = parse("input");
+	auto period = raw.size.x + raw.size.y;
+	auto data = getDistanceCounts(raw, period * 4);
+	auto series = sliceSeries(data, period);
+	auto result = extrapolate(series, 64);
 	assert(result == 3764);
 	writeln(result);
+
+	auto result2 = extrapolate(series, 26501365);
+	assert (result2 == 622926941971282);
+	writeln(result2);
 }

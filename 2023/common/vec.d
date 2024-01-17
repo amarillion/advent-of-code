@@ -141,6 +141,23 @@ struct vec(int N, V) {
 		}
 		return 0;
 	}
+
+	/** 
+	 * Create a copy of this point that stays between 0,0 and size,
+	 * by taking the modulo of each coorinate.
+	 * 
+	 * Params:
+	 *   size = area to keep the wrapped vector inside of.
+	 * Returns: 
+	 */
+	vec!(N, V) wrap(const vec!(N, V) size) const {
+		vec!(N, V) result = this;
+		foreach(i; 0..N) {
+			result.val[i] %= size.val[i];
+			if (result.val[i] < 0) result.val[i] += size.val[i];
+		}
+		return result;
+	}
 }
 
 unittest {
@@ -197,4 +214,14 @@ unittest {
 	// opOpAssign with scalar
 	a *= 5;
 	assert(a == Point(25, 15));
+}
+
+unittest {
+	Point size = Point(16, 64);
+	assert(Point(8,8).wrap(size) == Point(8,8));
+	assert(Point(100,100).wrap(size) == Point(4,36));
+	assert(Point(0,0).wrap(size) == Point(0,0));
+	assert(Point(-1,-1).wrap(size) == Point(15,63));
+	assert(Point(-16,-64).wrap(size) == Point(0,0));
+	assert(Point(-17,-65).wrap(size) == Point(15,63));
 }

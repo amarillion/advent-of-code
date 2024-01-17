@@ -44,7 +44,7 @@ auto bfs(N, E)(N source, bool delegate(N) isSink, Tuple!(E, N)[] delegate(N) get
 	return result;
 }
 
-auto bfs(N)(N source, bool delegate(N) isSink, N[] delegate(N) getAdjacent) {
+auto bfs(N)(N source, bool delegate(N, int) isSink, N[] delegate(N) getAdjacent) {
 	
 	struct Result {
 		int[N] dist;
@@ -75,7 +75,7 @@ auto bfs(N)(N source, bool delegate(N) isSink, N[] delegate(N) getAdjacent) {
 			}
 		}
 
-		if (isSink(current)) {
+		if (isSink(current, result.dist[current])) {
 			break;
 		}
 	}
