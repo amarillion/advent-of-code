@@ -71,6 +71,40 @@ int[] dropBlock(Rect original, int id, ref int[vec3i] collisionMap) {
 	return underlings.keys;
 }
 
+int countTransitiveSupport(int id, int[][int] supportedBy, int[][int] isSupporting) {
+	bool[int] disintegrating = [ id: true ];
+	bool[int] visited;
+	int[] open = [ id ];
+	while (!open.empty) {
+		auto current = open.front;
+		open.popFront;
+
+		if (current in visited) {
+			continue;
+		}
+		visited[current] = true;
+
+		if (current in isSupporting) {
+			foreach(overling; isSupporting[current]) {
+				bool canFall = true;
+				foreach(underling; supportedBy[overling]) {
+					if (underling !in disintegrating) {
+						writefln("Block %s above %s is still supported by %s", overling, current, underling);
+						canFall = false;
+						break;
+					}
+				}
+				if (canFall) {
+					writefln("Falling %s causes %s to fall", current, overling);
+					disintegrating[overling] = true;
+					open ~= overling;
+				}
+			}
+		}
+	}
+	return to!int(disintegrating.length) - 1;
+}
+
 auto solve1(Blocks blocks) {
 	sort!"a.pos.z < b.pos.z"(blocks);
 	int[vec3i] collisionMap;
@@ -95,31 +129,38 @@ auto solve1(Blocks blocks) {
 	// writeln("supportedBy\n", supportedBy);
 
 	long result = 0;
+	long result2 = 0;
 	foreach(long i; 0..blocks.length) {
 		int ii = to!int(i);
-		bool canBeRemoved = true;
-		if (ii in isSupporting) {
-			foreach(overling; isSupporting[ii]) {
-				if (supportedBy[overling].length == 1) {
-					canBeRemoved = false;
-					break;
-				}
-			}
-		}
-		if (canBeRemoved) {
+		int count = countTransitiveSupport(ii, supportedBy, isSupporting);
+		if (count == 0) {
 			result++;
 		}
+		else {
+			result2 += count;
+		}
+		// if (ii in isSupporting) {
+		// 	foreach(overling; isSupporting[ii]) {
+		// 		if (supportedBy[overling].length == 1) {
+		// 			canBeRemoved = false;
+		// 			break;
+		// 		}
+		// 	}
+		// }
+		// if (canBeRemoved) {
+		// 	result++;
+		// }
 	}
 
-	return result;
+	return [ result, result2 ];
 }
 
 void main() {
 	auto testData = parse("test-input");
-	assert(solve1(testData) == 5, "Solution incorrect");
+	assert(solve1(testData) == [ 5, 7 ], "Solution incorrect");
 
 	auto data = parse("input");
 	auto result = solve1(data);
-	assert(result == 430);
+	// assert(result == 430);
 	writeln(result);
 }
