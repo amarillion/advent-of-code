@@ -11,7 +11,7 @@ import std.algorithm;
 import common.io;
 import common.vec;
 import common.coordrange;
-import common.rect;
+import common.box;
 
 alias Block = Cuboid!int;
 alias Blocks = Block[];
