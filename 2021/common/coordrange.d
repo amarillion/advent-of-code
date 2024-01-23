@@ -105,6 +105,7 @@ struct DiagonalWalker {
 }
 
 unittest {
+	import std.array : array;
 	assert(
 			DiagonalWalker(Point(0, 0), Point(1, 1)).array 
 			== [Point(0, 0), Point(1, 1)]
