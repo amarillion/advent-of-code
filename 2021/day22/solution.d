@@ -12,41 +12,13 @@ import std.range;
 import common.util;
 import common.coordrange;
 import std.bigint;
+import common.box : Box;
 
-struct Cuboid {
-	vec3i lowestCorner;
-	vec3i size;
-
-	// use "auto ref const" to allow Lval and Rval here.
-	int opCmp()(auto ref const Cuboid s) const {
-		// sort first by pos, then by size
-		if (lowestCorner == s.lowestCorner) {
-			return size.opCmp(s.size);
-		}
-		return lowestCorner.opCmp(s.lowestCorner);
-	}
-}
-
-bool inside(vec3i p, Cuboid a) {
-	vec3i relative = p - a.lowestCorner;
-	return (relative.x >= 0 && relative.y >= 0 && relative.z >= 0 &&
-		relative.x <= a.size.x && relative.y <= a.size.y && relative.z <= a.size.z);
-}
-
-bool overlaps(Cuboid a, Cuboid b) {
-	vec3i a1 = a.lowestCorner;
-	vec3i a2 = a.lowestCorner + a.size;
-	vec3i b1 = b.lowestCorner;
-	vec3i b2 = b.lowestCorner + b.size;
-
-	return a2.x > b1.x && a1.x < b2.x 
-		&& a2.y > b1.y && a1.y < b2.y
-		&& a2.z > b1.z && a1.z < b2.z;
-}
+alias Cuboid = Box!(3, int);
 
 Cuboid[] bisect(Cuboid a, int pos, int dim) {
-	vec3i p1 = a.lowestCorner;
-	vec3i p2 = a.lowestCorner + a.size;
+	vec3i p1 = a.pos;
+	vec3i p2 = a.pos + a.size;
 
 	// doesn't bisect, return unchanged.
 	if (pos <= p1.val[dim] || pos >= p2.val[dim]) {
@@ -75,10 +47,10 @@ Cuboid[][] intersections(Cuboid a, Cuboid b) {
 	Cuboid[] aSplits = [ a ];
 	Cuboid[] bSplits = [ b ];
 
-	vec3i a1 = a.lowestCorner;
-	vec3i a2 = a.lowestCorner + a.size;
-	vec3i b1 = b.lowestCorner;
-	vec3i b2 = b.lowestCorner + b.size;
+	vec3i a1 = a.pos;
+	vec3i a2 = a.pos + a.size;
+	vec3i b1 = b.pos;
+	vec3i b2 = b.pos + b.size;
 
 	for (int dim = 0; dim < 3; ++dim) {
 		aSplits = aSplits.map!(q => q.overlaps(b) ? q.bisect(b1.val[dim], dim).array : [ q ]).join.array;
@@ -100,8 +72,8 @@ Cuboid[][] intersections(Cuboid a, Cuboid b) {
 	];
 }
 
-BigInt volume(Cuboid a) {
-	return to!BigInt(a.size.x) * to!BigInt(a.size.y) * to!BigInt(a.size.z);
+long volume(Cuboid a) {
+	return to!long(a.size.x) * to!long(a.size.y) * to!long(a.size.z);
 }
 
 void test() {	
@@ -113,22 +85,8 @@ void test() {
 	assert(b.volume == 60);
 	assert(c.volume == 1);
 	
-	vec3i p1 = vec3i(3, 1, 2);
+	vec3i p1 = vec3i(2, 1, 2);
 	vec3i p2 = vec3i(8,0,0);
-
-	assert(p1.inside(a));
-	assert(p1.inside(b));
-	assert(!p2.inside(a));
-	assert(!p2.inside(b));
-	
-	assert(a.overlaps(a));
-	assert(b.overlaps(b));
-	assert(c.overlaps(c));
-
-	assert(a.overlaps(b));
-	assert(b.overlaps(a));
-	assert(c.overlaps(a));
-	assert(!c.overlaps(b));
 
 	assert (intersections(a, b) == [
 		[
@@ -231,7 +189,7 @@ Cuboid[][] breakup(Cuboid[] list, Cuboid cc) {
 	}
 	bResult = bList;
 	
-	BigInt[] v = [
+	long[] v = [
 		list.map!volume.sum,
 		cc.volume,
 
@@ -276,7 +234,7 @@ auto solve (string fname, bool onlyBelowFifty) {
 		sort(coords[2]);
 		vec3i p1 = vec3i(coords[0][0], coords[1][0], coords[2][0]);
 		vec3i p2 = vec3i(coords[0][1], coords[1][1], coords[2][1]);
-		if (onlyBelowFifty && !p1.inside(fifty)) continue;
+		if (onlyBelowFifty && !fifty.contains(p1)) continue;
 
 		onCubes = merge(onCubes, Cuboid(p1, (p2 - p1) + 1), turnOn);
 		writefln("line: %s, volume: %s, cubes: %s", l, onCubes.map!volume.sum, onCubes.length);
@@ -289,6 +247,12 @@ void main() {
 	test();
 
 	assert (solve("test", true) == [ 590_784 ]);
-	assert (solve("test2", false) == [ BigInt("2758514936282235") ]);
-	writeln (solve("input", false));
+	assert (solve("test2", false) == [ 2_758_514_936_282_235 ]);
+	
+	assert (solve("input", true) == [ 588_200 ]);
+	
+	auto result = solve("input", false);
+	assert(result == [1_207_167_990_362_099]);
+	writeln (result);
+
 }
