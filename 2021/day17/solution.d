@@ -12,13 +12,7 @@ import std.range;
 import std.uni;
 import common.util;
 import common.coordrange;
-
-bool inside(Point pos, Point topLeft, Point bottomRight) {
-	return pos.x >= topLeft.x &&
-		pos.y >= topLeft.y &&
-		pos.x <= bottomRight.x &&
-		pos.y <= bottomRight.y;
-}
+import common.box;
 
 struct Result {
 	bool hit = false;
@@ -26,15 +20,15 @@ struct Result {
 	int maxRight = int.min;
 }
 
-Result simulate(Point initialV, Point bottomLeft, Point topRight) {
+Result simulate(Point initialV, Rect!int rect) {
 	Result result;
 	Point v = initialV;
 	Point pos = Point(0, 0);
-	while(pos.y >= bottomLeft.y) {
+	while(pos.y >= rect.pos.y) {
 		pos += v;
 		v.x -= sgn(v.x); // towards 0 in steps of 1
 		v.y--;
-		result.hit |= (pos.inside(bottomLeft, topRight));
+		result.hit |= (rect.contains(pos));
 		result.maxHeight = max(pos.y, result.maxHeight);
 		result.maxRight = max(pos.x, result.maxRight);
 	}
@@ -48,14 +42,15 @@ auto solve (string fname) {
 	sort(coords[1]);
 	Point bottomLeft = Point(coords[0][0], coords[1][0]);
 	Point topRight = Point(coords[0][1], coords[1][1]);
-
+	auto rect = Rect!int(bottomLeft, topRight - bottomLeft + 1);
+	
 	int maxSuccess = int.min;
 	int successes = 0;
 
 	// scanning range determined through trial and error.
 	// TODO: could be improved by automatically determining scanning range
 	foreach(initialV; PointRange(Point(0, -400), Point(400, 400))) {
-		Result result = simulate(initialV, bottomLeft, topRight);
+		Result result = simulate(initialV, rect);
 		if (result.hit) {
 			if (result.maxHeight > maxSuccess) {
 				maxSuccess = result.maxHeight;
@@ -69,5 +64,7 @@ auto solve (string fname) {
 
 void main() {
 	assert (solve("test") == [ 45, 112 ]);
-	writeln (solve("input"));
+	auto result = solve("input");
+	assert (result == [4005, 2953]);
+	writeln (result);
 }
