@@ -11,13 +11,11 @@ import std.algorithm;
 import common.io;
 import common.vec;
 import common.coordrange;
+import common.rect;
 
-struct Rect {
-	vec3i pos;
-	vec3i size;
-}
+alias Block = Cuboid!int;
+alias Blocks = Block[];
 
-alias Blocks = Rect[];
 Blocks parse(string fname) {
 	Blocks result;
 	foreach(line; readLines(fname)) {
@@ -28,20 +26,20 @@ Blocks parse(string fname) {
 		}
 		vec3i p1 = parseCoord(fields[0]);
 		vec3i p2 = parseCoord(fields[1]);
-		result ~= Rect(p1, p2 - p1 + 1);
+		result ~= Block(p1, p2 - p1 + 1);
 	}
 	return result;
 }
 
-int[] dropBlock(Rect original, int id, ref int[vec3i] collisionMap) {
+int[] dropBlock(Block original, int id, ref int[vec3i] collisionMap) {
 	bool[int] underlings;
-	Rect block = original;
+	Block block = original;
 	bool falling = true;
 	while(falling) {
-		Rect newBlock =  block;
+		Block newBlock =  block;
 		newBlock.pos.z--;
 
-		foreach(vec3i pp; CoordRange!vec3i(newBlock.pos, newBlock.pos + newBlock.size)) {
+		foreach(vec3i pp; newBlock.coordrange) {
 			if (pp in collisionMap) {
 				underlings[collisionMap[pp]] = true;
 				falling = false;
@@ -111,7 +109,7 @@ auto solve1(Blocks blocks) {
 	int[][int] isSupporting;
 	int[][int] supportedBy;
 
-	foreach(long i, Rect block; blocks) {
+	foreach(long i, Block block; blocks) {
 		int id = to!int(i);
 		int[] underlings = dropBlock(block, id, collisionMap);
 		supportedBy[id] = underlings;
@@ -139,17 +137,6 @@ auto solve1(Blocks blocks) {
 		else {
 			result2 += count;
 		}
-		// if (ii in isSupporting) {
-		// 	foreach(overling; isSupporting[ii]) {
-		// 		if (supportedBy[overling].length == 1) {
-		// 			canBeRemoved = false;
-		// 			break;
-		// 		}
-		// 	}
-		// }
-		// if (canBeRemoved) {
-		// 	result++;
-		// }
 	}
 
 	return [ result, result2 ];
