@@ -108,7 +108,7 @@ Graph simplify(alias AdjacencyFunc)(Point source, Point end) {
 	return result;
 }
 
-long longestPath(alias AdjacencyFunc)(Point start, Point end) {
+long longestPath(alias AdjacencyFunc, alias WeightFunc)(Point start, Point end) {
 	Tuple!(Dir, Point)[] path;
 	
 	bool[Point] visited;
@@ -125,9 +125,14 @@ long longestPath(alias AdjacencyFunc)(Point start, Point end) {
 		auto options = AdjacencyFunc(current);
 		visited[current] = true;
 		bool found = false;
+		
+		// It's important that options are processed in ascending order of direction
+		// to make comparison with prevChoice work.
+		options.sort!"a[0] < b[0]"();
+
 		foreach(option; options) {
 			if (option[0] <= prevChoice) continue;
-			
+
 			// pick first viable option...
 			if (option[1] !in visited) {
 				path ~= option;
@@ -138,14 +143,14 @@ long longestPath(alias AdjacencyFunc)(Point start, Point end) {
 
 		if (found) {
 			// writefln("Moving forward %s %s", path[$-1][0], path[$-1][1]);
-			len++;
+			len += WeightFunc(current, path[$-1][0]);
 			current = path[$-1][1];
 			prevChoice = 0;
 
 			if (current == end) {
 				// save result
 				lengths ~= len;
-				writefln("Reached end, added another path: %s", len);
+				// writefln("Reached end, added another path: %s", len);
 				if (len > maxLen) { maxLen = len; }
 			}
 		}
@@ -153,85 +158,17 @@ long longestPath(alias AdjacencyFunc)(Point start, Point end) {
 		if (!found || current == end) {
 			// backtrack one step.
 			visited.remove(path[$-1][1]);
+			Dir prevDir = path[$-1][0];
 			prevChoice = path[$-1][0];
 			path.popBack();
-			len--;
 
 			if (path.empty) {
-				// writeln("Bactracked all the way to start");
 				// backtracked all the way to start...
 				break;
 			}
 
 			current = path[$-1][1];
-			// writefln("Backtracking to %s prevChoice %s", current, prevChoice);
-		}
-
-		// stdin.readln();
-	}
-
-	return maxLen;
-}
-
-long longestPath2(Graph graph, Point start, Point end) {
-	Edge[] path;
-	
-	bool[Point] visited;
-	long len = 0;
-	long maxLen = 0;
-	Point current = start;
-	int prevChoice = 0;
-	long[] lengths = [];
-
-	while(true) {
-		// writefln("Currently at #%s: %s", len, current);
-
-		// forward
-		auto options = graph[current];
-		visited[current] = true;
-		bool found = false;
-		foreach(optionDir; [Dir.E, Dir.S, Dir.W, Dir.N]) {
-			if (optionDir <= prevChoice) continue;
-			if (optionDir !in options) continue;
-
-			auto option = options[optionDir];
-
-			// pick first viable option...
-			if (option.dest !in visited) {
-				path ~= option;
-				found = true;
-				break;
-			}
-		}
-
-		if (found) {
-			// writefln("Moving forward %s %s", path[$-1][0], path[$-1][1]);
-			len += path[$-1].weight;
-			current = path[$-1].dest;
-			prevChoice = 0;
-
-			if (current == end) {
-				// save result
-				lengths ~= len;
-				writefln("Reached end, added another path: %s", len);
-				if (len > maxLen) { maxLen = len; }
-			}
-		}
-		
-		if (!found || current == end) {
-			// backtrack one step.
-			visited.remove(path[$-1].dest);
-			prevChoice = path[$-1].dir;
-			len -= path[$-1].weight;
-			path.popBack();
-
-			if (path.empty) {
-				// writeln("Bactracked all the way to start");
-				// backtracked all the way to start...
-				break;
-			}
-
-			current = path[$-1].dest;
+			len -= WeightFunc(current, prevDir);
 			// writefln("Backtracking to %s prevChoice %s", current, prevChoice);
 		}
 
@@ -245,7 +182,7 @@ auto solve1(MyGrid grid) {
 	Point start = Point(1, 0);
 	Point end = grid.size - Point(2, 1);
 
-	long result = longestPath!((Point p) => getAdjacent1(grid, p))(start, end);
+	long result = longestPath!((Point p) => getAdjacent1(grid, p), (Point p, Dir d) => 1)(start, end);
 	writeln(result);
 	return result;
 }
@@ -255,6 +192,7 @@ auto solve2(MyGrid grid) {
 	Point end = grid.size - Point(2, 1);
 
 	auto graph = simplify!((Point p) => getAdjacent2(grid, p))(start, end);
+	
 	foreach(k, v; graph) {
 		writef("%s =>", k);
 		foreach(e; v.values) {
@@ -263,7 +201,19 @@ auto solve2(MyGrid grid) {
 		writeln();
 	}
 
-	long result = longestPath2(graph, start, end);
+	// pre-calculate adjacency data
+	Tuple!(Dir, Point)[][Point] adjacent;
+	foreach(k, v; graph) {
+		adjacent[k] = [];
+		foreach(e; v.values) {
+			adjacent[k] ~= tuple(e.dir, e.dest);
+		}
+	}
+
+	long result = longestPath!(
+		(Point p) => adjacent[p],
+		(Point p, Dir d) => graph[p][d].weight
+	)(start, end);
 	writeln(result);
 	return result;
 }
