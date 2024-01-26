@@ -158,6 +158,14 @@ struct vec(int N, V) {
 		}
 		return result;
 	}
+
+	V hypothenuse() {
+		V sum = 0;
+		foreach(i; 0..N) {
+			sum += val[i] * val[i];
+		}
+		return sum;
+	}
 }
 
 unittest {
