@@ -12,6 +12,7 @@ import std.math;
 import common.io;
 import common.vec;
 import common.pairwise;
+import common.coordrange;
 
 import std.stdio;
 import std.conv;
@@ -75,6 +76,48 @@ IntersectionResult lineIntersection(vec2d a1, vec2d da, vec2d b1, vec2d db) {
 		return IntersectionResult(vec2d(0, 0), false);
 	}
 
+}
+
+vec3d cross(vec3d a, vec3d b) {
+	vec3d c;
+	c.x = a.y * b.z - a.z * b.y;
+	c.y = a.z * b.x - a.x * b.z;
+	c.z = a.x * b.y - a.y * b.x;
+	return c;
+}
+
+real dot(vec3d a, vec3d b) {
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+real length(vec3d v) {
+	return sqrt(v.hypothenuse());
+}
+
+real perpendicularDistance(Line a, Line b) {
+	auto crossprod = a.velocity.cross(b.velocity);
+	real crosslen = crossprod.length();
+	if (crosslen == 0) { return real.nan; } // parallel lines!
+	auto unitvec = (crossprod / crosslen);
+	real result = unitvec.dot(b.position - a.position);
+	return result;
+}
+
+real sumSq(Data data, vec3d velocity, long firstHitIdx, real firstCrossTime, out Line ll) {
+	ll.velocity = velocity;
+	ll.position = 
+		data[firstHitIdx].position + (data[firstHitIdx].velocity * firstCrossTime) 
+		- ll.velocity * firstCrossTime;
+
+	// writefln("Line: %s", ll);
+
+	real result = 0;
+	foreach(long idx, Line line; data) {
+		real dist = perpendicularDistance(ll, line);
+		// writefln("Perpendicular distance with #%s %s = %s", idx, line, dist);
+		result += dist * dist;
+	}
+	return result;
 }
 
 auto solve1(Data data, real min, real max) {
@@ -282,20 +325,55 @@ class MainState : Component {
 	// 1051
 }
 
+long solve2(Data data) {
+	// auto velocity = vec3d(26, -329, 53);
+	long firstHitIdx = 77;
+	// real firstCrossTime = 59472000000;
+	real minVal;
+	Line ll;
+	Line minLL;
+	bool first = true;
+	for(real firstCrossTime = 59_816_900_000; firstCrossTime < 59_817_000_000; firstCrossTime += 1) {
+		// foreach(vv; CoordRange!vec3i(vec3i(23, -335, 48), vec3i(28, -325, 55))) {
+			vec3i vv = vec3i(26, -331, 53);
+			vec3d velocity = vec3d(vv.x, vv.y, vv.z);
+			real val = sumSq(data, velocity, firstHitIdx, firstCrossTime, ll);
+			if (val < minVal || first) {
+				minVal = val;
+				minLL = ll;
+				writefln("Lower sumSq %s found at %s %0.0f", val, vv, firstCrossTime);
+
+				// Lower sumSq 1.93367e+15 found at [26, -331, 53] 59817000000
+				// Lower sumSq 1.01236e+13 found at [26, -331, 53] 59816995000
+				// Lower sumSq 2.15379e-09 found at [26, -331, 53] 59816994610
+				first = false;
+			}
+		// }
+	}
+	
+	return to!long(minLL.position.x) + to!long(minLL.position.y) + to!long(minLL.position.z);
+	// correct answer: 1007148211789625
+}
+
+
 void main(string[] args)
 {
+	// auto testData = parse("test-input");
+	// writeln(testData);
+	// assert(solve1(testData, 7, 27) == 2, "Solution incorrect");
+
+	auto data = parse("input");
+	// auto result = solve1(data, 200000000000000, 400000000000000);
+	// assert(result == 14799);
+	// writeln(result);
+
+	writeln(solve2(data));
+
+	/*
 	al_run_allegro(
 	{
 		al_init();
 
-		// auto testData = parse("test-input");
-		// writeln(testData);
-		// assert(solve1(testData, 7, 27) == 2, "Solution incorrect");
-
-		auto data = parse("input");
-		// auto result = solve1(data, 200000000000000, 400000000000000);
-		// assert(result == 14799);
-		// writeln(result);
 
 		auto mainloop = new MainLoop(MainConfig.of.appName("day24").targetFps(60));
 		mainloop.init();
@@ -304,6 +382,7 @@ void main(string[] args)
 		mainloop.run();
 		return 0;
 	});
+	*/
 
 
 }
