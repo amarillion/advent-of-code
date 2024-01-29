@@ -42,10 +42,13 @@ auto solve1(Graph graph) {
 
 	int[string] frqMap;
 
+	// try lots of times
 	foreach(k; 1..10_000) {
+		// pick random edge
 		string src = choice(graph.keys);
 		string dest = choice(graph.keys);
 
+		// find path between edges
 		auto bfsResult = bfs!string(
 			src,
 			(n, i) => n == dest,
@@ -59,7 +62,7 @@ auto solve1(Graph graph) {
 			path ~= current;
 		}
 
-		// add edges to frqMap;
+		// do frequency count on edges
 		for(int i = 1; i < path.length; ++i) {
 			string edge = path[i] < path[i-1] ? path[i-1] ~ "-" ~ path[i] : path[i] ~ "-" ~ path[i-1];
 			if(edge !in frqMap) frqMap[edge] = 0;
@@ -73,6 +76,8 @@ auto solve1(Graph graph) {
 		writefln("%s: %s", key, frqMap[key]);
 	}
 	
+	// assumption: most frequently used edges are most likely to be part of minimal cut set.
+	// try all combinations of top 10.
 	string[][] edgeList;
 	foreach(edge; sortedKeys[0..10]) {
 		edgeList ~= edge.split("-");
@@ -87,8 +92,8 @@ auto solve1(Graph graph) {
 		for (int j = 0; j < i; ++j) {
 			for (int k = 0; k < j; ++k) {
 				// use bfs to see if all nodes are reachable
-				// excluding three selected
-
+				
+				// adjacency function excludes three selected edges
 				string[] adjacencyFunc(string node) {
 					string dest = "";
 					if (node == edgeList[i][0]) { dest = edgeList[i][1]; }
@@ -100,6 +105,7 @@ auto solve1(Graph graph) {
 					return graph[node].filter!(l => l != dest).array;
 				}
 
+				// check how many nodes are reachable.
 				auto data = bfs!string(
 					origin, 
 					(string n, int i) => false, 

@@ -144,27 +144,41 @@ struct vec(int N, V) {
 
 	/** 
 	 * Create a copy of this point that stays between 0,0 and size,
-	 * by taking the modulo of each coorinate.
+	 * by taking the modulo of each coordinate.
 	 * 
 	 * Params:
 	 *   size = area to keep the wrapped vector inside of.
-	 * Returns: 
+	 * Returns: new point that is between 0,0 (inclusive) and size (exclusive).
 	 */
 	vec!(N, V) wrap(const vec!(N, V) size) const {
 		vec!(N, V) result = this;
 		foreach(i; 0..N) {
 			result.val[i] %= size.val[i];
+			// If modulo of a negative number - simply need to add size again.
 			if (result.val[i] < 0) result.val[i] += size.val[i];
 		}
 		return result;
 	}
 
-	V hypothenuse() {
+	/** 
+	 * Basis voor pythagoras. 
+	 * Returns: Sum of the squares of each coordinate.
+	 */
+	V sumSq() {
 		V sum = 0;
 		foreach(i; 0..N) {
 			sum += val[i] * val[i];
 		}
 		return sum;
+	}
+
+	/** 
+	 * Length of the vector, a.k.a. hypothenuse, following pythagoras.
+	 * Returns: length of the vector.
+	 */
+	double length() {
+		import std.math : sqrt;
+		return sqrt(to!double(sumSq()));
 	}
 }
 
@@ -232,4 +246,11 @@ unittest {
 	assert(Point(-1,-1).wrap(size) == Point(15,63));
 	assert(Point(-16,-64).wrap(size) == Point(0,0));
 	assert(Point(-17,-65).wrap(size) == Point(15,63));
+}
+
+
+unittest {
+	import std.math : abs;
+	assert(Point(8,6).sumSq() == 100);
+	assert(abs(Point(4, 3).length()) - 5 < 0.01);
 }

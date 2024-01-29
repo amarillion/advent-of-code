@@ -13,6 +13,7 @@ import common.io;
 import common.vec;
 import common.pairwise;
 import common.coordrange;
+import common.geometry;
 
 import std.stdio;
 import std.conv;
@@ -76,22 +77,6 @@ IntersectionResult lineIntersection(vec2d a1, vec2d da, vec2d b1, vec2d db) {
 		return IntersectionResult(vec2d(0, 0), false);
 	}
 
-}
-
-vec3d cross(vec3d a, vec3d b) {
-	vec3d c;
-	c.x = a.y * b.z - a.z * b.y;
-	c.y = a.z * b.x - a.x * b.z;
-	c.z = a.x * b.y - a.y * b.x;
-	return c;
-}
-
-real dot(vec3d a, vec3d b) {
-	return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-real length(vec3d v) {
-	return sqrt(v.hypothenuse());
 }
 
 real perpendicularDistance(Line a, Line b) {
@@ -247,7 +232,7 @@ class MainState : Component {
 		foreach(long i, Line line; data) {
 			vec3d p = line.position + line.velocity * time;
 
-			double dist = sqrt((pp - p).hypothenuse());
+			double dist = (pp - p).length();
 			if (first || dist < min) {
 				minIdx = i;
 				min = dist;
