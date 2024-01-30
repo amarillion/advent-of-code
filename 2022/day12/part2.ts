@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import { breadthFirstSearch } from '@amarillion/helixgraph';
 import { trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
 import { readFileSync } from 'fs';

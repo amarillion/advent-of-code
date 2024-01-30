@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
 import { readFileSync } from 'fs';
 import { assert } from '@amarillion/helixgraph/lib/assert.js';

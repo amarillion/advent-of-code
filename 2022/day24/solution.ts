@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node-esm
+#!/usr/bin/env tsx-esm
 
 import { readFileSync } from 'fs';
 import { breadthFirstSearch } from '@amarillion/helixgraph';

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import { readFileSync } from 'fs';
 
 let raw = readFileSync('input').toString('utf-8');

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
 import { Point, Point as P } from '../common/point.js';
 import { assert } from '../common/assert.js';
