@@ -1,4 +1,4 @@
-package day6;
+#!/usr/bin/env -S java --class-path .. -ea --source 21 Solution
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,7 +34,7 @@ class Solution {
 	}
 
 	private static long numberOfWays(RaceData race) {
-		System.out.println("Race: " + race.time + " " + race.distance);
+		// System.out.println("Race: " + race.time + " " + race.distance);
 		long ways = 0;
 		for (long hold = 0; hold < race.time; ++hold) {
 			long timeRemain = race.time - hold;
@@ -50,17 +50,10 @@ class Solution {
 	}
 
 	public static void main(String[] args) throws IOException {
-		var testData1 = parse1(Path.of("day6/test-input"));
-		assertEqual(solve1(testData1), 288);
-
-		var testData2 = parse2(Path.of("day6/test-input"));
-		assertEqual(solve1(testData2), 71503);
-
-		var data1 = parse1(Path.of("day6/input"));
+		assert args.length == 2 : "Missing argument: input filename";
+		var data1 = parse1(Path.of(args[1]));
 		System.out.println(solve1(data1));
-
-		var data2 = parse2(Path.of("day6/input"));
+		var data2 = parse2(Path.of(args[1]));
 		System.out.println(solve1(data2));
-
 	}
 }

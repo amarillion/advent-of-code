@@ -1,4 +1,4 @@
-package day7;
+#!/usr/bin/env -S java --class-path .. -ea --source 21 Solution
 
 import common.Util;
 
@@ -177,7 +177,7 @@ public class Solution {
 
 		long result = 0;
 		for (int i = 0; i < bids.size(); ++i) {
-			System.out.println(bids.get(i).hand + ": " + (i + 1) + " * " + bids.get(i).amount);
+			// System.out.println(bids.get(i).hand + ": " + (i + 1) + " * " + bids.get(i).amount);
 			result += (i + 1) * bids.get(i).amount;
 		}
 		return result;
@@ -192,12 +192,10 @@ public class Solution {
 	}
 
 	public static void main(String[] args) throws IOException {
-		var testData = parse(Path.of("day7/test-input"));
-		Util.assertEqual(solve1(testData), 6440);
-		Util.assertEqual(solve2(testData), 5905);
-		var data = parse(Path.of("day7/input"));
-		System.out.println(solve1(data)); // 248453531
-		System.out.println(solve2(data)); // 248781813
+		assert args.length == 2 : "Missing argument: input filename";
+		var data = parse(Path.of(args[1]));
+		System.out.println(solve1(data));
+		System.out.println(solve2(data));
 	}
 
 }
