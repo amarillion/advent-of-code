@@ -1,5 +1,4 @@
-package day9;
-
+#!/usr/bin/env -S java --class-path .. -ea --source 21 Solution
 import common.Util;
 
 import java.io.IOException;
@@ -82,12 +81,9 @@ public class Solution {
 	}
 
 	public static void main(String[] args) throws IOException {
-		var testData = parse(Path.of("day9/test-input"));
-		Util.assertEqual(solve1(testData), 114);
-		Util.assertEqual(solve2(testData), 2);
-
-		var data = parse(Path.of("day9/input"));
-		Util.assertEqual(solve1(data), 2043677056);
-		Util.assertEqual(solve2(data), 1062);
+		assert args.length == 2 : "Missing argument: input filename";
+		var data = parse(Path.of(args[1]));
+		System.out.println(solve1(data));
+		System.out.println(solve2(data));
 	}
 }

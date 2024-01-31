@@ -1,4 +1,4 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out; exit
+//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
 
 #include <cassert>
 #include <iostream>
@@ -123,15 +123,10 @@ long solve2(const Grid &grid, const vector<PartNumber> &parts) {
 	return result;
 }
 
-int main() {
-	auto testData = parseInput("test-input");
-	auto testParts = extractNumbers(testData);
-	assert(solve1(testData, testParts) == 4361);
-	assert(solve2(testData, testParts) == 467835);
-
-	auto data = parseInput("input");
+int main(int argc, char *argv[]) {
+	assert(argc == 2 && "Expected one argument: input file");
+	auto data = parseInput(argv[1]);
 	auto parts = extractNumbers(data);
-	assert(solve1(data, parts) == 521515);
-	assert(solve2(data, parts) == 69527306);
-	cout << "DONE" << endl;
+	cout << solve1(data, parts) << endl;
+	cout << solve2(data, parts) << endl;
 }

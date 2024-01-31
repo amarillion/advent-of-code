@@ -1,4 +1,4 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out; exit
+//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
 
 #include <cassert>
 #include <iostream>
@@ -79,7 +79,7 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 			long w = end - start;
 			Range oldRange{start, w};
 			Range newRange{start + prev.value, w};
-			cout << "Final range " << oldRange << " mapped to " << newRange << endl;
+			// cout << "Final range " << oldRange << " mapped to " << newRange << endl;
 			result.push_back(newRange);
 			break;
 		} else if (in.x <= b.x) {
@@ -89,7 +89,7 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 			long w = end - start;
 			Range oldRange{start, w};
 			Range newRange{start + prev.value, w};
-			cout << "Overlapping range " << oldRange << " mapped to " << newRange << endl;
+			// cout << "Overlapping range " << oldRange << " mapped to " << newRange << endl;
 			result.push_back(newRange);
 		} else {
 			// we're still before...
@@ -103,14 +103,14 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 		long w = end - start;
 		Range oldRange{start, w};
 		Range newRange{start + last.value, end - start};
-		cout << "Remainder " << oldRange << " mapped to " << newRange << endl;
+		// cout << "Remainder " << oldRange << " mapped to " << newRange << endl;
 		result.push_back(in);
 	}
 	return result;
 }
 
 vector<Range> mapRange3(const MappingSet &bounds, vector<Range> in) {
-	cout << "mapRange3(" << bounds << ", " << in << ");" << endl;
+	// cout << "mapRange3(" << bounds << ", " << in << ");" << endl;
 	vector<Range> result;
 	for (const auto &range: in) {
 		vector<Range> mapped = mapRange2(bounds, range);
@@ -204,7 +204,7 @@ long solve2(const Data &data) {
 		current.push_back({ data.seeds[i], data.seeds[i+1] });
 	}
 
-	cout << current << endl;
+	// cout << current << endl;
 	for (const auto &mapping: data.mappings) {
 		vector<Range> next;
 		for (const auto &j: mapRange3(mapping, current)) {
@@ -212,7 +212,7 @@ long solve2(const Data &data) {
 			next.push_back(j);
 		}
 		current = next;
-		cout << current << endl;
+		// cout << current << endl;
 	}
 	bool first = true;
 	long min = 0;
@@ -226,14 +226,9 @@ long solve2(const Data &data) {
 	return min;
 }
 
-int main() {
-	auto testData = parse("test-input");
-	auto data = parse("input");
-	assert(solve1(testData) == 35);
-	assert(solve1(data) == 324724204L);
-
-	assert(solve2(testData) == 46);
+int main(int argc, char *argv[]) {
+	assert(argc == 2 && "Expected one argument: input file");
+	auto data = parse(argv[1]);
+	cout << solve1(data) << endl;
 	cout << solve2(data) << endl;
-
-	cout << "DONE" << endl;
 }

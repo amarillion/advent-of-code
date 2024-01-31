@@ -1,4 +1,4 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out; exit
+//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
 
 #include <cassert>
 #include <iostream>
@@ -62,12 +62,9 @@ int solve2(const vector<int> &matches) {
 	return result;
 }
 
-int main() {
-	auto testData = process("test-input");
-	assert(solve1(testData) == 13);
-	assert(solve2(testData) == 30);
-	auto data = process("input");
-	assert(solve1(data) == 21158);
-	assert(solve2(data) == 6050769);
-	cout << "DONE" << endl;
+int main(int argc, char *argv[]) {
+	assert(argc == 2 && "Expected one argument: input file");
+	auto data = process(argv[1]);
+	cout << solve1(data) << endl;
+	cout << solve2(data) << endl;
 }

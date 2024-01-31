@@ -1,4 +1,4 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out; exit
+//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
 
 #include <cassert>
 #include <iostream>
@@ -70,13 +70,9 @@ int sumPower(const Data &data) {
   });
 }
 
-int main() {
-	auto testData = parseInput("test-input");
-	assert(sumPossible(testData) == 8);
-	assert(sumPower(testData) == 2286);
-
-	auto data = parseInput("input");
-	assert(sumPossible(data) == 2239);
-	assert(sumPower(data) == 83435);
-	cout << "DONE" << endl;
+int main(int argc, char *argv[]) {
+	assert(argc == 2 && "Expected one argument: input file");
+	auto data = parseInput(argv[1]);
+	cout << sumPossible(data) << endl;
+	cout << sumPower(data) << endl;
 }
