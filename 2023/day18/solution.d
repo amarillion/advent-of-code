@@ -97,17 +97,9 @@ auto solve(Instruction[] instructions) {
 	return result + 1;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve(parse1(testData)) == 62, "Solution incorrect");
-	assert(solve(parse2(testData)) == 952_408_144_115, "Solution incorrect");
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
 
-	auto data = parse("input");
-	auto result = solve(parse1(data));
-	assert(result == 31_171);
-	writeln(result);
-	
-	result = solve(parse2(data));
-	assert(result == 131_431_655_002_266);
-	writeln(result);
+	auto data = parse(args[1]);
+	writeln([solve(parse1(data)), solve(parse2(data)) ]);
 }

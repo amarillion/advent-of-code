@@ -1,4 +1,4 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out; exit
+//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
 
 #include <cassert>
 #include <iostream>
@@ -56,12 +56,13 @@ auto calculate(const string &fname, bool secondPart) {
 	return result;
 }
 
-int main() {
-	assert(calculate("test-input", false) == 142);
-	assert(calculate("test-input2", true) == 281);
-	
-	assert(calculate("input", false) == 56397);
-	assert(calculate("input", true) == 55701);
-
-	cout << "DONE" << endl;
+int main(int argc, char *argv[]) {
+	if (argc == 2) {
+		cout << calculate(argv[1], false) << endl;
+		cout << calculate(argv[1], true) << endl;
+	}
+	else {
+		cerr << "Expected one argument: input file" << endl;
+		return -1;
+	}
 }
