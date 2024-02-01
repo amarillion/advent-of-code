@@ -18,55 +18,29 @@ struct Test {
 
 
 Test[] tests = [
-	Test(2023,  1,  "day1/", "./solution.cpp", "test-input", "142\n142"),
-	Test(2023,  1,  "day1/", "./solution.cpp", "test-input2", "198\n281"),
-	Test(2023,  2,  "day2/", "./solution.cpp", "test-input", "8\n2286"),
-	Test(2023,  3,  "day3/", "./solution.cpp", "test-input", "4361\n467835"),
-	Test(2023,  4,  "day4/", "./solution.cpp", "test-input", "13\n30"),
-	Test(2023,  5,  "day5/", "./solution.cpp", "test-input", "35\n46"),
-	Test(2023,  6,  "day6/", "./Solution",     "test-input", "288\n71503"),
-	Test(2023,  7,  "day7/", "./Solution",     "test-input", "6440\n5905"),
-	
-	Test(2023,  9,  "day9/", "./Solution", "test-input", "114\n2"),
+	Test(2023,  1,  "day1/", "./solution.cpp", "test-input", format("%s\n%s", 142, 142)),
+	Test(2023,  1,  "day1/", "./solution.cpp", "test-input2", format("%s\n%s", 198, 281)),
+	Test(2023,  2,  "day2/", "./solution.cpp", "test-input", format("%s\n%s", 8, 2286)),
+	Test(2023,  3,  "day3/", "./solution.cpp", "test-input", format("%s\n%s", 4361, 467835)),
+	Test(2023,  4,  "day4/", "./solution.cpp", "test-input", format("%s\n%s", 13, 30)),
+	Test(2023,  5,  "day5/", "./solution.cpp", "test-input", format("%s\n%s", 35, 46)),
+	Test(2023,  6,  "day6/", "./Solution",     "test-input", format("%s\n%s", 288, 71503)),
+	Test(2023,  7,  "day7/", "./Solution",     "test-input", format("%s\n%s", 6440, 5905)),
+	Test(2023,  8,  "day8/", "./solution.ts",  "test-input", format("%s\n%s", 2, 2)),
+	Test(2023,  9,  "day9/", "./Solution", "test-input", format("%s\n%s", 114, 2)),
 	
 	Test(2023, 18, "day18/", "./solution.d", "test-input", "[62, 952408144115]"),
 
 
-	Test(2023,  1,  "day1/", "./solution.cpp", "input", "56397\n55701"),
-	Test(2023,  2,  "day2/", "./solution.cpp", "input", "2239\n83435"),
-	Test(2023,  3,  "day3/", "./solution.cpp", "input", "521515\n69527306"),
-	Test(2023,  4,  "day4/", "./solution.cpp", "input", "21158\n6050769"),
-	Test(2023,  5,  "day5/", "./solution.cpp", "input", "324724204\n104070862"),
-	Test(2023,  6,  "day6/", "./Solution",     "input", "220320\n34454850"),
-	Test(2023,  7,  "day7/", "./Solution",     "input", "248453531\n248781813"),
-	/*
-
-
-	public static void main(String[] args) throws IOException {
-		var testData1 = parse1(Path.of("day6/test-input"));
-		assertEqual(solve1(testData1), 288);
-
-		var testData2 = parse2(Path.of("day6/test-input"));
-		assertEqual(solve1(testData2), 71503);
-
-		var data1 = parse1(Path.of("day6/input"));
-		System.out.println(solve1(data1));
-
-		var data2 = parse2(Path.of("day6/input"));
-		System.out.println(solve1(data2));
-
-
-*/
-
-/*
-		var testData = parse(Path.of("day7/test-input"));
-		Util.assertEqual(solve1(testData), 6440);
-		Util.assertEqual(solve2(testData), 5905);
-		var data = parse(Path.of("day7/input"));
-		System.out.println(solve1(data)); // 248453531
-		System.out.println(solve2(data)); // 248781813
-*/
-	Test(2023,  9,  "day9/", "./Solution", "input", "2043677056\n1062"),
+	Test(2023,  1,  "day1/", "./solution.cpp", "input", format("%s\n%s", 56397, 55701)),
+	Test(2023,  2,  "day2/", "./solution.cpp", "input", format("%s\n%s", 2239, 83435)),
+	Test(2023,  3,  "day3/", "./solution.cpp", "input", format("%s\n%s", 521515, 69527306)),
+	Test(2023,  4,  "day4/", "./solution.cpp", "input", format("%s\n%s", 21158, 6050769)),
+	Test(2023,  5,  "day5/", "./solution.cpp", "input", format("%s\n%s", 324724204, 104070862)),
+	Test(2023,  6,  "day6/", "./Solution",     "input", format("%s\n%s", 220320, 34454850)),
+	Test(2023,  7,  "day7/", "./Solution",     "input", format("%s\n%s", 248453531, 248781813)),
+	Test(2023,  8,  "day8/", "./solution.ts",  "input", format("%s\n%s", 16409, 11795205644011)),
+	Test(2023,  9,  "day9/", "./Solution",     "input", format("%s\n%s", 2043677056, 1062)),
 	
 	Test(2023, 18, "day18/", "./solution.d", "input", "[31171, 131431655002266]"),
 ];
