@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-
+import { LCM } from '../common/numbers.js';
 
 function parse(fname: string) {
 	let lines = readFileSync(fname).toString('utf-8').split('\n');
@@ -12,7 +12,7 @@ function parse(fname: string) {
 		const matcher = line.match(/(?<src>\w{3}) = \((?<left>\w{3}), (?<right>\w{3})\)/);
 		assert(matcher && matcher.groups);
 		const { src, left, right } = matcher.groups;
-		console.log({src, left, right});
+		// console.log({src, left, right});
 		nodes[src] = [ left, right ];
 	}
 	return {
@@ -22,82 +22,36 @@ function parse(fname: string) {
 
 type Data = ReturnType<typeof parse>;
 
-function solve1(data: Data) {
-	let pos = 'AAA';
+/** Follow the graph from src, alternating directions according to the defined route.
+ *  Count the number of steps to reach a destination node. */
+function findCycleLength(data: Data, src: string, isDest: (s: string) => boolean) {
+	let pos = src;
 	let steps = 0;
-
-	while (pos !== 'ZZZ') {
-		let instruction = data.route[steps % data.route.length];
-		let newPos;
-		if (instruction === 'L') {
-			newPos = data.nodes[pos][0];
-		}
-		else {
-			newPos = data.nodes[pos][1];
-		}
-		console.log(`Step: ${instruction} from ${pos} to ${newPos}`);
-		pos = newPos;
-		assert(pos in data.nodes);
-		steps++;
-	}
-	console.log(steps);
-	return steps;
-}
-
-function solve2(data: Data) {
-
-	const cycleData: Record<string, number[]> = {};
-	let pos = Object.keys(data.nodes).filter(s => s.endsWith("A"));
-	let steps = 0;
-
-	while (pos.some(s => !s.endsWith("Z"))) {
+	while (!isDest(pos)) {
 		let instruction = data.route[steps % data.route.length];
 		const index = instruction === 'L' ? 0 : 1;
-
-		const newPos = pos.map(node => data.nodes[node][index])
-
-		let countZ = 0;
-		for (let j = 0; j < pos.length; ++j) {
-			const p = pos[j];
-			if (p.endsWith("Z")) {
-				countZ++;
-				const key = `${j}:${p}`;
-				if (key in cycleData) {
-					let prev = cycleData[key][cycleData[key].length-1];
-					cycleData[key].push(steps = prev);
-				}
-				else {
-					cycleData[key] = [ steps ];
-				}
-			}
-		}
-
-		if (steps < 10 || countZ > 0) {
-			console.log(`Step: ${steps} ${instruction} from ${pos} to ${newPos}`);
-			console.log(cycleData);
-		}
-		pos = newPos;
-		assert(pos.every(p => p in data.nodes));
+		pos = data.nodes[pos][index];
 		steps++;
-		if (steps > 10_000) { break; }
 	}
-	console.log(steps);
 	return steps;
 }
 
-const testInput = parse("test-input");
-assert(solve1(testInput) === 2);
+function solve2(input: Data) {
+	const lcm = Object
+		 // of all nodes
+		.keys(input.nodes)
+		// take the ones ending with A
+		.filter(s => s.endsWith("A"))
+		// count the steps until we reach a node ending with Z
+		.map(src => findCycleLength(input, src, s => s.endsWith("Z")))
+		// find the least common multiple of all cycle lengths together
+		.reduce((cur: number, acc: number) => LCM(cur, acc), 1);
+	
+	return lcm;
+}
 
-const testInput2 = parse("test-input");
-assert(solve2(testInput2) === 2);
-
-const input = parse("input");
-console.log(solve1(input));
-console.log(solve2(input));
-
-// TODO: calculate GCD automatically...
-// Using online GCD tool:
-console.log(73 * 67 * 61 * 59 * 53 * 47) // Too low: 43848348119
-console.log(73 * 67 * 61 * 59 * 53 * 47 * 269) // 11795205644011
-console.log(
-	BigInt("19637") * BigInt("18023") * BigInt("16409") * BigInt("15871") * BigInt("14257") * BigInt("12643"));
+assert(process.argv.length == 3, "Expected argument: input file");
+const fname = process.argv[2];
+const data = parse(fname);
+console.log(findCycleLength(data, "AAA", (src) => src === "ZZZ"));
+console.log(solve2(data));
