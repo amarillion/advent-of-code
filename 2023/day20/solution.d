@@ -131,7 +131,7 @@ auto solve1(Data data) {
 			queue.popFront();
 		}
 	}
-	writefln("%s * %s = %s", lowSent, highSent, lowSent * highSent);
+	// writefln("%s * %s = %s", lowSent, highSent, lowSent * highSent);
 	return lowSent * highSent;
 }
 
@@ -162,20 +162,12 @@ auto solve2(Data data) {
 	return result;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 32000000, "Solution incorrect");
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
 
-	auto testData2 = parse("test-input2");
-	assert(solve1(testData2) == 11687500, "Solution incorrect");
+	auto data = parse(args[1]);
+	writeln(solve1(data));
 
-	auto data = parse("input");
-	auto result = solve1(data);
-	assert(result == 812609846);
-
-	auto data2 = parse("input");
-	auto result2 = solve2(data2);
-	assert(result2 == 245_114_020_323_037);
-	writeln(result2);
-
+	auto data2 = parse(args[1]);
+	writeln(solve2(data2));
 }

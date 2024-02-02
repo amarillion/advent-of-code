@@ -60,26 +60,17 @@ auto solve(int minStretch, int maxStretch)(const MyGrid grid) {
 		current = result.prev[current];
 	}
 
-	writeln(view.format(""), "\n");
+	// writeln(view.format(""), "\n");
 	long totalDist = result.dist[result.dest];
-	writeln(totalDist);
 	return totalDist;
 }
 
-void main() {
-	auto testData = parse("test-input");
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
 
 	alias solve1 = solve!(0, 3);
 	alias solve2 = solve!(4, 10);
-
-	assert(solve1(testData) == 102, "Solution incorrect");
-	assert(solve2(testData) == 94, "Solution incorrect");
-
-	auto testData2 = parse("test-input2");
-	assert(solve2(testData2) == 71, "Solution incorrect");
-
-	auto data = parse("input");
-	assert(solve1(data) == 665);
-	auto result = solve2(data);
-	assert(result == 809);
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }

@@ -107,7 +107,8 @@ Data parse(string fname) {
 		result.parts ~= Part(to!int(m[1]), to!int(m[2]), to!int(m[3]), to!int(m[4]));
 	}
 
-	writeln(result.rootRule.toString());
+	// draw in tree format.
+	// writeln(result.rootRule.toString());
 	return result;
 }
 
@@ -138,9 +139,9 @@ bool test(const Rule rule, Part part) {
 auto solve1(Data data) {
 	long result = 0;
 	foreach(part; data.parts) {
-		write(part);
+		// write(part);
 		bool testResult = test(data.rootRule, part);
-		writeln(" ", testResult);
+		// writeln(" ", testResult);
 		if (testResult) {
 			result += part.x + part.m + part.a + part.s;
 		}
@@ -230,19 +231,13 @@ long applyRange(const Rule rule, const PartRange partRange, int recursionLevel =
 long solve2(Data data) {
 	auto partRange = new PartRange();
 	long result = applyRange(data.rootRule, partRange);
-	writeln(result);
 	return result;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	writeln(testData);
-	assert(solve1(testData) == 19_114, "Solution incorrect");
-	assert(solve2(testData) == 167_409_079_868_000, "Solution incorrect");
-	
-	auto data = parse("input");
-	assert (solve1(data) == 376_008);
-	long result = solve2(data);
-	assert(result == 124_078_207_789_312); 
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }

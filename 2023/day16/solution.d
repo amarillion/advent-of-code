@@ -29,14 +29,12 @@ auto solve2(Data grid) {
 		if (val > max) max = val;
 		val = fullTrace(grid, Point(grid.size.x - 1, y), Dir.W);
 		if (val > max) max = val;
-		writefln("Max: %s", max);
 	}
 	for (int x = 0; x < grid.size.x; ++x) {
 		long val = fullTrace(grid, Point(x, 0), Dir.S);
 		if (val > max) max = val;
 		val = fullTrace(grid, Point(x, grid.size.y - 1), Dir.N);
 		if (val > max) max = val;
-		writefln("Max: %s", max);
 	}
 	return max;
 }
@@ -112,20 +110,14 @@ auto fullTrace(Data grid, Point startPos, Dir startDir) {
 	}
 
 	trace(startPos, startDir);
-	writeln(view.format(""), "\n");
-
-	writefln("Trace: %s %s: %s", startPos, SHORT[startDir], visited.length);
+	// writeln(view.format(""), "\n");
+	// writefln("Trace: %s %s: %s", startPos, SHORT[startDir], visited.length);
 	return visited.length;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 46, "Solution incorrect");
-	assert(solve2(testData) == 51, "Solution incorrect");
-
-	auto data = parse("input");
-	assert(solve1(data) == 7951);
-	auto result = solve2(data); 
-	assert(result == 8148);
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }
