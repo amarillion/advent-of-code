@@ -55,3 +55,33 @@ struct Box(int N, T) {
 alias Rect(T) = Box!(2, T);
 alias Cuboid(T) = Box!(3, T);
 alias Hyperrect(T) = Box!(4, T);
+
+unittest {	
+	auto unit = Rect!int(Point(1,1), Point(1, 1));
+	assert (unit.contains(Point(0, 1)) == false);
+	assert (unit.contains(Point(1, 1)) == true);
+	assert (unit.contains(Point(2, 1)) == false);
+}
+
+unittest {
+	Cuboid!int a = Cuboid!int(vec3i(0, 0, 0), vec3i(5, 3, 4));
+	Cuboid!int b = Cuboid!int(vec3i(-2, 1, 2), vec3i(5, 4, 3));
+	Cuboid!int c = Cuboid!int(vec3i(1,1,1), vec3i(1,1,1));
+
+	vec3i p1 = vec3i(2, 1, 2);
+	vec3i p2 = vec3i(8,0,0);
+
+	assert(a.contains(p1));
+	assert(b.contains(p1));
+	assert(!a.contains(p2));
+	assert(!b.contains(p2));
+	
+	assert(a.overlaps(a));
+	assert(b.overlaps(b));
+	assert(c.overlaps(c));
+
+	assert(a.overlaps(b));
+	assert(b.overlaps(a));
+	assert(c.overlaps(a));
+	assert(!c.overlaps(b));
+}
