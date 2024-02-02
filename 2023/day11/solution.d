@@ -54,9 +54,8 @@ auto solve(string fname, long part2growFactor) {
 	];
 }
 
-void main() {
-	assert(solve("test-input", 100) == [ 374, 8410 ], "Incorrect solution");
-	auto result = solve("input", 1_000_000);
-	assert(result == [9_639_160, 752_936_133_304]);
+void main(string[] args) {
+	assert(args.length == 3, "Expected two argument: input file, number of iterations");
+	auto result = solve(args[1], to!int(args[2]));
 	writeln(result);
 }

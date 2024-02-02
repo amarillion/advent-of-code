@@ -121,9 +121,8 @@ auto solve(string fname) {
 	];
 }
 
-void main() {
-	assert(solve("test-input") == [8, 1], "Incorrect solution");
-	auto result = solve("input");
-	assert(result == [6867, 595]);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto result = solve(args[1]);
 	writeln(result);
 }

@@ -242,17 +242,14 @@ Input unfold(Input input) {
 	return Input(unfoldedPattern, unfoldedStretches);
 }
 
-void main() {
-	auto testData = parse("test-input");
-	auto data = parse("input");
-	
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	// auto result = solve(args[1], to!int(args[2]));
+
+	auto data = parse(args[1]);
+
 	auto solve1 = (Input[] patterns) => patterns.map!countDynamic.sum;
 	auto solve2 = (Input[] patterns) => patterns.map!unfold.map!countDynamic.sum;
 
-	assert(solve1(testData) == 21);
-	assert(solve1(data) == 7090);
-	assert(solve2(testData) == 525_152);
-	auto result = solve2(data);
-	assert(result == 6_792_010_726_878);
-	writeln(result); 
+	writeln([solve1(data), solve2(data)]);
 }

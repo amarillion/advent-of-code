@@ -82,13 +82,10 @@ auto solve(Data data, long expected) {
 	return result;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve(testData, 0) == 405, "Solution incorrect");
-	assert(solve(testData, 1) == 400, "Solution incorrect");
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
 
-	auto data = parse("input");
+	auto data = parse(args[1]);
 	auto result = [ solve(data, 0), solve(data, 1) ];
-	assert(result == [ 31_739, 31_539 ]);
 	writeln(result);
 }

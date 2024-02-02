@@ -89,7 +89,7 @@ class CycleDetector(T) {
 	}
 
 	long detect() {
-		writeln(differences);
+		// writeln(differences);
 		long[long] frqMap;
 		foreach(k, v; differences) {
 			long prev = v in frqMap ? frqMap[v] : 0;
@@ -133,14 +133,9 @@ auto solve2(const Data cgrid) {
 	return countLoad(grid);
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 136, "Solution incorrect");
-	assert(solve2(testData) == 64, "Solution incorrect");
-
-	auto data = parse("input");
-	assert(solve1(data) == 106_990);
-	auto result = solve2(data);
-	assert(result == 100_531);
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }

@@ -27,10 +27,15 @@ Test[] tests = [
 	Test(2023,  6,  "day6/", "./Solution",     "test-input", format("%s\n%s", 288, 71503)),
 	Test(2023,  7,  "day7/", "./Solution",     "test-input", format("%s\n%s", 6440, 5905)),
 	Test(2023,  8,  "day8/", "./solution.ts",  "test-input", format("%s\n%s", 2, 2)),
-	Test(2023,  9,  "day9/", "./Solution", "test-input", format("%s\n%s", 114, 2)),
+	Test(2023,  9,  "day9/", "./Solution",     "test-input", format("%s\n%s", 114, 2)),
+	Test(2023, 10, "day10/", "./solution.d",   "test-input", format("[%s, %s]", 8, 1)),
+	Test(2023, 11, "day11/", "./solution.d",   "test-input 100", format("[%s, %s]", 374, 8410)),
+	Test(2023, 12, "day12/", "./solution.d",   "test-input", format("[%s, %s]", 21, 525_152)),
+	Test(2023, 13, "day13/", "./solution.d",   "test-input", format("[%s, %s]", 405, 400)),
+	Test(2023, 14, "day14/", "./solution.d",   "test-input", format("%s\n%s", 136, 64)),
+	Test(2023, 15, "day15/", "./solution.d",   "test-input", format("%s\n%s", 1320, 145)),
 	
 	Test(2023, 18, "day18/", "./solution.d", "test-input", "[62, 952408144115]"),
-
 
 	Test(2023,  1,  "day1/", "./solution.cpp", "input", format("%s\n%s", 56397, 55701)),
 	Test(2023,  2,  "day2/", "./solution.cpp", "input", format("%s\n%s", 2239, 83435)),
@@ -41,6 +46,12 @@ Test[] tests = [
 	Test(2023,  7,  "day7/", "./Solution",     "input", format("%s\n%s", 248453531, 248781813)),
 	Test(2023,  8,  "day8/", "./solution.ts",  "input", format("%s\n%s", 16409, 11795205644011)),
 	Test(2023,  9,  "day9/", "./Solution",     "input", format("%s\n%s", 2043677056, 1062)),
+	Test(2023, 10, "day10/", "./solution.d",   "input", format("[%s, %s]", 6867, 595)),
+	Test(2023, 11, "day11/", "./solution.d",   "input 1000000", format("[%s, %s]", 9_639_160, 752_936_133_304)),
+	Test(2023, 12, "day12/", "./solution.d",   "input", format("[%s, %s]", 7090, 6_792_010_726_878)),
+	Test(2023, 13, "day13/", "./solution.d",   "input", format("[%s, %s]", 31739, 31539)),
+	Test(2023, 14, "day14/", "./solution.d",   "input", format("%s\n%s", 106990, 100531)),
+	Test(2023, 15, "day15/", "./solution.d",   "input", format("%s\n%s", 521_341, 252_782)),
 	
 	Test(2023, 18, "day18/", "./solution.d", "input", "[31171, 131431655002266]"),
 ];
@@ -51,14 +62,14 @@ void runTest(Test t) {
 	writefln("Executing script %s %s", t.year, t.day);
 	auto execResult = executeShell(format("%s %s", t.script, t.param), null, Config.none, size_t.max, t.workDir);
 	assert(execResult.status == 0, format("Script failed with status code %s", execResult.status));
-	writeln(execResult.output);
+	// writeln(execResult.output);
 	assert(execResult.output.strip == t.expected, 
 		format("Did not receive expected results")
 	);
 	MonoTime after = MonoTime.currTime;
 	Duration timeElapsed = after - before;
 	auto elapsedFormat = timeElapsed.split!("minutes", "seconds", "msecs");
-	writefln("Elapsed: %02d:%02d.%03d\n\n", elapsedFormat.minutes, elapsedFormat.seconds, elapsedFormat.msecs);
+	writefln("Elapsed: %02d:%02d.%03d\n", elapsedFormat.minutes, elapsedFormat.seconds, elapsedFormat.msecs);
 }
 
 void main(string[] args) {

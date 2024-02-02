@@ -109,14 +109,9 @@ auto solve2(Data instructions) {
 	return calculate(hashmap);
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 1320, "Solution incorrect");
-	assert(solve2(testData) == 145, "Solution incorrect");
-
-	auto data = parse("input");
-	assert(solve1(data) == 521_341);
-	auto result = solve2(data);
-	assert(result == 252_782);
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }
