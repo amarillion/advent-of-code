@@ -42,6 +42,12 @@ Test[] tests = [
 	Test(2023, 20, "day20/", "./solution.d", "test-input", format("%s\n%s", 32000000, 1)),
 	Test(2023, 20, "day20/", "./solution.d", "test-input2", format("%s\n%s", 11687500, 1)),
 
+	Test(2023, 21, "day21/", "./solution.d", "test-input", format("%s\n%s", 2665, 470149643712804)),
+	Test(2023, 22, "day22/", "./solution.d", "test-input", format("[%s, %s]", 5, 7)),
+	Test(2023, 23, "day23/", "./solution.d", "test-input", format("%s\n%s", 94, 154)),
+
+	Test(2023, 25, "day25/", "./solution.d", "test-input", format("%s", 54)),
+
 
 	Test(2023,  1,  "day1/", "./solution.cpp", "input", format("%s\n%s", 56397, 55701)),
 	Test(2023,  2,  "day2/", "./solution.cpp", "input", format("%s\n%s", 2239, 83435)),
@@ -63,6 +69,12 @@ Test[] tests = [
 	Test(2023, 18, "day18/", "./solution.d",   "input", "[31171, 131431655002266]"),
 	Test(2023, 19, "day19/", "./solution.d",   "input", format("%s\n%s", 376008, 124078207789312)),
 	Test(2023, 20, "day20/", "./solution.d",   "input", format("%s\n%s", 812609846, 245114020323037)),
+	Test(2023, 21, "day21/", "./solution.d",   "input", format("%s\n%s", 3764, 622926941971282)),
+	Test(2023, 22, "day22/", "./solution.d",   "input", format("[%s, %s]", 430, 60558)),
+	Test(2023, 23, "day23/", "./solution.d",   "input", format("%s\n%s", 2430, 6534)),
+
+	Test(2023, 25, "day25/", "./solution.d",   "input", format("%s", 525264)),
+
 ];
 
 void runTest(Test t) {

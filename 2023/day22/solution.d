@@ -57,14 +57,14 @@ int[] dropBlock(Block original, int id, ref int[vec3i] collisionMap) {
 	}
 	
 	// solidify
-	foreach(vec3i pp; CoordRange!vec3i(block.pos, block.pos + block.size)) {
+	foreach(vec3i pp; block.coordrange) {
 		assert(pp !in collisionMap, 
 			format("Position already occupied by block %s at %s while checking block %s", collisionMap[pp], pp, id)
 		);
 		collisionMap[pp] = id;
 	}
 
-	writefln("Block %s dropped to %s, supported by %s", id, block.pos.z, underlings.keys);
+	// writefln("Block %s dropped to %s, supported by %s", id, block.pos.z, underlings.keys);
 	// writeln(collisionMap);
 	return underlings.keys;
 }
@@ -87,13 +87,13 @@ int countTransitiveSupport(int id, int[][int] supportedBy, int[][int] isSupporti
 				bool canFall = true;
 				foreach(underling; supportedBy[overling]) {
 					if (underling !in disintegrating) {
-						writefln("Block %s above %s is still supported by %s", overling, current, underling);
+						// writefln("Block %s above %s is still supported by %s", overling, current, underling);
 						canFall = false;
 						break;
 					}
 				}
 				if (canFall) {
-					writefln("Falling %s causes %s to fall", current, overling);
+					// writefln("Falling %s causes %s to fall", current, overling);
 					disintegrating[overling] = true;
 					open ~= overling;
 				}
@@ -103,7 +103,7 @@ int countTransitiveSupport(int id, int[][int] supportedBy, int[][int] isSupporti
 	return to!int(disintegrating.length) - 1;
 }
 
-auto solve1(Blocks blocks) {
+auto solve(Blocks blocks) {
 	sort!"a.pos.z < b.pos.z"(blocks);
 	int[vec3i] collisionMap;
 	int[][int] isSupporting;
@@ -142,7 +142,12 @@ auto solve1(Blocks blocks) {
 	return [ result, result2 ];
 }
 
-void main() {
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto data = parse(args[1]);
+	writeln(solve(data));
+}
+/*
 	auto testData = parse("test-input");
 	assert(solve1(testData) == [ 5, 7 ], "Solution incorrect");
 
@@ -151,3 +156,4 @@ void main() {
 	// assert(result == 430);
 	writeln(result);
 }
+*/

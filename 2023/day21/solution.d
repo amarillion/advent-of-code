@@ -82,9 +82,9 @@ auto sliceSeries(long[] distanceCounts, long period) {
 		series[i % period] ~= distanceCounts[i] - prev;
 	}
 
-	foreach(i, serie; series) {
-		writefln("#%s: %s", i, serie);
-	}
+	// foreach(i, serie; series) {
+	// 	writefln("#%s: %s", i, serie);
+	// }
 	return series;
 }
 
@@ -100,11 +100,11 @@ auto extrapolate(long[][] series, long stepCount) {
 		distances[phase] += delta;
 		sum += distances[phase];
 	}
-	writeln(sum);
+	// writeln(sum);
 	return sum;
 }
 
-void main() {
+unittest {
 	auto testRaw = parse("test-input");
 	long testPeriod = testRaw.size.x + testRaw.size.y;
 	auto testData = getDistanceCounts(testRaw, testPeriod * 4);
@@ -116,16 +116,14 @@ void main() {
 	assert(extrapolate(testSeries, 500) == 167004, "Solution incorrect");
 	assert(extrapolate(testSeries, 1000) == 668697, "Solution incorrect");
 	assert(extrapolate(testSeries, 5000) == 16733044, "Solution incorrect");
+}
 
-	auto raw = parse("input");
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto raw = parse(args[1]);
 	auto period = raw.size.x + raw.size.y;
 	auto data = getDistanceCounts(raw, period * 4);
 	auto series = sliceSeries(data, period);
-	auto result = extrapolate(series, 64);
-	assert(result == 3764);
-	writeln(result);
-
-	auto result2 = extrapolate(series, 26501365);
-	assert (result2 == 622926941971282);
-	writeln(result2);
+	writeln(extrapolate(series, 64));
+	writeln(extrapolate(series, 26501365));
 }

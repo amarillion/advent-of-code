@@ -43,7 +43,7 @@ auto solve1(Graph graph) {
 	int[string] frqMap;
 
 	// try lots of times
-	foreach(k; 1..10_000) {
+	foreach(k; 1..1000) {
 		// pick random edge
 		string src = choice(graph.keys);
 		string dest = choice(graph.keys);
@@ -72,9 +72,9 @@ auto solve1(Graph graph) {
 
 	string[] sortedKeys = frqMap.keys;
 	sort!((string a, string b) => frqMap[a] > frqMap[b])(sortedKeys);
-	foreach(string key; sortedKeys[0..min($,100)]) {
-		writefln("%s: %s", key, frqMap[key]);
-	}
+	// foreach(string key; sortedKeys[0..min($,100)]) {
+	// 	writefln("%s: %s", key, frqMap[key]);
+	// }
 	
 	// assumption: most frequently used edges are most likely to be part of minimal cut set.
 	// try all combinations of top 10.
@@ -126,12 +126,17 @@ auto solve1(Graph graph) {
 	return 0;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 54, "Solution incorrect");
-
-	auto data = parse("input");
-	auto result = solve1(data);
-	assert(result == 525264);
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	
+	auto data = parse(args[1]);
+	writeln(solve1(data));
 }
+
+// auto testData = parse("test-input");
+// 	assert(solve1(testData) == 54, "Solution incorrect");
+
+// 	auto data = parse("input");
+// 	auto result = solve1(data);
+// 	assert(result == 525264);
+// 	writeln(result);

@@ -183,7 +183,6 @@ auto solve1(MyGrid grid) {
 	Point end = grid.size - Point(2, 1);
 
 	long result = longestPath!((Point p) => getAdjacent1(grid, p), (Point p, Dir d) => 1)(start, end);
-	writeln(result);
 	return result;
 }
 
@@ -193,13 +192,13 @@ auto solve2(MyGrid grid) {
 
 	auto graph = simplify!((Point p) => getAdjacent2(grid, p))(start, end);
 	
-	foreach(k, v; graph) {
-		writef("%s =>", k);
-		foreach(e; v.values) {
-			writef(" %s to %s in %s steps;", e.dir, e.dest, e.weight);
-		}
-		writeln();
-	}
+	// foreach(k, v; graph) {
+	// 	writef("%s =>", k);
+	// 	foreach(e; v.values) {
+	// 		writef(" %s to %s in %s steps;", e.dir, e.dest, e.weight);
+	// 	}
+	// 	writeln();
+	// }
 
 	// pre-calculate adjacency data
 	Tuple!(Dir, Point)[][Point] adjacent;
@@ -214,17 +213,22 @@ auto solve2(MyGrid grid) {
 		(Point p) => adjacent[p],
 		(Point p, Dir d) => graph[p][d].weight
 	)(start, end);
-	writeln(result);
 	return result;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	assert(solve1(testData) == 94, "Solution incorrect");
-	assert(solve2(testData) == 154, "Solution incorrect");
-	auto data = parse("input");
-	auto result = solve1(data);
-	assert(result == 2430);
-	result = solve2(data);
-	writeln(result);
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+
+	auto data = parse(args[1]);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }
+
+	// auto testData = parse("test-input");
+	// assert(solve1(testData) == 94, "Solution incorrect");
+	// assert(solve2(testData) == 154, "Solution incorrect");
+	// auto data = parse("input");
+	// auto result = solve1(data);
+	// assert(result == 2430);
+	// result = solve2(data);
+	// writeln(result);
