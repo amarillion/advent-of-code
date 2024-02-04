@@ -79,7 +79,8 @@ real perpendicularDistance(Line a, Line b) {
 	return result;
 }
 
-real sumSq(Data data, vec3d velocity, long firstHitIdx, real firstCrossTime, out Line ll) {
+real sumSq(Data data, vec3d velocity, long firstHitIdx, real firstCrossTime) {
+	Line ll;
 	ll.velocity = velocity;
 	ll.position = 
 		data[firstHitIdx].position + (data[firstHitIdx].velocity * firstCrossTime) 
@@ -144,34 +145,70 @@ auto solve1(Data data, real min, real max) {
 	return result;
 }
 
-long solve2(Data data) {
-	// auto velocity = vec3d(26, -329, 53);
-	long firstHitIdx = 77;
-	// real firstCrossTime = 59472000000;
-	real minVal;
-	Line ll;
-	Line minLL;
-	bool first = true;
-	for(real firstCrossTime = 59_816_900_000; firstCrossTime < 59_817_000_000; firstCrossTime += 1) {
-		// foreach(vv; CoordRange!vec3i(vec3i(23, -335, 48), vec3i(28, -325, 55))) {
-			vec3i vv = vec3i(26, -331, 53);
-			vec3d velocity = vec3d(vv.x, vv.y, vv.z);
-			real val = sumSq(data, velocity, firstHitIdx, firstCrossTime, ll);
-			if (val < minVal || first) {
-				minVal = val;
-				minLL = ll;
-				writefln("Lower sumSq %s found at %s %0.0f", val, vv, firstCrossTime);
-
-				// Lower sumSq 1.93367e+15 found at [26, -331, 53] 59817000000
-				// Lower sumSq 1.01236e+13 found at [26, -331, 53] 59816995000
-				// Lower sumSq 2.15379e-09 found at [26, -331, 53] 59816994610
+/** 
+ * 1-Dimensional parameter search
+ * TODO: search multiple parameters at the same time (firstCrossTime, velocity.{x,y,z})
+ * TODO: open-ended analysis: no need to specify upper bound...
+ * TODO: mixed types? Just do long for now...
+ */
+long parameterSearch(long initialLow, long initialHigh, long desiredPrecision, double delegate(long param) f) {
+	long low = initialLow;
+	long high = initialHigh;
+	long delta = high - low;
+	long minParam;
+	while (true) {
+		double min;
+		bool first = true;
+		long step = max(desiredPrecision, delta / 10);
+		writefln("Searching between %s and %s with step %s", low, high, step);
+		for (long param = low; param < high; param += step) {
+			double val = f(param);
+			if (first || val < min) {
 				first = false;
+				min = val;
+				minParam = param;
+				writefln("Lower sumSq %s found at %s", val, param);
 			}
-		// }
+		}
+
+		if (step <= desiredPrecision) { break; }
+
+		low = minParam - step;
+		high = minParam + step;
+		delta = high - low;
+
+		writefln("New search: %s %s %s", low, high, delta);
 	}
+	return minParam;
+}
+
+long solve2(Data data) {
 	
-	return to!long(minLL.position.x) + to!long(minLL.position.y) + to!long(minLL.position.z);
-	// correct answer: 1007148211789625
+	long crossIdx = 0; // pick any hailstone as basis, doesn't need to be a particular one.
+	// we know from analysis that Hailstone #77 is the first to hit, but that info is not used here.
+
+	// auto velocity = vec3d(26, -329, 53); // First guess from visual analysis
+	vec3i vv = vec3i(26, -331, 53); // confirmed with parameter search. TODO: should not hardcode this.
+	vec3d velocity = vec3d(vv.x, vv.y, vv.z); // convert type
+
+	// search for moment in time when hailstone[crossIdx] hits our line
+	long crossTime = parameterSearch(
+		0,
+		2_000_000_000_000, //TODO: remove need for upper bound...
+		1,
+		(long crossTime) {
+			real val = sumSq(data, velocity, crossIdx, crossTime);
+			return to!double(val);
+		}
+	);
+
+	Line ll;
+	ll.velocity = velocity;
+	ll.position = 
+		data[crossIdx].position + (data[crossIdx].velocity * crossTime) 
+		- ll.velocity * crossTime;
+
+	return to!long(ll.position.x) + to!long(ll.position.y) + to!long(ll.position.z);
 }
 
 
@@ -186,6 +223,7 @@ void main(string[] args)
 	assert(result == 14799);
 	writeln(result);
 
-	writeln(solve2(data));
-
+	long result2 = solve2(data);
+	writeln(result2);
+	assert(result2 == 1007148211789625);
 }
