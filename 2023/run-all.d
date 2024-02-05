@@ -41,13 +41,11 @@ Test[] tests = [
 	Test(2023, 19, "day19/", "./solution.d", "test-input", format("%s\n%s", 19114, 167409079868000)),
 	Test(2023, 20, "day20/", "./solution.d", "test-input", format("%s\n%s", 32000000, 1)),
 	Test(2023, 20, "day20/", "./solution.d", "test-input2", format("%s\n%s", 11687500, 1)),
-
 	Test(2023, 21, "day21/", "./solution.d", "test-input", format("%s\n%s", 2665, 470149643712804)),
 	Test(2023, 22, "day22/", "./solution.d", "test-input", format("[%s, %s]", 5, 7)),
 	Test(2023, 23, "day23/", "./solution.d", "test-input", format("%s\n%s", 94, 154)),
-
+	Test(2023, 24, "day24/", "./solution.d", "test-input", format("%s\n%s", 2, 47)),
 	Test(2023, 25, "day25/", "./solution.d", "test-input", format("%s", 54)),
-
 
 	Test(2023,  1,  "day1/", "./solution.cpp", "input", format("%s\n%s", 56397, 55701)),
 	Test(2023,  2,  "day2/", "./solution.cpp", "input", format("%s\n%s", 2239, 83435)),
@@ -72,7 +70,7 @@ Test[] tests = [
 	Test(2023, 21, "day21/", "./solution.d",   "input", format("%s\n%s", 3764, 622926941971282)),
 	Test(2023, 22, "day22/", "./solution.d",   "input", format("[%s, %s]", 430, 60558)),
 	Test(2023, 23, "day23/", "./solution.d",   "input", format("%s\n%s", 2430, 6534)),
-
+	Test(2023, 24, "day24/", "./solution.d",   "input", format("%s\n%s", 14799, 1007148211789625)),
 	Test(2023, 25, "day25/", "./solution.d",   "input", format("%s", 525264)),
 
 ];
