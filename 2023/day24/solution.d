@@ -109,21 +109,21 @@ auto solve1(Data data, real min, real max) {
 		auto intersect = lineIntersection(
 			a1, da, b1, db
 		);
-		writefln("Line A: %s %s", a1, da);
-		writefln("Line B: %s %s", b1, db);
+		// writefln("Line A: %s %s", a1, da);
+		// writefln("Line B: %s %s", b1, db);
 		if (intersect.doIntersect
 		) {
 			vec2d ta = (intersect.intersection - a1) / da;
 			vec2d tb = (intersect.intersection - b1) / db;
 			// writefln("%s %s", ta, tb);
 			if (ta.x < 0 && tb.x < 0) {
-				writeln("In the past for both");
+				// writeln("In the past for both");
 			}
 			else if (ta.x < 0) {
-				writefln("In the past for A");
+				// writefln("In the past for A");
 			} 
 			else if (tb.x < 0) {
-				writefln("In the past for B");
+				// writefln("In the past for B");
 			}
 			else if (
 				intersect.intersection.x >= min && 
@@ -131,15 +131,15 @@ auto solve1(Data data, real min, real max) {
 				intersect.intersection.x <= max &&
 				intersect.intersection.y <= max
 			) {
-				writefln("Intersection inside test area: %s", intersect.intersection);		
+				// writefln("Intersection inside test area: %s", intersect.intersection);		
 				result++;
 			}
 			else {
-				writefln("Outside test area: %s", intersect.intersection);		
+				// writefln("Outside test area: %s", intersect.intersection);		
 			}
 		}
 		else {
-			writeln("Lines are parallel");
+			// writeln("Lines are parallel");
 		}
 	}
 	return result;
@@ -182,6 +182,8 @@ long parameterSearch(long initialLow, long initialHigh, long desiredPrecision, d
 	return minParam;
 }
 
+// this method of parametric fitting only works if we first estimate the parameter within a narrow range (e.g. visually)
+// the solve2_improved below is far superior.
 long solve2(Data data) {
 	
 	long crossIdx = 0; // pick any hailstone as basis, doesn't need to be a particular one.
@@ -211,19 +213,97 @@ long solve2(Data data) {
 	return to!long(ll.position.x) + to!long(ll.position.y) + to!long(ll.position.z);
 }
 
+// Gaussian elimination to solve system of equations
+// See: https://en.wikipedia.org/wiki/Gaussian_elimination
+void gauss(ref real[][] matrix) {
+	int pivotRow = 0;
+	int pivotCol = 0;
+	int nRows = to!int(matrix.length);
+	int nCols = to!int(matrix[0].length);
+	while (pivotRow < nRows && pivotCol < nCols) {
+		real max = 0.0;
+		int idxMax = -1;
+		for (int i = pivotRow; i < nRows; i++) {
+			real cand = abs(matrix[i][pivotCol]);
+			if (cand > max) {
+				max = cand;
+				idxMax = i;
+			}
+		}
+		if (matrix[idxMax][pivotCol] == 0.0) {
+			// nothing to pivot in this column
+			pivotCol++;
+		} else {
+			// swap rows idxMax and pivotRow
+			swap(matrix[pivotRow], matrix[idxMax]);
+			for (int i = pivotRow + 1; i < nRows; i++) {
+				// for all lower rows, subtract so that matrix[i][pivotCol] becomes 0
+				real factor = matrix[i][pivotCol] / matrix[pivotRow][pivotCol];
+				matrix[i][pivotCol] = 0.0;
+				for (int j = pivotCol + 1; j < nCols; j++) {
+					// only need to go right, to the left it's all zeros anyway
+					matrix[i][j] -= factor * matrix[pivotRow][j];
+				}
+			}
+		}
+		pivotCol++;
+		pivotRow++;
+	}
+}
+
+long solve2_improved(Data data) {
+	// Adapted from solution found on Reddit:
+	// https://github.com/dirk527/aoc2021/blob/main/src/aoc2023/Day24.java
+	
+	real[][] matrix;
+
+	auto hail = data[0];
+	matrix.length = 4;
+	foreach (i; 0..4) {
+		matrix[i].length = 5;
+		auto two = data[i + 1];
+		matrix[i][0] = hail.position.y - two.position.y;
+		matrix[i][1] = two.position.x - hail.position.x;
+		matrix[i][2] = two.velocity.y - hail.velocity.y;
+		matrix[i][3] = hail.velocity.x - two.velocity.x;
+		matrix[i][4] = (hail.position.y * hail.velocity.x - hail.position.x * hail.velocity.y) -
+					   (two.position.y * two.velocity.x - two.position.x * two.velocity.y);
+	}
+
+	gauss(matrix);
+
+	auto rsy = matrix[3][4] / matrix[3][3];
+	auto rsx = (matrix[2][4] - matrix[2][3] * rsy) / matrix[2][2];
+	auto rvy = (matrix[1][4] - matrix[1][3] * rsy - matrix[1][2] * rsx) / matrix[1][1];
+	auto rvx = (matrix[0][4] - matrix[0][3] * rsy - matrix[0][2] * rsx - matrix[0][1] * rvy) / matrix[0][0];
+
+	auto t1 = (hail.position.x - rsx) / (rvx - hail.velocity.x);
+	auto z1 = hail.position.z + t1 * hail.velocity.z;
+	auto two = data[1];
+	auto t2 = (two.position.x - rsx) / (rvx - two.velocity.x);
+	auto z2 = two.position.z + t2 * two.velocity.z;
+	auto rvz = (z2 - z1) / (t2 - t1);
+	auto rsz = z1 - rvz * t1;
+
+	long result = to!long(rsx + rsy + rsz);
+	return result;
+}
 
 void main(string[] args)
 {
-	auto testData = parse("test-input");
-	writeln(testData);
-	assert(solve1(testData, 7, 27) == 2, "Solution incorrect");
+	assert(args.length == 2, "Missing argument: input file");
 
-	auto data = parse("input");
-	auto result = solve1(data, 200000000000000, 400000000000000);
-	assert(result == 14799);
+	auto data = parse(args[1]);
+
+	// parameters depend on whether we are running a test or not. 
+	long result = solve1(data, 200000000000000, 400000000000000);
+	if (result == 0) {
+		// if we don't get any result, we need to apply the other possible parameters.
+		result = solve1(data, 7, 27);
+	}
 	writeln(result);
 
-	long result2 = solve2(data);
+	// long result2 = solve2(data);
+	long result2 = solve2_improved(data);
 	writeln(result2);
-	assert(result2 == 1007148211789625);
 }
