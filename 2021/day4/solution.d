@@ -70,7 +70,7 @@ int[2] firstAndLastScores(string fname) {
 	return [winners[0].score, winners[$-1].score];
 }
 
-void main() {
-	assert (firstAndLastScores("test") == [ 4512, 1924 ]);
-	writeln (firstAndLastScores("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(firstAndLastScores(args[1]));
 }

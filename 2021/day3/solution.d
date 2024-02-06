@@ -53,7 +53,7 @@ auto run(string fname) {
 	return [ part1(data), part2(data) ];
 }
 
-void main() {	
-	assert(run("test") == [198, 230]);
-	writeln(run("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(run(args[1]));
 }

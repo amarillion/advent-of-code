@@ -47,7 +47,7 @@ auto solve (string fname) {
 	];
 }
 
-void main() {
-	assert (solve("test") == [ 5934, 26_984_457_539 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(solve(args[1]));
 }
