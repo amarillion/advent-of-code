@@ -1,4 +1,6 @@
-//usr/bin/clang++ -O3 -std=c++20 "$0" && ./a.out "$@"; exit
+///usr/bin/env make -s ${0%%.cpp} CXXFLAGS="-g -Wall -Wextra -std=c++20 -O3" && exec ./${0%%.cpp} "$@"
+
+//home/martijn/bin/run-cpp
 
 #include <cassert>
 #include <iostream>
