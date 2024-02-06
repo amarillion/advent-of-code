@@ -51,7 +51,7 @@ vector<PartNumber> extractNumbers(const Grid &grid) {
 	// NOTE: callback is stateful and relies on x being in the inner loop, y in the outer loop.
 	forArea(0, 0, grid.getDimMX(), grid.getDimMY(), [&](int x, int y){
 		char ch = grid(x, y);
-		bool isEol = x == grid.getDimMX() - 1;
+		bool isEol = x == static_cast<int>(grid.getDimMX()) - 1;
 		if (isDigit(ch)) {
 			int digit = ch - '0';
 			if (!numberState) {

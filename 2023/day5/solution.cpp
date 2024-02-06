@@ -77,8 +77,8 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 			long start = max(prev.x, in.x);
 			long end = in.x + in.w;
 			long w = end - start;
-			Range oldRange{start, w};
 			Range newRange{start + prev.value, w};
+			// Range oldRange{start, w};
 			// cout << "Final range " << oldRange << " mapped to " << newRange << endl;
 			result.push_back(newRange);
 			break;
@@ -87,8 +87,8 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 			long start = max(prev.x, in.x);
 			long end = b.x;
 			long w = end - start;
-			Range oldRange{start, w};
 			Range newRange{start + prev.value, w};
+			// Range oldRange{start, w};
 			// cout << "Overlapping range " << oldRange << " mapped to " << newRange << endl;
 			result.push_back(newRange);
 		} else {
@@ -98,11 +98,11 @@ vector<Range> mapRange2(const MappingSet &bounds, Range in) {
 	}
 	Bound last = bounds[bounds.size()-1];
 	if (in.x + in.w > last.x) {
-		long start = max(last.x, in.x);
-		long end = in.x + in.w;
-		long w = end - start;
-		Range oldRange{start, w};
-		Range newRange{start + last.value, end - start};
+		// long start = max(last.x, in.x);
+		// long end = in.x + in.w;
+		// long w = end - start;
+		// Range oldRange{start, w};
+		// Range newRange{start + last.value, end - start};
 		// cout << "Remainder " << oldRange << " mapped to " << newRange << endl;
 		result.push_back(in);
 	}
@@ -152,7 +152,7 @@ MappingSet readMappings(ifstream &fin) {
 
 	// filter consecutive x'es
 	vector<Bound> result;
-	for (int i = 0; i < bounds.size(); ++i) {
+	for (size_t i = 0; i < bounds.size(); ++i) {
 		if (i < bounds.size() - 1 && bounds[i].x == bounds[i+1].x) continue;
 		result.push_back(bounds[i]);
 	}
@@ -200,7 +200,7 @@ long solve1(const Data &data) {
 
 long solve2(const Data &data) {
 	vector<Range> current;
-	for (int i = 0; i < data.seeds.size(); i += 2) {
+	for (size_t i = 0; i < data.seeds.size(); i += 2) {
 		current.push_back({ data.seeds[i], data.seeds[i+1] });
 	}
 

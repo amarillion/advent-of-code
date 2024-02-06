@@ -11,7 +11,7 @@ using namespace std;
 
 vector<int> parseNumbers(const string &arg) {
 	vector<int> result;
-	for (int i = 1; i < arg.length(); i += 3) {
+	for (size_t i = 1; i < arg.length(); i += 3) {
 		auto s = arg.substr(i, 2);
 		result.push_back(stoi(s));
 	}

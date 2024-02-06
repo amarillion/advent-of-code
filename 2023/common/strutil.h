@@ -101,7 +101,7 @@ std::string string_format(const char* fmt, Args... args)
 static inline std::string reverseString(const std::string &argument) {
 	std::string result = argument;
 	size_t len = argument.length();
-	for (int i = 0; i < len / 2; ++i) {
+	for (size_t i = 0; i < len / 2; ++i) {
 		std::swap(result[i], result[len - 1 - i]);
 	}
 	return result;

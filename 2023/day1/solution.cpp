@@ -21,7 +21,7 @@ vector<string> digits {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 vector<string> numberStrings {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
 
 int detectStartPattern(const string &s, const vector<string> &patterns) {
-	for (int j = 0; j < patterns.size(); ++j) {
+	for (size_t j = 0; j < patterns.size(); ++j) {
 		if (startsWith(patterns[j], s)) {
 			return j;
 		}
@@ -31,7 +31,7 @@ int detectStartPattern(const string &s, const vector<string> &patterns) {
 
 int scanPattern(const string &line, const vector<string> &patterns) {
 	int result = -1;
-	for (int i = 0; i < line.length(); ++i) {
+	for (size_t i = 0; i < line.length(); ++i) {
 		auto subLine = line.substr(i);
 		result = detectStartPattern(subLine, patterns);
 		if (result >= 0) { break; }
