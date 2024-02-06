@@ -4,6 +4,8 @@ test-input
 test-input2
 test
 test2
+solution
 node_modules/
 out/
 *.class
+.vscode/
