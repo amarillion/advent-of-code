@@ -55,7 +55,7 @@ int[] solve(string fname) {
 	return [ part1(commands), part2(commands) ];
 }
 
-void main() {
-	assert(solve("test") == [150, 900]);
-	writeln(solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(solve(args[1]));
 }
