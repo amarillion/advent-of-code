@@ -57,8 +57,7 @@ auto solve (string fname) {
 	];
 }
 
-void main() {
-	assert (solve("test") == [ 10, 36 ]);
-	assert (solve("test2") == [ 19, 103 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(solve(args[1]));
 }

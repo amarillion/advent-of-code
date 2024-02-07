@@ -76,7 +76,7 @@ auto solve (string fname) {
 	return [ flashCounts.take(100).sum, flashCounts.length ];
 }
 
-void main() {
-	assert (solve("test") == [ 1656, 195 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(solve(args[1]));
 }

@@ -18,21 +18,33 @@ struct Test {
 
 
 Test[] tests = [
-	Test(2023,  1,  "day1/", "./solution.d",  "test", format("[%s, %s]", 7, 5)),
-	Test(2023,  2,  "day2/", "./solution.d",  "test", format("[%s, %s]", 150, 900)),
-	Test(2023,  3,  "day3/", "./solution.d",  "test", format("[%s, %s]", 198, 230)),
-	Test(2023,  4,  "day4/", "./solution.d",  "test", format("[%s, %s]", 4512, 1924)),
-	Test(2023,  5,  "day5/", "./solution.d",  "test", format("[%s, %s]", 5, 12)),
-	Test(2023,  6,  "day6/", "./solution.d",  "test", format("[%s, %s]", 5934, 26984457539)),
-	Test(2023,  7,  "day7/", "./solution.d",  "test", format("[%s, %s]", 37, 168)),
-
-	Test(2023,  1,  "day1/", "./solution.d",  "input", format("[%s, %s]", 1477, 1523)),
-	Test(2023,  2,  "day2/", "./solution.d",  "input", format("[%s, %s]", 2272262, 2134882034)),
-	Test(2023,  3,  "day3/", "./solution.d",  "input", format("[%s, %s]", 4139586, 1800151)),
-	Test(2023,  4,  "day4/", "./solution.d",  "input", format("[%s, %s]", 63424, 23541)),
-	Test(2023,  5,  "day5/", "./solution.d",  "input", format("[%s, %s]", 6710, 20121)),
-	Test(2023,  6,  "day6/", "./solution.d",  "input", format("[%s, %s]", 393019, 1757714216975)),
-	Test(2023,  7,  "day7/", "./solution.d",  "input", format("[%s, %s]", 354129, 98905973)),
+	Test(2021,  1,  "day1/", "./solution.d",  "test", format("[%s, %s]", 7, 5)),
+	Test(2021,  2,  "day2/", "./solution.d",  "test", format("[%s, %s]", 150, 900)),
+	Test(2021,  3,  "day3/", "./solution.d",  "test", format("[%s, %s]", 198, 230)),
+	Test(2021,  4,  "day4/", "./solution.d",  "test", format("[%s, %s]", 4512, 1924)),
+	Test(2021,  5,  "day5/", "./solution.d",  "test", format("[%s, %s]", 5, 12)),
+	Test(2021,  6,  "day6/", "./solution.d",  "test", format("[%s, %s]", 5934, 26984457539)),
+	Test(2021,  7,  "day7/", "./solution.d",  "test", format("[%s, %s]", 37, 168)),
+	Test(2021,  8,  "day8/", "./solution.d",  "test", format("[%s, %s]", 26, 61229)),
+	Test(2021,  8,  "day8/", "./solution.d",  "test2", format("[%s, %s]", 0, 5353)),
+	Test(2021,  9,  "day9/", "./solution.d",  "test", format("[%s, %s]", 15, 1134)),
+	Test(2021, 10,  "day10/", "./solution.d",  "test", format("[%s, %s]", 26397, 288957)),
+	Test(2021, 11,  "day11/", "./solution.d",  "test", format("[%s, %s]", 1656, 195)),
+	Test(2021, 12,  "day12/", "./solution.d",  "test", format("[%s, %s]", 10, 36)),
+	Test(2021, 12,  "day12/", "./solution.d",  "test2", format("[%s, %s]", 19, 103)),
+	
+	Test(2021,  1,  "day1/", "./solution.d",  "input", format("[%s, %s]", 1477, 1523)),
+	Test(2021,  2,  "day2/", "./solution.d",  "input", format("[%s, %s]", 2272262, 2134882034)),
+	Test(2021,  3,  "day3/", "./solution.d",  "input", format("[%s, %s]", 4139586, 1800151)),
+	Test(2021,  4,  "day4/", "./solution.d",  "input", format("[%s, %s]", 63424, 23541)),
+	Test(2021,  5,  "day5/", "./solution.d",  "input", format("[%s, %s]", 6710, 20121)),
+	Test(2021,  6,  "day6/", "./solution.d",  "input", format("[%s, %s]", 393019, 1757714216975)),
+	Test(2021,  7,  "day7/", "./solution.d",  "input", format("[%s, %s]", 354129, 98905973)),
+	Test(2021,  8,  "day8/", "./solution.d",  "input", format("[%s, %s]", 473, 1097568)),
+	Test(2021,  9,  "day9/", "./solution.d",  "input", format("[%s, %s]", 502, 1330560)),
+	Test(2021, 10,  "day10/", "./solution.d",  "input", format("[%s, %s]", 358737, 4329504793)),
+	Test(2021, 11,  "day11/", "./solution.d",  "input", format("[%s, %s]", 1732, 290)),
+	Test(2021, 12,  "day12/", "./solution.d",  "input", format("[%s, %s]", 5254, 149385)),
 
 ];
 

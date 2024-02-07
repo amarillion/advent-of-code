@@ -91,7 +91,7 @@ auto solve (string fname) {
 	];
 }
 
-void main() {
-	assert (solve("test") == [ 26397, 288957 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln(solve(args[1]));
 }

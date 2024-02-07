@@ -21,7 +21,7 @@ auto countSimple(string[] lines) {
 	int count = 0;
 	foreach(line; lines) {
 		string[] parts = line.split(" | ");
-		writeln(parts);
+		// writeln(parts);
 		string[] outputs = parts[1].split;
 		foreach (output; outputs) {
 			if ([2, 3, 4, 7].canFind(output.length)) { count++; }
@@ -34,7 +34,7 @@ auto deduce(string[] lines) {
 	int count = 0;
 	foreach(line; lines) {
 		string[] parts = line.split(" | ");
-		writeln(parts);
+		// writeln(parts);
 	
 		// strings must be sorted for set difference / intersection algorithms to work.
 		string[] samples = parts[0].split.map!(sortString).array;
@@ -64,10 +64,10 @@ auto deduce(string[] lines) {
 				deduction[e] = setDifference(deduction[e], observed).array;
 			}
 
-			writeln(observed);
-			foreach(k, v; deduction) {
-				writeln (k, " is (one of) ", v);
-			}
+			// writeln(observed);
+			// foreach(k, v; deduction) {
+				// writeln (k, " is (one of) ", v);
+			// }
 		}
 
 		void guess(string observed, string[] expected) {
@@ -100,7 +100,7 @@ auto deduce(string[] lines) {
 				}
 			}
 			if (foundCount == 1) {
-				writeln("Trying ", observed, " as ", foundMatch, " results in ", missingExpected);
+				// writeln("Trying ", observed, " as ", foundMatch, " results in ", missingExpected);
 				// now eliminate this guess
 
 				restrictOptions(observed, foundMatch);
@@ -150,7 +150,7 @@ auto deduce(string[] lines) {
 		foreach (output; outputs) {
 			dchar[] converted = output.map!(x => finalMapping[x]).array;
 			sort(converted);
-			writeln(output, " -> ", converted, " -> ", toDigit[to!string(converted)]);
+			// writeln(output, " -> ", converted, " -> ", toDigit[to!string(converted)]);
 			result *= 10;
 			result += toDigit[to!string(converted)];
 		}
@@ -166,8 +166,7 @@ auto solve (string fname) {
 	];
 }
 
-void main() {
-	// writeln (solve("test2"));
-	assert (solve("test") == [ 26, 61229 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Expected argument: input file");
+	writeln (solve(args[1]));
 }
