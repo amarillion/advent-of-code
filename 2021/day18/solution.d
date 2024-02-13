@@ -207,7 +207,7 @@ auto solve (string fname) {
 	return [ part1, maxSum ];
 }
 
-void main() {
+unittest {
 	assert(eq(parse("[1,[2,3]]"), parse("[1,[2,3]]")));
 	assert(!eq(parse("[1,[2,3]]"), parse("[1,2]")));
 
@@ -228,7 +228,9 @@ void main() {
 	));
 	assert(magnitude(parse("[[1,2],[[3,4],5]]")) == 143);
 	assert(magnitude(parse("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")) == 1384);
+}
 
-	assert (solve("test") == [ 4140, 3993 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

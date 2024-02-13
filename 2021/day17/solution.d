@@ -62,9 +62,7 @@ auto solve (string fname) {
 	return [ maxSuccess, successes ];
 }
 
-void main() {
-	assert (solve("test") == [ 45, 112 ]);
-	auto result = solve("input");
-	assert (result == [4005, 2953]);
-	writeln (result);
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

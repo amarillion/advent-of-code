@@ -154,7 +154,7 @@ auto solve (string fname) {
 				Match match = tryMatch(scanners[i], scanners[j]);
 
 				if (match.found) {
-					writeln(i, " ", j, " matches at ", match.translation, " ", match.orientation);
+					// writeln(i, " ", j, " matches at ", match.translation, " ", match.orientation);
 					isNormalized[j] = true;
 					scannerLocations ~= match.translation;
 
@@ -185,7 +185,7 @@ auto solve (string fname) {
 	return [ beacons.length, maxDist ];
 }
 
-void main() {
+unittest {
 	Scanner[] scanners = parse("test");
 
 	vec3i translation = vec3i(68, -1246, -43);
@@ -217,8 +217,10 @@ void main() {
 	Match match_1_4 = tryMatch(norm1, scanners[4]);
 	assert (match_1_4.found);
 	assert (match_1_4.translation == translation3);
-	assert (match_1_4.orientation == orientation3);
-	
-	assert (solve("test") == [ 79, 3621 ]);
-	writeln (solve("input")); // [326, 10630]
+	assert (match_1_4.orientation == orientation3);	
+}
+
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

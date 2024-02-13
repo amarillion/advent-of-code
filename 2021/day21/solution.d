@@ -100,7 +100,7 @@ auto solve (string fname) {
 	return [ part1(initialState), part2(initialState) ];
 }
 
-void main() {
-	assert (solve("test") == [ 739785, 444_356_092_776_315 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

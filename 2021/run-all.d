@@ -43,6 +43,16 @@ Test[] tests = [
 	Test(2021, 15,  "day15/", "./solution.d",  "test", format("[%s, %s]", 40, 315)),
 	Test(2021, 16,  "day16/", "./solution.d",  "test", format("[%s, %s]", 14, 3)),
 
+	Test(2021, 17,  "day17/", "./solution.d",  "test", format("[%s, %s]", 45, 112)),
+	Test(2021, 18,  "day18/", "./solution.d",  "test", format("[%s, %s]", 4140, 3993)),
+	Test(2021, 19,  "day19/", "./solution.d",  "test", format("[%s, %s]", 79, 3621)),
+	Test(2021, 20,  "day20/", "./solution.d",  "test", format("[%s, %s]", 35, 3351)),
+	Test(2021, 21,  "day21/", "./solution.d",  "test", format("[%s, %s]", 739785, 444356092776315)),
+	// Test(2021, 22,  "day22/", "./solution.d",  "test", format("[%s, %s]", )),
+	// Test(2021, 23,  "day23/", "./solution.d",  "test", format("[%s, %s]", )),
+	// Test(2021, 24,  "day24/", "./solution.d",  "test", format("[%s, %s]", )),
+	// Test(2021, 25,  "day25/", "./solution.d",  "test", format("[%s, %s]", )),
+
 	Test(2021,  1,  "day1/", "./solution.d",  "input", format("[%s, %s]", 1477, 1523)),
 	Test(2021,  2,  "day2/", "./solution.d",  "input", format("[%s, %s]", 2272262, 2134882034)),
 	Test(2021,  3,  "day3/", "./solution.d",  "input", format("[%s, %s]", 4139586, 1800151)),
@@ -67,6 +77,16 @@ Test[] tests = [
 	Test(2021, 14,  "day14/", "./solution.d",  "input", format("[%s, %s]", 3048, 3288891573057)),
 	Test(2021, 15,  "day15/", "./solution.d",  "input", format("[%s, %s]", 714, 2948)),
 	Test(2021, 16,  "day16/", "./solution.d",  "input", format("[%s, %s]", 893, 4358595186090)),
+
+	Test(2021, 17,  "day17/", "./solution.d",  "input", format("[%s, %s]", 4005, 2953)),
+	Test(2021, 18,  "day18/", "./solution.d",  "input", format("[%s, %s]", 3869, 4671)),
+	Test(2021, 19,  "day19/", "./solution.d",  "input", format("[%s, %s]", 326, 10630)),
+	Test(2021, 20,  "day20/", "./solution.d",  "input", format("[%s, %s]", 4964, 13202)),
+	Test(2021, 21,  "day21/", "./solution.d",  "input", format("[%s, %s]", 998088, 306621346123766)),
+	// Test(2021, 22,  "day22/", "./solution.d",  "input", format("[%s, %s]", )),
+	// Test(2021, 23,  "day23/", "./solution.d",  "input", format("[%s, %s]", )),
+	// Test(2021, 24,  "day24/", "./solution.d",  "input", format("[%s, %s]", )),
+	// Test(2021, 25,  "day25/", "./solution.d",  "input", format("[%s, %s]", )),
 ];
 
 void runTest(PerformanceContext context, Test t) {

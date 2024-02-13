@@ -73,7 +73,7 @@ auto solve (string fname) {
 	return [ part1, part2 ];
 }
 
-void main() {
-	assert (solve("test") == [ 35, 3351 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }
