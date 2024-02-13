@@ -32,7 +32,17 @@ Test[] tests = [
 	Test(2021, 11,  "day11/", "./solution.d",  "test", format("[%s, %s]", 1656, 195)),
 	Test(2021, 12,  "day12/", "./solution.d",  "test", format("[%s, %s]", 10, 36)),
 	Test(2021, 12,  "day12/", "./solution.d",  "test2", format("[%s, %s]", 19, 103)),
-	
+	Test(2021, 13,  "day13/", "./solution.d",  "test", "
+#####
+#...#
+#...#
+#...#
+#####
+17"),	
+	Test(2021, 14,  "day14/", "./solution.d",  "test", format("[%s, %s]", 1588, 2188189693529)),
+	Test(2021, 15,  "day15/", "./solution.d",  "test", format("[%s, %s]", 40, 315)),
+	Test(2021, 16,  "day16/", "./solution.d",  "test", format("[%s, %s]", 14, 3)),
+
 	Test(2021,  1,  "day1/", "./solution.d",  "input", format("[%s, %s]", 1477, 1523)),
 	Test(2021,  2,  "day2/", "./solution.d",  "input", format("[%s, %s]", 2272262, 2134882034)),
 	Test(2021,  3,  "day3/", "./solution.d",  "input", format("[%s, %s]", 4139586, 1800151)),
@@ -45,7 +55,18 @@ Test[] tests = [
 	Test(2021, 10,  "day10/", "./solution.d",  "input", format("[%s, %s]", 358737, 4329504793)),
 	Test(2021, 11,  "day11/", "./solution.d",  "input", format("[%s, %s]", 1732, 290)),
 	Test(2021, 12,  "day12/", "./solution.d",  "input", format("[%s, %s]", 5254, 149385)),
+	Test(2021, 13,  "day13/", "./solution.d",  "input", "
+.##..###..#..#.####.###...##..#..#.#..#
+#..#.#..#.#..#....#.#..#.#..#.#..#.#..#
+#..#.#..#.####...#..#..#.#....#..#.####
+####.###..#..#..#...###..#....#..#.#..#
+#..#.#.#..#..#.#....#....#..#.#..#.#..#
+#..#.#..#.#..#.####.#.....##...##..#..#
+747"),
 
+	Test(2021, 14,  "day14/", "./solution.d",  "input", format("[%s, %s]", 3048, 3288891573057)),
+	Test(2021, 15,  "day15/", "./solution.d",  "input", format("[%s, %s]", 714, 2948)),
+	Test(2021, 16,  "day16/", "./solution.d",  "input", format("[%s, %s]", 893, 4358595186090)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
@@ -55,7 +76,7 @@ void runTest(PerformanceContext context, Test t) {
 	auto execResult = executeShell(format("%s %s", t.script, t.param), null, Config.none, size_t.max, t.workDir);
 	assert(execResult.status == 0, format("Script failed with status code %s", execResult.status));
 	// writeln(execResult.output);
-	assert(execResult.output.strip == t.expected, 
+	assert(execResult.output.strip == t.expected.strip, 
 		format("Did not receive expected results")
 	);
 	MonoTime after = MonoTime.currTime;

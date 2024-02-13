@@ -53,19 +53,18 @@ auto solve (string fname) {
 		ndots = doFold(fold, ndots);
 	}
 
-	auto grid = new SparseInfiniteGrid!(Point, char)();
+	auto grid = new SparseInfiniteGrid!(Point, char)('.');
 	foreach(dot; ndots) {
-		grid.set(dot, '.');
+		grid.set(dot, '#');
 	}
 
-	writeln(grid.format(""));
-
 	return [
-		dots2.length
+		grid.format(""),
+		to!string(dots2.length)
 	];
 }
 
-void main() {
-	assert (solve("test") == [ 17 ]);
-	writeln (solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln(solve(args[1]).join("\n"));
 }

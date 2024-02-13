@@ -70,12 +70,7 @@ auto solve (string fname) {
 	return [ result1.dist[result1.dest], result2.dist[result2.dest] ];
 }
 
-void main() {
-	auto result1 = solve("test");
-	assert(result1 == [40, 315]); // 714, 2948 is correct
-	writeln(result1);
-
-	auto result2 = solve("input");
-	assert(result2 == [714, 2948]);
-	writeln(result2);
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

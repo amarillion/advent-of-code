@@ -3,24 +3,37 @@ module common.sparsegrid;
 import common.coordrange;
 import std.conv;
 
+/** 
+ * A sparse infinite grid: a grid backed by a map of [ position vector : value ]. 
+ * This means that there is no need to predefine the bounds of the grid.
+ * Unoccupied elements consume no memory, so the grid can grow huge as long as it is sparse.
+ */
 class SparseInfiniteGrid(T, U) {
 
 	U[T] data;
 	T min;
 	T max;
 
+	private U emptyValue;
+
+	/** 
+	 * Initialize an infinite grid
+	 * Params:
+	 *   _emptyValue = the default value for the underlying map. 
+	 *                 Retrieving an uninitialized spot in the grid will return this value. 
+	 *                 Setting the default value will remove a spot from the grid.
+	 */	
+	this(char _emptyValue = U.init) {
+		emptyValue = _emptyValue;
+	}
+
 	U get(T p) {
-		if (p in data) {
-			return data[p];
-		}
-		else {
-			return U.init;
-		}
+		return p in data ? data[p] : emptyValue;
 	}
 
 	void set(T p, U val) {
 		// we'll save a bit of space by not storing default values
-		if (val == U.init) {
+		if (val == emptyValue) {
 			data.remove(p);
 		}
 		else {	

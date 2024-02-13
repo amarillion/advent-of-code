@@ -117,7 +117,8 @@ auto versionSum(string line) {
 	return Parser.parse(line).versionSum;
 }
 
-void main() {
+unittest {
+
 	assert (to!int("F", 16) == 15);
 	assert (to!string(to!int("F", 16), 2) == "1111");
 
@@ -135,6 +136,10 @@ void main() {
 	assert (calc("F600BC2D8F") == 0);
 	assert (calc("9C005AC2F8F0") == 0);
 	assert (calc("9C0141080250320F1802104A08") == 1);
-	
-	writeln (solve("input"));
+
+}
+
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }
