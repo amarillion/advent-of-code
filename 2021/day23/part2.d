@@ -17,6 +17,8 @@ import common.grid;
 import common.coordrange;
 import common.astar;
 
+import day23.common;
+
 enum char[int] hallTarget = [
 	11: 'A',
 	12: 'A',
@@ -34,9 +36,6 @@ enum char[int] hallTarget = [
 	24: 'D',
 	25: 'D',
 	26: 'D',
-];
-enum int[char] podCosts = [
-	'A': 1, 'B': 10, 'C': 100, 'D': 1000
 ];
 int[][] hallAdj = [
 	/* 0 */ [ 1 ], 
@@ -74,35 +73,16 @@ enum Point[int] podPoints = [
 	23: Point(9,2), 24: Point(9,3), 25: Point(9,4), 26: Point(9,5),
 ];
 
-struct Pod {
-	char type;
-	int pos;
-
-	this(char type, int pos) {
-		assert(['A', 'B', 'C', 'D'].canFind(type), "Wrong type " ~ type);
-		this.type = type;
-		this.pos = pos;
-	}
-}
-
-struct Move {
-	int cost;
-	Pod from;
-	int to;
-}
-
-struct State {
-	Pod[16] pods;
-}
+alias State = Pod[16];
 
 void sortPods(ref State state) {
-	sort!((a, b) => a.pos < b.pos)(state.pods[]);
+	sort!((a, b) => a.pos < b.pos)(state[]);
 }
 
 alias Edge = Tuple!(Move, State);
 
 bool isEndCondition(State state) {
-	foreach(Pod p; state.pods) {
+	foreach(Pod p; state) {
 		if (p.pos !in hallTarget) return false;
 		if (hallTarget[p.pos] != p.type) return false;
 	}
@@ -110,7 +90,7 @@ bool isEndCondition(State state) {
 }
 
 bool targetRoomMismatch(State state, int type) {
-	foreach(p; state.pods) {
+	foreach(p; state) {
 		// for all the pods that are in a room
 		if (p.pos !in hallTarget) continue;
 		// for all the pods that are in the room of the target type
@@ -132,7 +112,7 @@ enum int[][char] heuristicData = [
 // calculate cost of putting everyting in its right state...
 int heuristic(State state) {
 	int result = 0;
-	foreach(pod; state.pods) {
+	foreach(pod; state) {
 		result += heuristicData[pod.type][pod.pos] * podCosts[pod.type];
 	}
 	return result;
@@ -142,11 +122,11 @@ Edge[] validMoves(State state) {
 	Edge[] result;
 	// create a position map
 	char[int] occupancy;
-	foreach (Pod p; state.pods) {
+	foreach (Pod p; state) {
 		occupancy[p.pos] = p.type;
 	}
 
-	foreach (int ii, Pod p; state.pods) {
+	foreach (int ii, Pod p; state) {
 
 		Tuple!(int, int)[] adjFunc(int i) {
 			return hallAdj[i].filter!(j => j !in occupancy).map!(i => tuple(0, i)).array;
@@ -157,7 +137,7 @@ Edge[] validMoves(State state) {
 
 		foreach(dest; astarResult.prev.keys) {
 			State newState = state;
-			newState.pods[ii] = Pod(p.type, dest);
+			newState[ii] = Pod(p.type, dest);
 			sortPods(newState);
 
 			// never stop on t-section
@@ -222,16 +202,16 @@ auto solve (string[] lines) {
 		pods ~= Pod(grid.get(v), hallPos);
 		grid.set(v, '.');
 	}
-	State state = State(to!(Pod[16])(pods));
+	State state = to!(Pod[16])(pods);
 	sortPods(state);
 	
 	// checkMoves(state);
-	State goal = State([
+	State goal = [
 		Pod('A', 11), Pod('A', 12), Pod('A', 13), Pod('A', 14), 
 		Pod('B', 15), Pod('B', 16), Pod('B', 17), Pod('B', 18),
 		Pod('C', 19), Pod('C', 20), Pod('C', 21), Pod('C', 22), 
 		Pod('D', 23), Pod('D', 24), Pod('D', 25), Pod('D', 26),
-	]);
+	];
 	assert(goal.isEndCondition);
 
 	auto astarResult = astar!(State, Move)(

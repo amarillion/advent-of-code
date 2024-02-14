@@ -72,19 +72,26 @@ auto dijkstra(E,N)(
 	N source, 
 	bool delegate(N) isDest, 
 	Tuple!(E,N)[] delegate(N) getAdjacent, 
-	int delegate(N) getWeight
+	int delegate(E, N) getWeight
 ) {
-	struct Result {
-		int[N] dist;
-		N[N] prev;
+	struct Step(N, E) {
+		N src;
+		E edge;
+		N dest;
+		int cost;
+	}
+
+	struct DijkstraResult {
+		Step!(N,E)[N] steps;
 		N dest;
 	}
-	Result result;
-	result.dist = [ source: 0 ];
+
+	DijkstraResult result;
+	int[N] dist = [ source: 0 ];
 	bool[N] visited;
 
 	// priority queue	
-	auto open = heapify!((a, b) => result.dist[a] > result.dist[b])([ source ]);
+	auto open = heapify!((a, b) => dist[a] > dist[b])([ source ]);
 
 	while (open.length > 0) {
 		auto current = open.front;
@@ -94,17 +101,17 @@ auto dijkstra(E,N)(
 
 		foreach(pair; getAdjacent(current)) {
 			N sibling = pair[1];
+					E edge = pair[0];
 
 			if (!(sibling in visited)) {
 				
-				int alt = result.dist[current] + getWeight(sibling);
-				int oldDist = sibling in result.dist ? result.dist[sibling] : int.max;
+				int alt = dist[current] + getWeight(edge, sibling);
+				int oldDist = sibling in dist ? dist[sibling] : int.max;
 
 				if (alt < oldDist) {
 					// set or update distance
-					result.dist[sibling] = alt;
-					// build back-tracking map
-					result.prev[sibling] = current;
+					dist[sibling] = alt;
+					result.steps[sibling] = Step!(N, E)(current, edge, sibling, alt);
 					
 					// Any pre-existing paths to sibling are out of date now. But that's ok.
 					// but the one with the lowest cost will be visited first, and the later ones will be ignored.

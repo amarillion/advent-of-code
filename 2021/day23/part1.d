@@ -2,6 +2,8 @@ module day23.part1;
 
 import common.io;
 import common.vec;
+import common.dijkstra;
+import common.astar;
 import std.stdio;
 import std.conv;
 import std.algorithm;
@@ -14,70 +16,8 @@ import common.util;
 import common.grid;
 import common.coordrange;
 import std.container.binaryheap;
+import day23.common;
 
-struct Step(N, E) {
-	N src;
-	E edge;
-	N dest;
-	int cost;
-}
-
-alias DijkstraResult(N, E) = Step!(N,E)[N];
-
-auto dijkstra(N, E)(
-	N source, 
-	N dest, 
-	Tuple!(E, N)[] delegate(N) getAdjacent, 
-	int delegate(Tuple!(E, N)) getWeight,
-	int delegate(N) getHeuristic = (N) => 0,
-	int maxIterations = -1
-) {
-	int[N] dist = [ source: 0 ];
-	int[N] priority = [ source: 0 ];
-	bool[N] visited;
-	Step!(N, E)[N] prev;
-	N goal;
-	
-	// TODO: more efficient to use a priority queue here
-	auto open = heapify!((a, b) => priority[a] > priority[b])([ source ]);
-
-	int i = maxIterations;
-	while (open.length > 0) {
-		N current = open.front;
-		open.popFront;
-		
-		// check adjacents, calculate distance, or  - if it already had one - check if new path is shorter
-		foreach(Tuple!(E, N) adj; getAdjacent(current)) {
-			N sibling = adj[1];
-			E edge = adj[0];
-			const cost = dist[current] + getWeight(adj);
-			const oldCost = sibling in dist ? dist[sibling] : int.max;
-
-			if (cost < oldCost) {
-				dist[sibling] = cost;
-				priority[sibling] = cost + getHeuristic(sibling);
-				open.insert(sibling);
-				
-				// build back-tracking map
-				prev[sibling] = Step!(N, E)(current, edge, sibling, cost);
-			}
-		}
-
-		// A visited node will never be checked again.
-		visited[current] = true;
-
-		if (current == dest) {
-			break;	
-		}
-
-		i--; // 0 -> -1 means Infinite.
-		if (i == 0) break;
-
-		// if (i % 10000 == 0) { writeln(i); }
-	}
-
-	return prev;
-}
 
 /*
 #############
@@ -99,9 +39,6 @@ enum char[int] hallTarget = [
 	16: 'C',
 	17: 'D',
 	18: 'D'
-];
-enum int[char] podCosts = [
-	'A': 1, 'B': 10, 'C': 100, 'D': 1000
 ];
 int[][] hallAdj = [
 	/* 0 */ [ 1 ], 
@@ -131,29 +68,16 @@ enum Point[int] podPoints = [
 	17: Point(9,2), 18: Point(9,3)
 ];
 
-struct Pod {
-	char type;
-	int pos;
-}
-
-struct Move {
-	int cost;
-	Pod from;
-	int to;
-}
-
-struct State {
-	Pod[8] pods;
-}
+alias State = Pod[8];
 
 void sortPods(ref State state) {
-	sort!((a, b) => a.pos < b.pos)(state.pods[]);
+	sort!((a, b) => a.pos < b.pos)(state[]);
 }
 
 alias Edge = Tuple!(Move, State);
 
 bool isEndCondition(State state) {
-	foreach(Pod p; state.pods) {
+	foreach(Pod p; state) {
 		if (p.pos !in hallTarget) return false;
 		if (hallTarget[p.pos] != p.type) return false;
 	}
@@ -161,7 +85,7 @@ bool isEndCondition(State state) {
 }
 
 bool targetRoomMismatch(State state, int type) {
-	foreach(p; state.pods) {
+	foreach(p; state) {
 		if (p.pos !in hallTarget) continue;
 		if (hallTarget[p.pos] == type) {
 			if (p.type != type) return false;
@@ -180,7 +104,7 @@ enum int[][char] heuristicData = [
 // calculate cost of putting everyting in its right state...
 int heuristic(State state) {
 	int result = 0;
-	foreach(pod; state.pods) {
+	foreach(pod; state) {
 		result += heuristicData[pod.type][pod.pos] * podCosts[pod.type];
 	}
 	return result;
@@ -188,10 +112,10 @@ int heuristic(State state) {
 
 Edge[] validMoves(State state) {
 	Edge[] result;
-	foreach (int ii, Pod p; state.pods) {
+	foreach (int ii, Pod p; state) {
 		
 		bool isEmpty(int l) {
-			foreach(Pod q; state.pods) {
+			foreach(Pod q; state) {
 				if (q.pos == l) return false;
 			}
 			return true;
@@ -202,11 +126,11 @@ Edge[] validMoves(State state) {
 		}
 		
 		// calculate cost for all Edges where this can go...
-		auto dijk = dijkstra!(int, int)(p.pos, -1, &adjFunc, (Tuple!(int,int)) => podCosts[p.type]);
+		auto dijk = dijkstra!(int, int)(p.pos, (int) => false, &adjFunc, (int,int) => podCosts[p.type]);
 
-		foreach(dest; dijk.keys) {
+		foreach(dest; dijk.steps.keys) {
 			State newState = state;
-			newState.pods[ii] = Pod(p.type, dest);
+			newState[ii] = Pod(p.type, dest);
 			// newState.moves = state.moves + 1;
 			sortPods(newState);
 
@@ -223,7 +147,7 @@ Edge[] validMoves(State state) {
 			if (dest >= 11 && !targetRoomMismatch(newState, p.type)) valid = false;
 			if (!valid) continue;
 
-			int cost = dijk[dest].cost;
+			int cost = dijk.steps[dest].cost;
 			result ~= tuple(Move(cost, p, dest), newState);
 		}
 	}
@@ -272,38 +196,32 @@ auto solve (string[] lines) {
 		pods ~= Pod(grid.get(v), hallPos);
 		grid.set(v, '.');
 	}
-	State state = State(to!(Pod[8])(pods));
+	State state = to!(Pod[8])(pods);
 	// writefln("State: %s", state);
 	sortPods(state);
 	// writefln("State: %s", state);
 	int minCost = int.max;
 
 	// checkMoves(state);
-	State goal = State([
+	State goal = [
 		Pod('A', 11), Pod('A', 12), Pod('B', 13), Pod('B', 14), 
 		Pod('C', 15), Pod('C', 16), Pod('D', 17), Pod('D', 18)
-	]);
+	];
 	assert(goal.isEndCondition);
 
-	auto dijkstraResult = dijkstra!(State, Move)(
+	auto astarResult = astar!(State, Move)(
 		state, 
-		goal, 
+		s => s == goal, 
 		s => s.validMoves, 
 		(Edge m) => m[0].cost,
 		s => s.heuristic
 	);
 	auto current = goal;
-	assert(current in dijkstraResult);
-	while (current in dijkstraResult) {
-		auto step = dijkstraResult[current];
-		// writeln(step);
-		current = step.src;
-	}
-
-	return dijkstraResult[goal].cost;
+	assert(current in astarResult.prev);
+	return astarResult.prev[goal].cost;
 }
 
-void test() {
+unittest {
 	auto dist = [1:50, 2:40, 3:30, 4:20, 5:10];
 	auto heap = heapify!((a,b) => dist[a] > dist[b])([3]);
 
