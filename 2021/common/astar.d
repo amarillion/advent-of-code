@@ -59,7 +59,7 @@ auto astar(N, E)(
 
 		i--; // 0 -> -1 means Infinite.
 		if (i == 0) break;
-		if (i % 10000 == 0) { writeln(-i, " ", open.length); }
+		// if (i % 10000 == 0) { writeln(-i, " ", open.length); }
 	}
 
 	return result;

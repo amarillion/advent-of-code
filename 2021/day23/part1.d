@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rdmd -g -I..
+module day23.part1;
 
 import common.io;
 import common.vec;
@@ -236,9 +236,9 @@ void checkMoves(State state) {
 
 	void processMoves() {
 		foreach (move; moves) {
-			writefln("Can move %s to %s with cost %s. Visited: %s, Heuristic %s", 
-				move[0].from, move[0].to, move[0].cost, move[1] in visited ? "true" : "false",
-				heuristic(move[1]));
+			// writefln("Can move %s to %s with cost %s. Visited: %s, Heuristic %s", 
+			// 	move[0].from, move[0].to, move[0].cost, move[1] in visited ? "true" : "false",
+			// 	heuristic(move[1]));
 			visited[move[1]] = true;
 		}
 	}
@@ -247,7 +247,7 @@ void checkMoves(State state) {
 	moves = validMoves(state);
 	processMoves();
 	foreach (i; 2..3) {
-		writefln("Step %s", i);
+		// writefln("Step %s", i);
 		moves = moves.filter!(m => m[1] in visited).array;
 		moves = moves
 			.map!(m => validMoves(m[1]))
@@ -257,9 +257,7 @@ void checkMoves(State state) {
 	}
 }
 
-auto solve (string fname) {
-	string[] lines = readLines(fname);
-	
+auto solve (string[] lines) {
 	Point size = Point(to!int(lines[0].length), to!int(lines.length));
 	
 	Grid!char grid = new Grid!char(size.x, size.y);
@@ -337,7 +335,3 @@ void test() {
 	assert(ints == [0, 1, 2, 3]);
 }
 
-void main(string[] args) {
-	assert(args.length == 2, "Argument expected: input file");
-	writeln (solve(args[1]));
-}

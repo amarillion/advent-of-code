@@ -393,6 +393,7 @@ void printDeduplicated(string var, Node root) {
 	writefln("long %s = %s; // [%s..%s]", var, eqToString(root), root.lowerBound, root.upperBound);
 }
 
-void main() {
-	writeln(solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

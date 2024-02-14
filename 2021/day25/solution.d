@@ -22,8 +22,8 @@ auto solve(string fname) {
 		grid.set(pos, lines[pos.y][pos.x]);
 	}
 
-	writeln("Initial state");
-	writeln(grid.format(""));
+	// writeln("Initial state");
+	// writeln(grid.format(""));
 
 	int step = 0;	
 
@@ -58,15 +58,15 @@ auto solve(string fname) {
 			grid.set(pos, '.');
 			grid.set(to, 'v');
 		}
-		writefln("After %s step(s)", step);
-		writeln(grid.format(""));	
+		// writefln("After %s step(s)", step);
+		// writeln(grid.format(""));	
 		if (moveCount == 0) { break; }
 	}
 
-	return [ step ];
+	return step;
 }
 
-void main() {
-	assert(solve("test") == [58]);
-	writeln(solve("input"));
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	writeln (solve(args[1]));
 }

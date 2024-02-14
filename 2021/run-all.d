@@ -50,9 +50,9 @@ Test[] tests = [
 	Test(2021, 21,  "day21/", "./solution.d",  "test", format("[%s, %s]", 739785, 444356092776315)),
 	Test(2021, 22,  "day22/", "./solution.d",  "test", format("[%s, %s]", 590784, 39769202357779)),
 	Test(2021, 22,  "day22/", "./solution.d",  "test2", format("[%s, %s]", 474140, 2758514936282235)),
-	// Test(2021, 23,  "day23/", "./solution.d",  "test", format("[%s, %s]", )),
-	// Test(2021, 24,  "day24/", "./solution.d",  "test", format("[%s, %s]", )),
-	// Test(2021, 25,  "day25/", "./solution.d",  "test", format("[%s, %s]", )),
+	Test(2021, 23,  "day23/", "./solution.d",  "test", format("[%s, %s]", 12521, 44169)),
+	// Skip 24: no test problem given 
+	Test(2021, 25,  "day25/", "./solution.d",  "test", format("%s", 58)),
 
 	Test(2021,  1,  "day1/", "./solution.d",  "input", format("[%s, %s]", 1477, 1523)),
 	Test(2021,  2,  "day2/", "./solution.d",  "input", format("[%s, %s]", 2272262, 2134882034)),
@@ -84,9 +84,9 @@ Test[] tests = [
 	Test(2021, 20,  "day20/", "./solution.d",  "input", format("[%s, %s]", 4964, 13202)),
 	Test(2021, 21,  "day21/", "./solution.d",  "input", format("[%s, %s]", 998088, 306621346123766)),
 	Test(2021, 22,  "day22/", "./solution.d",  "input", format("[%s, %s]", 588200, 1207167990362099)),
-	// Test(2021, 23,  "day23/", "./solution.d",  "input", format("[%s, %s]", )),
-	// Test(2021, 24,  "day24/", "./solution.d",  "input", format("[%s, %s]", )),
-	// Test(2021, 25,  "day25/", "./solution.d",  "input", format("[%s, %s]", )),
+	Test(2021, 23,  "day23/", "./solution.d",  "input", format("[%s, %s]", 16244, 43226)),
+	Test(2021, 24,  "day24/", "./solution.d",  "input", format(`["%s", "%s"]`, 99429795993929, 18113181571611)),
+	Test(2021, 25,  "day25/", "./solution.d",  "input", format("%s", 486)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
