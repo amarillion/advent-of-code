@@ -219,13 +219,13 @@ auto merge(Cuboid[] list, Cuboid c, bool add) {
 	return result;
 }
 
-auto solve (string fname, bool onlyBelowFifty) {
-	string[] lines = readLines(fname);
-	
-	Cuboid[] onCubes = [];
-	Cuboid fifty = Cuboid(vec3i(-50, -50, -50), vec3i(100, 100, 100));
+struct Record {
+	Cuboid cuboid;
+	bool turnOn;
+}
 
-	foreach(l, line; lines) {
+Record[] parse(string fname) {
+	return readLines(fname).map!((string line) {
 		string[] fields = line.split(" ");
 		bool turnOn = fields[0] == "on";
 		int[][] coords = fields[1].split(",").map!(s => s["x=".length..$].split("..").map!(to!int).array).array;
@@ -234,17 +234,33 @@ auto solve (string fname, bool onlyBelowFifty) {
 		sort(coords[2]);
 		vec3i p1 = vec3i(coords[0][0], coords[1][0], coords[2][0]);
 		vec3i p2 = vec3i(coords[0][1], coords[1][1], coords[2][1]);
-		if (onlyBelowFifty && !fifty.contains(p1)) continue;
+		auto cuboid = Cuboid(p1, (p2 - p1) + 1);
+		return Record(cuboid, turnOn);
+	}).array;
+}
 
-		onCubes = merge(onCubes, Cuboid(p1, (p2 - p1) + 1), turnOn);
-		// writefln("line: %s, volume: %s, cubes: %s", l, onCubes.map!volume.sum, onCubes.length);
+auto calc (Record[] records) {
+	Cuboid[] onCubes = [];
+
+	foreach(record; records) {
+		onCubes = merge(onCubes, record.cuboid, record.turnOn);
 	}
 
 	return onCubes.map!volume.sum;
 }
 
+auto solve(string fname) {
+	Cuboid fifty = Cuboid(vec3i(-50, -50, -50), vec3i(100, 100, 100));
+	Record[] records = parse(fname);
+	return [ 
+		// part 1: only cuboids within 50 from origin
+		calc(records.filter!(r => fifty.contains(r.cuboid.pos)).array),
+		// part 2: all cuboids
+		calc(records)
+	];
+}
+
 void main(string[] args) {
 	assert(args.length == 2, "Argument expected: input file");
-	auto result = [ solve(args[1], true), solve(args[1], false) ];
-	writeln (result);
+	writeln (solve(args[1]));
 }
