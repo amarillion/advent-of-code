@@ -76,7 +76,7 @@ long volume(Cuboid a) {
 	return to!long(a.size.x) * to!long(a.size.y) * to!long(a.size.z);
 }
 
-void test() {	
+unittest {	
 	Cuboid a = Cuboid(vec3i(0, 0, 0), vec3i(5, 3, 4));
 	Cuboid b = Cuboid(vec3i(-2, 1, 2), vec3i(5, 4, 3));
 	Cuboid c = Cuboid(vec3i(1,1,1), vec3i(1,1,1));
@@ -237,22 +237,14 @@ auto solve (string fname, bool onlyBelowFifty) {
 		if (onlyBelowFifty && !fifty.contains(p1)) continue;
 
 		onCubes = merge(onCubes, Cuboid(p1, (p2 - p1) + 1), turnOn);
-		writefln("line: %s, volume: %s, cubes: %s", l, onCubes.map!volume.sum, onCubes.length);
+		// writefln("line: %s, volume: %s, cubes: %s", l, onCubes.map!volume.sum, onCubes.length);
 	}
 
-	return [ onCubes.map!volume.sum ];
+	return onCubes.map!volume.sum;
 }
 
-void main() {
-	test();
-
-	assert (solve("test", true) == [ 590_784 ]);
-	assert (solve("test2", false) == [ 2_758_514_936_282_235 ]);
-	
-	assert (solve("input", true) == [ 588_200 ]);
-	
-	auto result = solve("input", false);
-	assert(result == [1_207_167_990_362_099]);
+void main(string[] args) {
+	assert(args.length == 2, "Argument expected: input file");
+	auto result = [ solve(args[1], true), solve(args[1], false) ];
 	writeln (result);
-
 }
