@@ -37,41 +37,6 @@ enum char[int] hallTarget = [
 	25: 'D',
 	26: 'D',
 ];
-int[][] hallAdj = [
-	/* 0 */ [ 1 ], 
-	/* 1 */ [ 0, 2 ], 
-	/* 2 */ [ 1, 3, 11 ], 
-	/* 3 */ [ 2, 4 ], 
-	/* 4 */ [ 3, 5, 15 ], 
-	/* 5 */ [ 4, 6 ], 
-	/* 6 */ [ 5, 7, 19 ], 
-	/* 7 */ [ 6, 8 ], 
-	/* 8 */ [ 7, 9, 23 ], 
-	/* 9 */ [ 8, 10 ], 
-	/*10 */ [ 9 ], 
-	/*11 */ [ 2, 12 ], 
-	/*12 */ [ 11, 13 ], 
-	/*13 */ [ 12, 14 ], 
-	/*14 */ [ 13 ], 
-	/*15 */ [ 4, 16 ], 
-	/*16 */ [ 15, 17 ], 
-	/*17 */ [ 16, 18 ], 
-	/*18 */ [ 17 ], 
-	/*19 */ [ 6, 20 ], 
-	/*20 */ [ 19, 21 ], 
-	/*21 */ [ 20, 22 ], 
-	/*22 */ [ 21 ], 
-	/*23 */ [ 8, 24 ], 
-	/*24 */ [ 23, 25 ], 
-	/*25 */ [ 24, 26 ], 
-	/*26 */ [ 25 ], 
-];
-enum Point[int] podPoints = [ 
-	11: Point(3,2), 12: Point(3,3), 13: Point(3,4), 14: Point(3,5), 
-	15: Point(5,2), 16: Point(5,3), 17: Point(5,4), 18: Point(5,5),
-	19: Point(7,2), 20: Point(7,3), 21: Point(7,4), 22: Point(7,5), 
-	23: Point(9,2), 24: Point(9,3), 25: Point(9,4), 26: Point(9,5),
-];
 
 alias State = Pod[16];
 
@@ -118,7 +83,7 @@ int heuristic(State state) {
 	return result;
 }
 
-Edge[] validMoves(State state) {
+Edge[] validMoves(State state, ref Map map) {
 	Edge[] result;
 	// create a position map
 	char[int] occupancy;
@@ -129,7 +94,7 @@ Edge[] validMoves(State state) {
 	foreach (int ii, Pod p; state) {
 
 		Tuple!(int, int)[] adjFunc(int i) {
-			return hallAdj[i].filter!(j => j !in occupancy).map!(i => tuple(0, i)).array;
+			return map[i].adjacent.filter!(j => j !in occupancy).map!(i => tuple(0, i)).array;
 		}
 		
 		// calculate cost for all Edges where this can go...
@@ -141,7 +106,7 @@ Edge[] validMoves(State state) {
 			sortPods(newState);
 
 			// never stop on t-section
-			if (hallAdj[dest].length == 3) continue;
+			if (map[dest].isForbidden) continue;
 			// don't move within hallway
 			if (p.pos <= 10 && dest <= 10) continue;
 			// don't move to room unless it's the destination
@@ -160,7 +125,7 @@ Edge[] validMoves(State state) {
 	return result;
 }
 
-void checkMoves(State state) {
+void checkMoves(State state, ref Map map) {
 	Edge[] moves;
 	bool[State] visited;
 
@@ -174,13 +139,13 @@ void checkMoves(State state) {
 	}
 
 	// writeln("step 1");
-	moves = validMoves(state);
+	moves = validMoves(state, map);
 	processMoves();
 	foreach (i; 2..3) {
 		// writefln("Step %s", i);
 		moves = moves.filter!(m => m[1] in visited).array;
 		moves = moves
-			.map!(m => validMoves(m[1]))
+			.map!(m => validMoves(m[1], map))
 			.join
 			.array;
 		processMoves();
@@ -188,21 +153,9 @@ void checkMoves(State state) {
 }
 
 auto solve (string[] lines) {
-	Point size = Point(to!int(lines[0].length), to!int(lines.length));
-	
-	Grid!char grid = new Grid!char(size.x, size.y);
-	foreach(pos; PointRange(grid.size)) {
-		string line = lines[pos.y];
-		char ch = pos.x < line.length ? line[pos.x] : '.';
-		grid.set(pos, ch);
-	}
+	auto data = parse(lines);
 
-	Pod[] pods = [];
-	foreach(hallPos, v; podPoints) {
-		pods ~= Pod(grid.get(v), hallPos);
-		grid.set(v, '.');
-	}
-	State state = to!(Pod[16])(pods);
+	State state = to!(Pod[16])(data.initialPods);
 	sortPods(state);
 	
 	// checkMoves(state);
@@ -217,7 +170,7 @@ auto solve (string[] lines) {
 	auto astarResult = astar!(State, Move)(
 		state, 
 		s => s == goal, 
-		s => s.validMoves, 
+		s => s.validMoves(data.map), 
 		(Edge m) => m[0].cost,
 		s => s.heuristic
 	);
