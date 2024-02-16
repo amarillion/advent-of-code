@@ -12,6 +12,7 @@ import std.typecons;
 import common.io;
 import common.vec;
 import common.astar;
+import common.dijkstra;
 import common.util;
 import common.coordrange;
 
@@ -30,14 +31,14 @@ Edge[] validMoves(State state, ref Map map) {
 
 	foreach (int ii, Pod p; state) {
 
-		Tuple!(int, int)[] adjFunc(int i) {
-			return map[i].adjacent.filter!(j => j !in occupancy).map!(i => tuple(0, i)).array;
+		int[] adjFunc(int i) {
+			return map[i].adjacent.filter!(j => j !in occupancy).array;
 		}
-		
-		// calculate cost for all Edges where this can go...
-		auto astarResult = astar!(int, int)(p.pos, (int n) => false, &adjFunc, (Tuple!(int,int)) => podCosts[p.type]);
 
-		foreach(dest; astarResult.prev.keys) {
+		// calculate cost for all Edges where this can go...
+		auto dijk = dijkstra!(int)(p.pos, (int) => false, &adjFunc, (int) => podCosts[p.type]);
+
+		foreach(dest; dijk.prev.keys) {
 			State newState = state;
 			newState[ii] = Pod(p.type, dest);
 			sortPods(newState);
@@ -55,7 +56,7 @@ Edge[] validMoves(State state, ref Map map) {
 			// EXTRA CONDITION to reduce search space: if we're in a room, check that the next spot isn't empty
 			if (dest >= 11 && ((dest-11) % 4 < 3) && ((dest + 1) !in occupancy)) continue;
 			
-			int cost = astarResult.prev[dest].cost;
+			int cost = dijk.dist[dest];
 			result ~= tuple(Move(cost, p, dest), newState);
 		}
 	}

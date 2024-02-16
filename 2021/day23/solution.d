@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rdmd -g -I..
+#!/usr/bin/env -S rdmd -g -I.. -O
 module day23.solution;
 
 import std.stdio;

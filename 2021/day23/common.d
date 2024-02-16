@@ -46,7 +46,7 @@ struct Location {
 	int[char] distanceHome;
 }
 
-alias Map = Location[int];
+alias Map = Location[];
 
 Map readMap(Grid!char grid) {
 	
@@ -86,6 +86,7 @@ Map readMap(Grid!char grid) {
 
 	// find adjacents, and convert to map by id.
 	Map result;
+	result.length = locationByPos.length;
 	foreach(pos, loc; locationByPos) {
 		foreach(delta; [Point(1, 0), Point(0, 1), Point(-1, 0), Point(0, -1)]) {
 			Point np = pos + delta;
@@ -142,9 +143,9 @@ Data parse(string[] lines) {
 		if (loc.isHallway) continue;
 
 		// read original pod from map
-		pods ~= Pod(grid.get(loc.pos), id);
+		pods ~= Pod(grid.get(loc.pos), to!int(id));
 		// also track target pod for this point
-		goalPods ~= Pod(loc.type, id);
+		goalPods ~= Pod(loc.type, to!int(id));
 	}
 	sort!"a.pos < b.pos"(goalPods);
 	sort!"a.pos < b.pos"(pods);

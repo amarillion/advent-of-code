@@ -32,33 +32,31 @@ Edge[] validMoves(State state, ref Map map) {
 			return true;
 		}
 
-		Tuple!(int, int)[] adjFunc(int i) {
-			return map[i].adjacent.filter!(j => isEmpty(j)).map!(i => tuple(0, i)).array;
+		int[] adjFunc(int i) {
+			return map[i].adjacent.filter!(j => isEmpty(j)).array;
 		}
 		
 		// calculate cost for all Edges where this can go...
-		auto dijk = dijkstra!(int, int)(p.pos, (int) => false, &adjFunc, (int,int) => podCosts[p.type]);
+		auto dijk = dijkstra!(int)(p.pos, (int) => false, &adjFunc, (int) => podCosts[p.type]);
 
-		foreach(dest; dijk.steps.keys) {
+		foreach(dest; dijk.prev.keys) {
 			State newState = state;
 			newState[ii] = Pod(p.type, dest);
 			// newState.moves = state.moves + 1;
 			sortPods(newState);
 
-			bool valid = true;
 			// never stop on t-section
-			if (map[dest].isForbidden) valid = false;
+			if (map[dest].isForbidden) continue;
 			// don't move within hallway
-			if (p.pos <= 10 && dest <= 10) valid = false;
+			if (p.pos <= 10 && dest <= 10) continue;
 			// don't move to room unless it's the destination
-			if (!map[dest].isHallway && map[dest].type != p.type) valid = false;
+			if (!map[dest].isHallway && map[dest].type != p.type) continue;
 			// don't move within a room (NOTE: stricter than needed)
-			if (!map[p.pos].isHallway && !map[dest].isHallway && map[p.pos].type == map[dest].type) valid = false;
+			if (!map[p.pos].isHallway && !map[dest].isHallway && map[p.pos].type == map[dest].type) continue;
 			// extra condition: destination must not be occupied by mismatches
-			if (dest >= 11 && !targetRoomMismatch(newState, p.type, map)) valid = false;
-			if (!valid) continue;
+			if (dest >= 11 && !targetRoomMismatch(newState, p.type, map)) continue;
 
-			int cost = dijk.steps[dest].cost;
+			int cost = dijk.dist[dest];
 			result ~= tuple(Move(cost, p, dest), newState);
 		}
 	}
