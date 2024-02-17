@@ -30,20 +30,9 @@ enum int[char]roomx = [
 	'A': 3, 'B': 5, 'C': 7, 'D': 9
 ];
 
-struct Pod {
-	char type;
-	int pos;
-
-	this(char type, int pos) {
-		assert(['A', 'B', 'C', 'D'].canFind(type), "Wrong type " ~ type);
-		this.type = type;
-		this.pos = pos;
-	}
-}
-
 struct Move {
 	int cost;
-	Pod from;
+	int from;
 	int to;
 }
 
@@ -130,15 +119,16 @@ Map readMap(Grid!char grid) {
 
 struct Data {
 	Map map;
-	Pod[] initialPods;
-	Pod[] goalPods;
+	char[] initialState;
+	char[] goalState;
 }
 
 // calculate cost of putting everyting in its right state...
 int heuristic(State)(State state, ref Map map) {
 	int result = 0;
-	foreach(pod; state) {
-		result += map[pod.pos].distanceHome[pod.type] * podCosts[pod.type];
+	foreach(ulong pos, char pod; state) {
+		if (pod == '.') continue;
+		result += map[pos].distanceHome[pod] * podCosts[pod];
 	}
 	return result;
 }
@@ -155,44 +145,32 @@ Data parse(string[] lines) {
 
 	Map map = readMap(grid);
 
-	Pod[] pods;
-	Pod[] goalPods;
+	char[] pods;
+	char[] goalPods;
 	foreach(id, loc; map) {
-		if (loc.isHallway) continue;
-
-		// read original pod from map
-		pods ~= Pod(grid.get(loc.pos), to!int(id));
-		// also track target pod for this point
-		goalPods ~= Pod(loc.type, to!int(id));
+		if (loc.isHallway) {
+			pods ~= '.';
+			goalPods ~= '.';
+		}
+		else {
+			pods ~= grid.get(loc.pos);
+			goalPods ~= loc.type;
+		}
 	}
-	sort!"a.pos < b.pos"(goalPods);
-	sort!"a.pos < b.pos"(pods);
 
 	return Data(map, pods, goalPods);
 }
 
-
-void sortPods(State)(ref State state) {
-	sort!((a, b) => a.pos < b.pos)(state[]);
-}
-
-bool isEndCondition(State)(State state, ref Map map) {
-	foreach(Pod p; state) {
-		if (map[p.pos].isHallway) return false;
-		if (map[p.pos].type != p.type) return false;
-	}
-	return true;
-}
-
 bool targetRoomMismatch(State)(State state, int type, ref Map map) {
-	foreach(p; state) {
+	foreach(ulong pos, char pod; state) {
 		// ignore pods that are in the hallway
-		if (map[p.pos].isHallway) continue;
-		// for all the pods that are in the room of the target type
-		if (map[p.pos].type != type) continue;
+		if (map[pos].isHallway) continue;
+		
+		// for the room of the target type
+		if (map[pos].type != type) continue;
 
 		// is that pod in the right room?
-		if (p.type != type) return false;
+		if (!(pod == '.' || pod == type)) return false;
 	}
 	return true;
 }
@@ -200,55 +178,56 @@ bool targetRoomMismatch(State)(State state, int type, ref Map map) {
 Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 	Tuple!(Move, State)[] result;
 	// create a position map
-	char[int] occupancy;
-	foreach (Pod p; state) {
-		occupancy[p.pos] = p.type;
-	}
-
-	foreach (int ii, Pod p; state) {
-
+	
+	// writeln("Moves from state   : ", state);
+	foreach (int source, char pod; state) {
+		if (pod == '.') continue;
+		
 		int[] adjFunc(int i) {
-			return map[i].adjacent.filter!(j => j !in occupancy).array;
+			return map[i].adjacent.filter!(j => state[j] == '.').array;
 		}
 
 		// calculate cost for all Edges where pod p can go...
-		foreach(int dest, int cost; BfsVisitor!int(p.pos, &adjFunc)) {
+		foreach(int dest, int cost; BfsVisitor!int(source, &adjFunc)) {
 			State newState = state;
-			newState[ii] = Pod(p.type, dest);
-			sortPods(newState);
+			newState[source] = '.';
+			newState[dest] = pod;
 
-			bool podInHallway = map[p.pos].isHallway;
+			// writefln("Considering: %s from %s to %s: %s", pod, source, dest, newState);
+			bool podInHallway = map[source].isHallway;
 			bool destInHallway = map[dest].isHallway;
 			// never stop on t-section
 			if (map[dest].isForbidden) continue;
 			// don't move within hallway
 			if (podInHallway && destInHallway) continue;
 			// don't move to room unless it's the destination
-			if (!destInHallway && map[dest].type != p.type) continue;
+			if (!destInHallway && map[dest].type != pod) continue;
 			// EXTRA CONDITION: destination must not contain mismatches
-			if (!destInHallway && !targetRoomMismatch(newState, p.type, map)) continue;
+			if (!destInHallway && !targetRoomMismatch(newState, pod, map)) continue;
 			// EXTRA CONDITION to reduce search space: don't move within a room
-			if (!podInHallway && !destInHallway && map[p.pos].type == map[dest].type) continue;
+			if (!podInHallway && !destInHallway && map[source].type == map[dest].type) continue;
 			// EXTRA CONDITION to reduce search space: if we're in a room, check that the next spot isn't empty
-			if (map[dest].nextInRoom > 0 && map[dest].nextInRoom !in occupancy) continue;
+			if (map[dest].nextInRoom > 0 && state[map[dest].nextInRoom] != pod) continue;
 
-			result ~= tuple(Move(cost * podCosts[p.type], p, dest), newState);
+			// writefln("Pod %s from %02s to %02s: %s, cost: %s", pod, source, dest, newState, cost * podCosts[pod]);
+			result ~= tuple(Move(cost * podCosts[pod], source, dest), newState);
 		}
 	}
+
+	// readln();
 	return result;
 }
 
-alias State8 = Pod[8];
+alias State8 = char[19];
 alias Edge8 = Tuple!(Move, State8);
 
 auto solve1(string[] lines) {
 	auto data = parse(lines);
 
-	State8 state = to!(Pod[8])(data.initialPods);
-	sortPods(state);
-
-	State8 goal = to!(Pod[8])(data.goalPods);
-	assert(goal.isEndCondition(data.map));
+	State8 state;
+	state[0..19] = data.initialState;
+	State8 goal;
+	goal[0..19] = data.goalState;
 
 	auto astarResult = astar!(State8, Move)(
 		state, 
@@ -262,17 +241,16 @@ auto solve1(string[] lines) {
 	return astarResult.prev[goal].cost;
 }
 
-alias State16 = Pod[16];
+alias State16 = char[27];
 alias Edge16 = Tuple!(Move, State16);
 
 auto solve2(string[] lines) {
 	auto data = parse(lines);
 
-	State16 state = to!(Pod[16])(data.initialPods);
-	sortPods(state);
-
-	State16 goal = to!(Pod[16])(data.goalPods);
-	assert(goal.isEndCondition(data.map));
+	State16 state;
+	state[0..27] = data.initialState;
+	State16 goal;
+	goal[0..27] = data.goalState;
 
 	auto astarResult = astar!(State16, Move)(
 		state, 
