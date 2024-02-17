@@ -16,7 +16,7 @@ import std.typecons;
 
 import common.io;
 import common.vec;
-import common.dijkstra;
+import common.bfs;
 import common.astar;
 import common.util;
 import common.coordrange;
@@ -211,10 +211,8 @@ Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 			return map[i].adjacent.filter!(j => j !in occupancy).array;
 		}
 
-		// calculate cost for all Edges where this can go...
-		auto dijk = dijkstra!(int)(p.pos, (int) => false, &adjFunc, (int) => podCosts[p.type]);
-
-		foreach(dest; dijk.prev.keys) {
+		// calculate cost for all Edges where pod p can go...
+		foreach(int dest, int cost; BfsVisitor!int(p.pos, &adjFunc)) {
 			State newState = state;
 			newState[ii] = Pod(p.type, dest);
 			sortPods(newState);
@@ -234,8 +232,7 @@ Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 			// EXTRA CONDITION to reduce search space: if we're in a room, check that the next spot isn't empty
 			if (map[dest].nextInRoom > 0 && map[dest].nextInRoom !in occupancy) continue;
 
-			int cost = dijk.dist[dest];
-			result ~= tuple(Move(cost, p, dest), newState);
+			result ~= tuple(Move(cost * podCosts[p.type], p, dest), newState);
 		}
 	}
 	return result;
