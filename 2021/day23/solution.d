@@ -161,20 +161,6 @@ Data parse(string[] lines) {
 	return Data(map, pods, goalPods);
 }
 
-bool targetRoomMismatch(State)(State state, int type, ref Map map) {
-	foreach(ulong pos, char pod; state) {
-		// ignore pods that are in the hallway
-		if (map[pos].isHallway) continue;
-		
-		// for the room of the target type
-		if (map[pos].type != type) continue;
-
-		// is that pod in the right room?
-		if (!(pod == '.' || pod == type)) return false;
-	}
-	return true;
-}
-
 Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 	Tuple!(Move, State)[] result;
 	// create a position map
@@ -188,7 +174,7 @@ Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 		}
 
 		// calculate cost for all Edges where pod p can go...
-		foreach(int dest, int cost; BfsVisitor!int(source, &adjFunc)) {
+		outer: foreach(int dest, int cost; BfsVisitor!int(source, &adjFunc)) {
 			State newState = state;
 			newState[source] = '.';
 			newState[dest] = pod;
@@ -198,16 +184,18 @@ Tuple!(Move, State)[] validMoves(State)(State state, ref Map map) {
 			bool destInHallway = map[dest].isHallway;
 			// never stop on t-section
 			if (map[dest].isForbidden) continue;
-			// don't move within hallway
-			if (podInHallway && destInHallway) continue;
+
+			// don't move within hallway or within a room
+			if (map[source].type == map[dest].type) continue;
+			
 			// don't move to room unless it's the destination
 			if (!destInHallway && map[dest].type != pod) continue;
-			// EXTRA CONDITION: destination must not contain mismatches
-			if (!destInHallway && !targetRoomMismatch(newState, pod, map)) continue;
-			// EXTRA CONDITION to reduce search space: don't move within a room
-			if (!podInHallway && !destInHallway && map[source].type == map[dest].type) continue;
-			// EXTRA CONDITION to reduce search space: if we're in a room, check that the next spot isn't empty
-			if (map[dest].nextInRoom > 0 && state[map[dest].nextInRoom] != pod) continue;
+
+			// When moving into a room, close rank: 
+			// Check that the next spots in the same room aren't empty or the wrong type
+			for (int furtherInRoom = map[dest].nextInRoom; furtherInRoom > 0; furtherInRoom = map[furtherInRoom].nextInRoom) {
+				if (state[furtherInRoom] != pod) continue outer;
+			}
 
 			// writefln("Pod %s from %02s to %02s: %s, cost: %s", pod, source, dest, newState, cost * podCosts[pod]);
 			result ~= tuple(Move(cost * podCosts[pod], source, dest), newState);
