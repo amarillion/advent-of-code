@@ -1,3 +1,9 @@
+/*
+Some functions from number theory, used in Advent of Code.
+
+Note: D has functions for gcd and lcm built into phobos.
+*/
+
 /**
  * Greatest common divisor of two numbers.
  * Euclid's algorithm (tail recursive)

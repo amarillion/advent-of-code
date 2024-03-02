@@ -44,6 +44,7 @@ Test[] tests = [
 	Test(2023, 21, "day21/", "./solution.d", "test-input", format("%s\n%s", 2665, 470149643712804)),
 	Test(2023, 22, "day22/", "./solution.d", "test-input", format("[%s, %s]", 5, 7)),
 	Test(2023, 23, "day23/", "./solution.d", "test-input", format("%s\n%s", 94, 154)),
+	Test(2023, 23, "day23/", "./alternative.ts","test-input", format("%s\n%s", 94, 154)),
 	Test(2023, 24, "day24/", "./solution.d", "test-input", format("%s\n%s", 2, 47)),
 	Test(2023, 25, "day25/", "./solution.d", "test-input", format("%s", 54)),
 
@@ -70,6 +71,7 @@ Test[] tests = [
 	Test(2023, 21, "day21/", "./solution.d",   "input", format("%s\n%s", 3764, 622926941971282)),
 	Test(2023, 22, "day22/", "./solution.d",   "input", format("[%s, %s]", 430, 60558)),
 	Test(2023, 23, "day23/", "./solution.d",   "input", format("%s\n%s", 2430, 6534)),
+	Test(2023, 23, "day23/", "./alternative.ts","input", format("%s\n%s", 2430, 6534)),
 	Test(2023, 24, "day24/", "./solution.d",   "input", format("%s\n%s", 14799, 1007148211789625)),
 	Test(2023, 25, "day25/", "./solution.d",   "input", format("%s", 525264)),
 
@@ -89,7 +91,7 @@ void runTest(PerformanceContext context, Test t) {
 	Duration timeElapsed = after - before;
 	auto elapsedFormat = timeElapsed.split!("minutes", "seconds", "msecs");
 	writefln("Elapsed: %02d:%02d.%03d\n", elapsedFormat.minutes, elapsedFormat.seconds, elapsedFormat.msecs);
-	context.logPerformance(format("%s day %s %s", t.year, t.day, t.param), timeElapsed.total!"msecs");
+	context.logPerformance(format("%s day %s %s %s", t.year, t.day, t.script, t.param), timeElapsed.total!"msecs");
 }
 
 struct PerformanceContext {
