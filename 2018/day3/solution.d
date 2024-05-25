@@ -85,7 +85,7 @@ long solve1(Rect!int[] data) {
 	long result = 0;
 	foreach(point, count; frqMap) {
 		if (count > 1) {
-			writefln("Point %s: %s", point, count);
+			// writefln("Point %s: %s", point, count);
 			result++;
 		}
 	}
@@ -94,12 +94,12 @@ long solve1(Rect!int[] data) {
 
 long solve2(Rect!int[] data) {
 	for (int i = 0; i < data.length; ++i) {
-		writefln("Rect #%s: %s", i, data[i]);
+		// writefln("Rect #%s: %s", i, data[i]);
 		bool noOverlap = true;
 		for (int j = 0; j < data.length; ++j) {
 			if (i == j) continue;
 			if (data[i].overlaps(data[j])) {
-				writefln("  overlaps with Rect #%s: %s", j, data[j]);
+				// writefln("  overlaps with Rect #%s: %s", j, data[j]);
 				noOverlap = false;
 				break;
 			}
@@ -111,15 +111,9 @@ long solve2(Rect!int[] data) {
 	return 0;
 }
 
-void main() {
-	auto testData = parse("test-input");
-	// writeln(solve1(testData)); // expected: 4
-	// writeln(solve2(testData)); // expected: 3
-	
-	auto data = parse("input");
-	// writeln(solve1(data));
+void main(string[] args) {
+	assert(args.length == 2, "Expected one argument: input file");
+	auto data = parse(args[1]);
+	writeln(solve1(data));
 	writeln(solve2(data));
-
-	// read 
-	// count overlapping sq. in.
 }
