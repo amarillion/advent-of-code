@@ -1,8 +1,11 @@
 #!/usr/bin/env -S rdmd -I..
+module day2.solution;
 
 import std.stdio;
 import std.string;
 import std.conv;
+
+import common.io;
 
 string[] readlines() {
 	string[] result;
@@ -43,15 +46,37 @@ long charDelta(string a, string b) {
 	return delta;
 }
 
-void main() {
+long solve1(string[] lines) {
+	long numTwos;
+	long numThrees;
 
-	string[] lines = readlines();
+	foreach (string line; lines) {
+		const f = letterFrq(line).invert();
+		if (2 in f) { numTwos++; }
+		if (3 in f) { numThrees++; }
+	}	
+	return numTwos * numThrees;
+}
 
+string solve2(string[] lines) {
 	foreach(a; lines) {
 		foreach (b; lines) {
 			if (charDelta(a, b) == 1) {
-				writefln("1: %s\n2: %s", a, b);
+				char[] result;
+				for(size_t i = 0; i < a.length; ++i) {
+					if (a[i] == b[i]) { result ~= a[i]; }
+				}
+				return to!string(result);
 			}
 		}
 	}
+	return "No solution found";
+}
+
+void main(string[] args) {
+	assert(args.length == 2, "Usage: day2 <input file>");
+	string[] lines = readLines(args[1]);
+
+	writeln(solve1(lines));
+	writeln(solve2(lines));
 }

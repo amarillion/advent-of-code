@@ -18,9 +18,12 @@ struct Test {
 
 
 Test[] tests = [
+	Test(2023,  3,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
 	Test(2023,  3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
 
+	Test(2023,  2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
 	Test(2023,  3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
+
 ];
 
 void runTest(PerformanceContext context, Test t) {
