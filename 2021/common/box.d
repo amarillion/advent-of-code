@@ -212,6 +212,61 @@ Box!(N, T)[][] intersections(int N, T)(Box!(N, T) a, Box!(N, T) b) {
 }
 
 unittest {
-	// unittest for intersects:
-	// TODO
+	alias Cuboid_i = Cuboid!int;
+	Cuboid_i a = Cuboid_i(vec3i(0, 0, 0), vec3i(5, 3, 4));
+	Cuboid_i b = Cuboid_i(vec3i(-2, 1, 2), vec3i(5, 4, 3));
+	Cuboid_i c = Cuboid_i(vec3i(1,1,1), vec3i(1,1,1));
+
+	assert(a.volume == 60);
+	assert(b.volume == 60);
+	assert(c.volume == 1);
+	
+	vec3i p1 = vec3i(2, 1, 2);
+	vec3i p2 = vec3i(8,0,0);
+
+	assert (intersections(a, b) == [
+		[
+			Cuboid_i(vec3i(0,0,0), vec3i(3,1,4)), 
+			Cuboid_i(vec3i(3,0,0), vec3i(2,3,4)), 
+			Cuboid_i(vec3i(0,1,0), vec3i(3,2,2)), 
+		],
+		[
+			Cuboid_i(vec3i(0,1,2), vec3i(3,2,2)),
+		],
+		[
+			Cuboid_i(vec3i(-2, 1, 2), vec3i(2, 4, 3)), 
+			Cuboid_i(vec3i( 0, 3, 2), vec3i(3, 2, 3)), 
+			Cuboid_i(vec3i( 0, 1, 4), vec3i(3, 2, 1)), 
+		],
+	]);
+
+	assert (intersections(Cuboid_i(vec3i(0), vec3i(3,3,1)), Cuboid_i(vec3i(1,1,0), vec3i(1))) == [
+		[
+			Cuboid_i(vec3i(0,0,0), vec3i(1, 3, 1)), 
+			Cuboid_i(vec3i(1,0,0), vec3i(1, 1, 1)), 
+			Cuboid_i(vec3i(2,0,0), vec3i(1, 3, 1)), 
+			Cuboid_i(vec3i(1,2,0), vec3i(1, 1, 1)), 
+		],
+		[
+			Cuboid_i(vec3i(1,1,0), vec3i(1, 1, 1)),
+		],
+		[],
+	]);
+
+	assert(intersections(
+		Cuboid_i(vec3i(5,0,0), vec3i(1, 10, 1)), 
+		Cuboid_i(vec3i(0,5,0), vec3i(10, 1, 1)), 
+	) == [
+		[
+			Cuboid_i(vec3i(5,0,0), vec3i(1, 5, 1)),
+			Cuboid_i(vec3i(5,6,0), vec3i(1, 4, 1)),
+		],
+		[
+			Cuboid_i(vec3i(5,5,0), vec3i(1, 1, 1)),
+		],
+		[
+			Cuboid_i(vec3i(0,5,0), vec3i(5, 1, 1)),
+			Cuboid_i(vec3i(6,5,0), vec3i(4, 1, 1)),
+		]
+	]);
 }
