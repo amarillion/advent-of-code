@@ -37,40 +37,6 @@ Rect!int intersect (Rect!int a, Rect!int b) {
 	return Rect!int(pos, size);
 }
 
-/*
-long solve1(Rect!int[] data) {
-	Rect!int[] intersections = [];
-	for (int i = 0; i < data.length; ++i) {
-		writefln("Rect #%s: %s", i, data[i]);
-		for (int j = 0; j < i; ++j) {
-			if (data[i].overlaps(data[j])) {
-				// to determine area of overlap
-				auto intersection = data[i].intersect(data[j]);
-				intersections ~= intersection;
-			}
-		}
-	}
-
-	// writeln(intersections.length);
-	long result = 0;
-	for (int i = 0; i < intersections.length; ++i) {
-		writefln("Intersection #%s: %s, area: %s", i, intersections[i], intersections[i].size.x * intersections[i].size.y);
-		int area = intersections[i].size.x * intersections[i].size.y;	
-		for (int j = 0; j < i; ++j) {
-			if (intersections[i].overlaps(intersections[j])) {
-				auto duplication = intersections[i].intersect(intersections[j]);
-				writefln("  overlaps with intersection #%s: %s, area %s", j, intersections[j], duplication.size.x * duplication.size.y);
-				// compensating for double counting
-				area -= duplication.size.x * duplication.size.y;
-			}
-		}
-		writefln("  Total area: %s", area);
-		result += area;
-	}
-	return result;
-}
-*/
-
 long solve1(Rect!int[] data) {
 	int[vec2i] frqMap;
 	foreach(rec; data) {
