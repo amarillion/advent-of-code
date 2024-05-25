@@ -13,6 +13,7 @@ import common.io;
 import common.vec;
 import common.grid;
 import common.cardinal;
+import common.read_grid;
 
 alias MyGrid = Grid!(2, char);
 

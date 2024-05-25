@@ -10,6 +10,7 @@ import std.algorithm;
 
 import common.io;
 import common.grid;
+import common.read_grid;
 
 alias Data = Grid!(2, char)[];
 

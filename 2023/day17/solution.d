@@ -14,6 +14,7 @@ import common.grid;
 import common.vec;
 import common.cardinal;
 import common.dijkstra;
+import common.read_grid;
 
 alias MyGrid = Grid!(2, int);
 

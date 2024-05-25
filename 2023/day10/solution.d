@@ -14,6 +14,7 @@ import common.io;
 import common.vec;
 import common.coordrange;
 import common.bfs;
+import common.read_grid;
 
 enum Dir {
 	E = 1,

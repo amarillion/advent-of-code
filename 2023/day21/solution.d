@@ -14,6 +14,7 @@ import common.bfs;
 import common.vec;
 import common.coordrange;
 import common.cardinal;
+import common.read_grid;
 
 alias MyGrid = Grid!(2, char);
 MyGrid parse(string fname) {

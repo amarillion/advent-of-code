@@ -12,6 +12,7 @@ import common.io;
 import common.grid;
 import common.cardinal;
 import common.vec;
+import common.read_grid;
 
 alias Data = Grid!(2, char);
 auto parse(string fname) {

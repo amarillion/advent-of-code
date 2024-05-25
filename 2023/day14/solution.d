@@ -12,6 +12,7 @@ import common.io;
 import common.grid;
 import common.vec;
 import common.coordrange;
+import common.read_grid;
 
 alias Data = Grid!(2, char);
 Data parse(string fname) {
