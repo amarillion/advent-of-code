@@ -21,11 +21,12 @@ Test[] tests = [
 	Test(2023,  1,  "day1/", "./solution.d", "test-input", format("%s\n%s", 1, 14)),
 	Test(2023,  2,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
 	Test(2023,  3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
+	Test(2023,  4,  "day4/", "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
 
 	Test(2023,  1,  "day1/", "./solution.d", "input", format("%s\n%s", 411, 56360)),
 	Test(2023,  2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
 	Test(2023,  3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
-
+	Test(2023,  4,  "day4/", "./solution.d", "input", format("%s\n%s", 50558, 28198)),
 ];
 
 void runTest(PerformanceContext context, Test t) {

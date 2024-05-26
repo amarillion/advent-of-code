@@ -12,42 +12,34 @@ import common.io;
 import std.regex;
 import std.sumtype;
 
-struct Record {
-	string date;
-	int endMin;
+struct SleepRecord {
 	int id;
-	bool awake;
-	int startMin;
-	int duration;
+	int end;
+	int start;
 }
 
-alias Data = Record[];
+alias Data = SleepRecord[];
 Data parse(string fname) {
 	string[] lines = readLines(fname);
 	sort(lines);
 	int id = -1;
-	Record[] result;
-	bool awake;
+	SleepRecord[] result;
 	int prevMin;
 
 	foreach(string line; lines) {
-		string date = line[6..11];
 		int min = to!int(line[15..17]);
 		string event = line[19..$];
 		auto m = event.matchFirst(r"Guard #([0-9]+) begins shift");
 		if (m) {
+			// begin records of a new guard
 			id = to!int(m[1]);
-			awake = true;
 			prevMin = 0;
 		}
 		else if (event == "wakes up") {
-			result ~= Record(date, min, id, awake, prevMin, min - prevMin);
-			awake = true;
+			result ~= SleepRecord(id, min, prevMin);
 			prevMin = min;
 		}
 		else if (event == "falls asleep") {
-			result ~= Record(date, min, id, awake, prevMin, min - prevMin);
-			awake = false;
 			prevMin = min;
 		}
 	}
@@ -60,12 +52,10 @@ auto solve1(Data data) {
 	int maxGuard = 0;
 	int maxAsleep = 0;
 	foreach(x; data) {
-		if (!x.awake) {
-			asleepByGuard[x.id] += x.duration;
-			if (asleepByGuard[x.id] > maxAsleep) {
-				maxGuard = x.id;
-				maxAsleep = asleepByGuard[x.id];
-			}
+		asleepByGuard[x.id] += (x.end - x.start);
+		if (asleepByGuard[x.id] > maxAsleep) {
+			maxGuard = x.id;
+			maxAsleep = asleepByGuard[x.id];
 		}
 	}
 
@@ -74,8 +64,8 @@ auto solve1(Data data) {
 	int maxAsleepByMinute = 0;
 	int maxMinute = 0;
 	foreach(x; data) {
-		if (x.id == maxGuard && !x.awake) {
-			foreach(i; x.startMin..x.endMin) {
+		if (x.id == maxGuard) {
+			foreach(i; x.start..x.end) {
 				asleepByMinute[i]++;
 				if (asleepByMinute[i] > maxAsleepByMinute) {
 					maxAsleepByMinute = asleepByMinute[i];
@@ -88,19 +78,18 @@ auto solve1(Data data) {
 }
 
 auto solve2(Data data) {
+	// index per guard per minute
 	int[int][int] asleepByGuardByMinute;
 	int maxGuard = 0;
 	int maxMinute = 0;
 	int maxAsleep = 0;
 	foreach(x; data) {
-		if (!x.awake) {
-			foreach(i; x.startMin..x.endMin) {
-				asleepByGuardByMinute[x.id][i]++;
-				if (asleepByGuardByMinute[x.id][i] > maxAsleep) {
-					maxGuard = x.id;
-					maxMinute = i;
-					maxAsleep = asleepByGuardByMinute[x.id][i];
-				}
+		foreach(i; x.start..x.end) {
+			asleepByGuardByMinute[x.id][i]++;
+			if (asleepByGuardByMinute[x.id][i] > maxAsleep) {
+				maxGuard = x.id;
+				maxMinute = i;
+				maxAsleep = asleepByGuardByMinute[x.id][i];
 			}
 		}
 	}
@@ -111,6 +100,6 @@ void main(string[] args) {
 	assert(args.length == 2, "This program requires an input file as argument");
 
 	auto data = parse(args[1]);
-	writeln(solve1(data)); // 50558
-	writeln(solve2(data)); // 28198
+	writeln(solve1(data));
+	writeln(solve2(data));
 }
