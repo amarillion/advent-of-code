@@ -87,10 +87,30 @@ auto solve1(Data data) {
 	return maxGuard * maxMinute;
 }
 
+auto solve2(Data data) {
+	int[int][int] asleepByGuardByMinute;
+	int maxGuard = 0;
+	int maxMinute = 0;
+	int maxAsleep = 0;
+	foreach(x; data) {
+		if (!x.awake) {
+			foreach(i; x.startMin..x.endMin) {
+				asleepByGuardByMinute[x.id][i]++;
+				if (asleepByGuardByMinute[x.id][i] > maxAsleep) {
+					maxGuard = x.id;
+					maxMinute = i;
+					maxAsleep = asleepByGuardByMinute[x.id][i];
+				}
+			}
+		}
+	}
+	return maxGuard * maxMinute;
+}
+
 void main(string[] args) {
 	assert(args.length == 2, "This program requires an input file as argument");
 
 	auto data = parse(args[1]);
-	auto result = solve1(data); // 50558
-	writeln(result);
+	writeln(solve1(data)); // 50558
+	writeln(solve2(data)); // 28198
 }
