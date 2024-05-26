@@ -10,6 +10,7 @@ import std.algorithm;
 
 import common.io;
 import core.stdc.ctype;
+import core.stdcpp.array;
 
 alias Data = string;
 Data parse(string fname) {
@@ -30,7 +31,7 @@ auto solve1(Data data) {
 			data = data[0..pos] ~ data[min(len, pos + 2)..$];
 			pos = max(0, pos - 1);
 			len -= 2;
-			writeln(data[max(0, pos - 40)..min(len, pos + 40)]);
+			// writeln(data[max(0, pos - 40)..min(len, pos + 40)]);
 		}
 		else {
 			pos++;
@@ -39,8 +40,21 @@ auto solve1(Data data) {
 	return len;
 }
 
+auto solve2(Data data) {
+	ulong minLen = data.length;
+	for(char c = 'a'; c <= 'z'; c++) {
+		string filtered = to!string(data.filter!(x => tolower(x) != c));
+		ulong len = solve1(filtered);
+		if (len < minLen) {
+			minLen = len;
+		}
+	}
+	return minLen;
+}
+
 void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
 	auto data = parse(args[1]);
 	writeln(solve1(data));
+	writeln(solve2(data));
 }
