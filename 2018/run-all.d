@@ -8,7 +8,6 @@ import std.string;
 import core.time;
 
 struct Test {
-	int year;
 	int day;
 	string workDir;
 	string script;
@@ -16,23 +15,23 @@ struct Test {
 	string expected;
 }
 
-
+enum YEAR = 2018;
 Test[] tests = [
-	Test(2023,  1,  "day1/", "./solution.d", "test-input", format("%s\n%s", 1, 14)),
-	Test(2023,  2,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
-	Test(2023,  3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
-	Test(2023,  4,  "day4/", "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
+	Test(1,  "day1/", "./solution.d", "test-input", format("%s\n%s", 1, 14)),
+	Test(2,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
+	Test(3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
+	Test(4,  "day4/", "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
 
-	Test(2023,  1,  "day1/", "./solution.d", "input", format("%s\n%s", 411, 56360)),
-	Test(2023,  2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
-	Test(2023,  3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
-	Test(2023,  4,  "day4/", "./solution.d", "input", format("%s\n%s", 50558, 28198)),
+	Test(1,  "day1/", "./solution.d", "input", format("%s\n%s", 411, 56360)),
+	Test(2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
+	Test(3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
+	Test(4,  "day4/", "./solution.d", "input", format("%s\n%s", 50558, 28198)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
 
 	MonoTime before = MonoTime.currTime;
-	writefln("Executing script %s %s", t.year, t.day);
+	writefln("Executing script %s %s", YEAR, t.day);
 	auto execResult = executeShell(format("%s %s", t.script, t.param), null, Config.none, size_t.max, t.workDir);
 	assert(execResult.status == 0, format("Script failed with status code %s", execResult.status));
 	// writeln(execResult.output);
@@ -43,7 +42,7 @@ void runTest(PerformanceContext context, Test t) {
 	Duration timeElapsed = after - before;
 	auto elapsedFormat = timeElapsed.split!("minutes", "seconds", "msecs");
 	writefln("Elapsed: %02d:%02d.%03d\n", elapsedFormat.minutes, elapsedFormat.seconds, elapsedFormat.msecs);
-	context.logPerformance(format("%s day %s %s %s", t.year, t.day, t.script, t.param), timeElapsed.total!"msecs");
+	context.logPerformance(format("%s day %s %s %s", YEAR, t.day, t.script, t.param), timeElapsed.total!"msecs");
 }
 
 struct PerformanceContext {
