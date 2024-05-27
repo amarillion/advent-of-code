@@ -182,6 +182,15 @@ struct vec(int N, V) {
 	}
 }
 
+V manhattan(int N, V)(vec!(N, V) a) {
+	import std.math: abs;
+	V sum = 0;
+	foreach(i; 0..N) {
+		sum += abs(a.val[i]);
+	}
+	return sum;
+}
+
 unittest {
 	assert (Point(2, 0) > Point(1, 0));
 	assert (Point(0, 2) >= Point(0, 1));
