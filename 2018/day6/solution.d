@@ -60,8 +60,52 @@ auto solve1(Data data) {
 	return maxCount;
 }
 
+// part 2: 08:28-
+auto solve2(Data data, int limit) {
+	bool[vec2i] visited;
+	bool[vec2i] checked; // TODO: avoid need for extra 'checked' map?
+	
+	int len = to!int(data.length);
+	vec2i start = vec2i(
+		data.map!(i => i.x).sum / len,
+		data.map!(i => i.x).sum / len,
+	);
+	vec2i[] open = [ start ];
+	
+	// do a bfs
+	// TODO: how to make this a lot faster?
+	while (!open.empty) {
+		vec2i current = open.front;
+		open.popFront;
+
+		visited[current] = true;
+
+		vec2i delta = vec2i(0, 1);
+		foreach(i; 0..4) {
+			vec2i npos = current + delta;
+
+			// rotate 90 degrees. TODO: helper
+			delta = vec2i(delta.y, -delta.x); 
+
+			if (npos in checked) { continue; }
+			checked[npos] = true;
+
+			if (npos in visited) { continue; }
+			int sumlen = data.map!(p => manhattan(npos - p)).sum;
+			writefln("Trying %s sum: %s, visited: %s", npos, sumlen, visited.length);
+			if (sumlen >= limit) { continue; }
+
+			open ~= npos;
+		}
+	}
+
+	return visited.length;
+}
+
 void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
 	auto data = parse(args[1]);
 	writeln(solve1(data));
+	writeln(solve2(data, 32));
+	writeln(solve2(data, 10000));
 }
