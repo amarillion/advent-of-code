@@ -25,6 +25,24 @@ Data parse(string fname) {
 	return data;
 }
 
+vec2i[] getClosest(vec2i pos, Data data) {
+	int minDist;
+	bool first = true;
+	vec2i[] result;
+	foreach(p; data) {
+		int dist = manhattan(pos - p);
+		if (first || dist < minDist) {
+			result = [ p ];
+			minDist = dist;
+		}
+		else if (dist == minDist) {
+			result ~= p;
+		}
+		first = false;
+	}
+	return result;
+}
+
 auto solve1(Data data) {
 	int[vec2i] counts;
 	bool[vec2i] isInfinite;
@@ -35,10 +53,9 @@ auto solve1(Data data) {
 		vec2i(data.map!(p => p.x).maxElement + 1, data.map!(p => p.y).maxElement + 1)
 	);
 	foreach(pos; bounds.coordrange) {
-		auto minCount = data.map!(p => manhattan(pos-p)).minCount;
-		if (minCount[1] == 1) {
-			// TODO second iteration... inefficient...
-			auto closest = data.filter!(p => manhattan(pos-p) == minCount[0]).front;
+		vec2i[] close = getClosest(pos, data);
+		if (close.length == 1) {
+			auto closest = close[0];
 			if (closest in counts) { 
 				counts[closest]++; 
 			} else {
@@ -73,7 +90,7 @@ auto solve2(Data data, int limit) {
 	vec2i[] open = [ start ];
 	
 	// do a bfs
-	// TODO: how to make this a lot faster?
+	// TODO: re-usable bfs function
 	while (!open.empty) {
 		vec2i current = open.front;
 		open.popFront;
@@ -81,7 +98,7 @@ auto solve2(Data data, int limit) {
 		visited[current] = true;
 
 		vec2i delta = vec2i(0, 1);
-		foreach(i; 0..4) {
+		foreach(i; 0..4) { //TODO: use cardinals
 			vec2i npos = current + delta;
 
 			// rotate 90 degrees. TODO: helper
@@ -92,7 +109,7 @@ auto solve2(Data data, int limit) {
 
 			if (npos in visited) { continue; }
 			int sumlen = data.map!(p => manhattan(npos - p)).sum;
-			writefln("Trying %s sum: %s, visited: %s", npos, sumlen, visited.length);
+			// writefln("Trying %s sum: %s, visited: %s", npos, sumlen, visited.length);
 			if (sumlen >= limit) { continue; }
 
 			open ~= npos;
