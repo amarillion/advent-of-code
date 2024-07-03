@@ -2,8 +2,8 @@
 import { readFileSync } from 'fs'; 
 const input = readFileSync(process.argv[2]).toString('utf-8'); 
 
-const CARD_RANK = 'AKQJT98765432';
-const CARD_RANK_WITH_JOKERS = 'AKQT98765432J';
+const CARD_RANK_JACK = 'AKQJT98765432';
+const CARD_RANK_JOKER = 'AKQT98765432J';
 
 function parse(raw: string) {
 	return raw
@@ -63,20 +63,11 @@ type Row = {
 };
 type RowWithType = Row & { type: string };
 
-function byRowRank(a: RowWithType, b: RowWithType) {
+const byHandOrder = (CARD_RANK: string) => (a: RowWithType, b: RowWithType) => {
 	let result = a.type.localeCompare(b.type); // first compare type
 	for(let i = 0; i < 5; ++i) {
 		if (result !== 0) return result; // if we haven't found a difference yet
 		result = CARD_RANK.indexOf(b.hand[i]) - CARD_RANK.indexOf(a.hand[i]); // compare the cards at position i
-	}
-	return result;
-}
-
-function byRowRankWithJokers(a: RowWithType, b: RowWithType) {
-	let result = a.type.localeCompare(b.type); // first compare type
-	for(let i = 0; i < 5; ++i) {
-		if (result !== 0) return result; // if we haven't found a difference yet
-		result = CARD_RANK_WITH_JOKERS.indexOf(b.hand[i]) - CARD_RANK_WITH_JOKERS.indexOf(a.hand[i]); // compare the cards at position i
 	}
 	return result;
 }
@@ -89,5 +80,5 @@ function solve(data : Row[], getTypeFunc: (hand: string) => string, comparisonFu
 }
 
 const data = parse(input);
-console.log(solve(data, getType, byRowRank));
-console.log(solve(data, getTypeWithJokers, byRowRankWithJokers));
+console.log(solve(data, getType, byHandOrder(CARD_RANK_JACK)));
+console.log(solve(data, getTypeWithJokers, byHandOrder(CARD_RANK_JOKER)));

@@ -2,26 +2,26 @@
 import { readFileSync } from 'fs'; 
 const input = readFileSync(process.argv[2]).toString('utf-8'); 
 
-const CARD_RANK = "AKQJT98765432";
-const CARD_RANK_WITH_JOKERS = "AKQT98765432J";
+const CARD_RANK_JACK = 'AKQJT98765432';
+const CARD_RANK_JOKER = 'AKQT98765432J';
 
 function parse(raw) {
 	return raw
-		.split("\n")
-		.filter(e => e !== "")
+		.split('\n')
+		.filter(e => e !== '')
 		.map(line => { 
-			const fields = line.split(" "); 
+			const fields = line.split(' '); 
 			return { 
 				hand: fields[0], 
 				bid: Number(fields[1]),
-			} 
+			};
 		});
 }
 
 // counts frequency of each card. For example, given a hand '32T3K', returns { '3': 2, '2': 1, 'T': 1, 'K': 1 }
 function cardFrq(hand) {
 	const frq = {};
-	for(let card of hand) {
+	for(const card of hand) {
 		if (card in frq) {
 			frq[card] += 1;
 		}
@@ -44,7 +44,7 @@ function getType(hand) {
 	//      "2111": ONE PAIR
 	//      "11111": HIGH CARD
 	// These results will sort correctly naturally.
-	return Object.values(cardFrq(hand)).sort().reverse().join("");
+	return Object.values(cardFrq(hand)).sort().reverse().join('');
 }
 
 function getTypeWithJokers(hand) {
@@ -54,23 +54,15 @@ function getTypeWithJokers(hand) {
 	frq['J'] = 0; // delete also possible, but that could mess up case of 'JJJJJ'
 	const frqVals = Object.values(frq).sort().reverse();
 	frqVals[0] = frqVals[0] + numJokers; 	// Move Jokers to the first digit.
-	return frqVals.filter(i => i !== 0).join(""); // 'J' is potentially 0, filter out these zeroes.
+	return frqVals.filter(i => i !== 0).join(''); // 'J' is potentially 0, filter out these zeroes.
 }
 
-function byRowRank(a, b) {
+// second order function: a function to generate a comparison function
+const byHandOrder = (CARD_RANK) => (a, b) => {
 	let result = a.type.localeCompare(b.type); // first compare type
 	for(let i = 0; i < 5; ++i) {
 		if (result !== 0) return result; // if we haven't found a difference yet
 		result = CARD_RANK.indexOf(b.hand[i]) - CARD_RANK.indexOf(a.hand[i]); // compare the cards at position i
-	}
-	return result;
-}
-
-function byRowRankWithJokers(a, b) {
-	let result = a.type.localeCompare(b.type); // first compare type
-	for(let i = 0; i < 5; ++i) {
-		if (result !== 0) return result; // if we haven't found a difference yet
-		result = CARD_RANK_WITH_JOKERS.indexOf(b.hand[i]) - CARD_RANK_WITH_JOKERS.indexOf(a.hand[i]); // compare the cards at position i
 	}
 	return result;
 }
@@ -83,5 +75,5 @@ function solve(data, getTypeFunc, comparisonFunc) {
 }
 
 const data = parse(input);
-console.log(solve(data, getType, byRowRank));
-console.log(solve(data, getTypeWithJokers, byRowRankWithJokers));
+console.log(solve(data, getType, byHandOrder(CARD_RANK_JACK)));
+console.log(solve(data, getTypeWithJokers, byHandOrder(CARD_RANK_JOKER)));
