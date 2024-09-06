@@ -123,6 +123,10 @@ void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
 	auto data = parse(args[1]);
 	writeln(solve1(data));
-	writeln(solve2(data, 32));
-	writeln(solve2(data, 10000));
+	if (args[1].startsWith("test")) {
+		writeln(solve2(data, 32));
+	}
+	else {
+		writeln(solve2(data, 10000));
+	}
 }

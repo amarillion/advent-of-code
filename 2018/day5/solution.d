@@ -21,7 +21,7 @@ Data parse(string fname) {
 auto solve1(Data data) {
 	int pos = 0;
 	ulong len = data.length;
-	writeln(data[0..min(80, len)]);
+	// writeln(data[0..min(80, len)]);
 	while(pos < len-1) {
 		char c = data[pos];
 		bool oppositeParity = data[pos].isupper != data[pos + 1].isupper;

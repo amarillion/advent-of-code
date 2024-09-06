@@ -21,11 +21,18 @@ Test[] tests = [
 	Test(2,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
 	Test(3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
 	Test(4,  "day4/", "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
+	Test(5,  "day5/", "./solution.d", "test-input", format("%s\n%s", 10, 4)),
+	Test(6,  "day6/", "./solution.d", "test-input", format("%s\n%s", 17, 16)),
+	Test(7,  "day7/", "./solution.d", "test-input", format("%s\n%s", "CABDFE", 15)),
 
 	Test(1,  "day1/", "./solution.d", "input", format("%s\n%s", 411, 56360)),
 	Test(2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
 	Test(3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
 	Test(4,  "day4/", "./solution.d", "input", format("%s\n%s", 50558, 28198)),
+	Test(5,  "day5/", "./solution.d", "input", format("%s\n%s", 10888, 6952)),
+	Test(6,  "day6/", "./solution.d", "input", format("%s\n%s", 4215, 40376)),
+	Test(7,  "day7/", "./solution.d", "input", format("%s\n%s", "IOFSJQDUWAPXELNVYZMHTBCRGK", 931)),	
+
 ];
 
 void runTest(PerformanceContext context, Test t) {
