@@ -58,8 +58,91 @@ auto solve1(Data data) {
 	return result;
 }
 
+class Worker {
+	int timeRemain = 0;
+	dchar job = '\0';
+	bool free = true;
+}
+
+auto solve2(Data data, int numWorkers = 2, int workBaseCost = 0) {
+	int second = 0;
+	
+	Worker[] workers;
+	foreach (i; 0..numWorkers) { 
+		workers ~= new Worker();
+	}
+
+	auto remain = data.dup;
+	bool done = false;
+	while (!done) {
+			
+		foreach(worker; workers) {
+			if (!worker.free) {
+				worker.timeRemain--;
+				if (worker.timeRemain == 0) {
+					worker.free = true;
+
+					// clean job from system, new dependencies become available
+					dchar found = worker.job;
+					foreach(k, ref dchar[] v; remain) {
+						v = to!(dchar[])(v.filter!(c => c != found).array); // Why is cast to dchar[] necessary? D trying to do funky business with utf8?
+					}
+
+				}
+			}
+		}
+
+		foreach(worker; workers) {
+			if (worker.free) {
+				// find a job to do
+				dchar[] available;
+				foreach(dchar k, v; remain) {
+					if (v.empty) {
+						available ~= k;
+					}
+				}
+				if (!available.empty) {
+					sort!"a < b"(available);
+					dchar found = available[0];
+				
+					// remove found from job list
+					remain.remove(found);
+
+					worker.free = false;
+					worker.job = found;
+					worker.timeRemain = found - 'A' + workBaseCost + 1;
+				}
+			}
+		}
+
+		// writef("%02d: ", second);
+		// foreach(worker; workers) {
+		// 	write(worker.free ? '.' : worker.job, "  ");
+		// }	
+		// writeln();
+		
+		second++;
+
+		done = true;
+		foreach(worker; workers) {
+			if (!worker.free) { done = false; break; }
+		}
+	}
+
+	return second-1;
+}
+
+
 void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
+	
 	auto data = parse(args[1]);
 	writeln(solve1(data));
+
+	if (args[1].startsWith("test")) {
+		writeln(solve2(data)); // <- test input
+	}
+	else {
+		writeln(solve2(data, 5, 60)); // input
+	}
 }
