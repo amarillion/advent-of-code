@@ -24,12 +24,24 @@ class Node {
 
 	string repr(string indent = "") {
 		return indent 
-			~ to!string(metaData) ~ "\n" 
+			~ to!string(metaData) ~ " " ~ to!string(value()) ~ "\n" 
 			~ children.map!(c => c.repr(indent ~ " ")).join("");
 	}
 
 	int sum() {
 		return metaData.sum + children.map!(c => c.sum).sum;
+	}
+
+	int value() {
+		int result;
+		if (children.empty) { 
+			result = metaData.sum;
+		}
+		else {
+			result = metaData.map!(i => (i <= children.length ? children[i - 1].value : 0)).sum;
+		}
+		writeln(result);
+		return result;
 	}
 
 }
@@ -41,6 +53,7 @@ class Parser {
 	
 	Data remain;
 
+	// recursive descent parser...
 	Node parseNode() {
 		Node result = new Node();
 		int numChildren = remain[0];
@@ -55,17 +68,19 @@ class Parser {
 	}
 }
 
-auto solve1(Data data) {
-	// recursive descent parser...
+auto recursiveDescent(Data data) {
+	writeln(data);
 	auto parser = new Parser(data);
 	Node node = parser.parseNode();
 	writeln(node.repr(""));
-	writeln(data);
-	return node.sum;
+	return node;
 }
+
 
 void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
 	auto data = parse(args[1]);
-	writeln(solve1(data));
+	auto node = recursiveDescent(data);
+	writeln(node.sum);
+	writeln(node.value);
 }
