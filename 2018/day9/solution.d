@@ -22,22 +22,18 @@ Data parse(string fname) {
 
 auto solve1(Data data) {
 	int[] q = [ 0 ];
-	int[] remain = iota(1, data.lastMarble + 1).array;
 	int current = 0;
 	int[] players; players.length = data.numPlayers;
-	int turn = 0;	
 
-	writeln(data);	
-	writeln("Turn: ", turn);
-	writeln(current);
+	// writeln(data);	
+	// writeln("Turn: 0");
+	// writeln(current);
 
-	do {
-		int next = remain.front;
-		remain = remain[1..$];
-
+	foreach(int turn; 1 .. data.lastMarble + 1) {
+		int next = turn;
 		if (next % 23 == 0) {
 			int player = (turn % data.numPlayers);
-			writeln("Score by player: ", turn, " ", player);
+			// writeln("Score by player: ", turn, " ", player);
 			players[player] += next;
 			int removalPos = (current + to!int(q.length) - 7) % to!int(q.length);
 			players[player] += q[removalPos];
@@ -57,10 +53,13 @@ auto solve1(Data data) {
 		// writeln(players);
 
 		turn++;
-	}
-	while (!remain.empty);
 
-	writeln(players);
+		if (turn % 100_000 == 0) {
+			writefln("%s %s %2.2f%%", turn, data.lastMarble, turn * 100.0f / data.lastMarble);
+		}
+	}
+
+	// writeln(players);
 	return players.maxElement;
 }
 
@@ -68,6 +67,5 @@ void main(string[] args) {
 	assert(args.length == 2, "Expecting 1 argument: input file");
 	auto data = parse(args[1]);
 	writeln(solve1(data));
-
-	// Too high: 144355967
+	writeln(solve1(Data(data.numPlayers, data.lastMarble * 100)));
 }
