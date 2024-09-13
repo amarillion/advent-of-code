@@ -13,26 +13,35 @@ struct Test {
 	string script;
 	string param;
 	string expected;
+
+	this(int day, string script, string param, string expected) {
+		this.day = day;
+		this.workDir = format("day%s/", day);
+		this.script = script;
+		this.param = param;
+		this.expected = expected;
+	}
 }
 
 enum YEAR = 2018;
 Test[] tests = [
-	Test(1,  "day1/", "./solution.d", "test-input", format("%s\n%s", 1, 14)),
-	Test(2,  "day2/", "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
-	Test(3,  "day3/", "./solution.d", "test-input", format("%s\n%s", 4, 3)),
-	Test(4,  "day4/", "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
-	Test(5,  "day5/", "./solution.d", "test-input", format("%s\n%s", 10, 4)),
-	Test(6,  "day6/", "./solution.d", "test-input", format("%s\n%s", 17, 16)),
-	Test(7,  "day7/", "./solution.d", "test-input", format("%s\n%s", "CABDFE", 15)),
+	Test(1,  "./solution.d", "test-input", format("%s\n%s", 1, 14)),
+	Test(2,  "./solution.d", "test-input", format("%s\n%s", 12, "abcde")),
+	Test(3,  "./solution.d", "test-input", format("%s\n%s", 4, 3)),
+	Test(4,  "./solution.d", "test-input", format("%s\n%s", 240, 4455)),
+	Test(5,  "./solution.d", "test-input", format("%s\n%s", 10, 4)),
+	Test(6,  "./solution.d", "test-input", format("%s\n%s", 17, 16)),
+	Test(7,  "./solution.d", "test-input", format("%s\n%s", "CABDFE", 15)),
+	Test(8,  "./solution.d", "test-input", format("%s\n%s", 138, 66)),
 
-	Test(1,  "day1/", "./solution.d", "input", format("%s\n%s", 411, 56360)),
-	Test(2,  "day2/", "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
-	Test(3,  "day3/", "./solution.d", "input", format("%s\n%s", 111485, 113)),
-	Test(4,  "day4/", "./solution.d", "input", format("%s\n%s", 50558, 28198)),
-	Test(5,  "day5/", "./solution.d", "input", format("%s\n%s", 10888, 6952)),
-	Test(6,  "day6/", "./solution.d", "input", format("%s\n%s", 4215, 40376)),
-	Test(7,  "day7/", "./solution.d", "input", format("%s\n%s", "IOFSJQDUWAPXELNVYZMHTBCRGK", 931)),	
-
+	Test(1,  "./solution.d", "input", format("%s\n%s", 411, 56360)),
+	Test(2,  "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
+	Test(3,  "./solution.d", "input", format("%s\n%s", 111485, 113)),
+	Test(4,  "./solution.d", "input", format("%s\n%s", 50558, 28198)),
+	Test(5,  "./solution.d", "input", format("%s\n%s", 10888, 6952)),
+	Test(6,  "./solution.d", "input", format("%s\n%s", 4215, 40376)),
+	Test(7,  "./solution.d", "input", format("%s\n%s", "IOFSJQDUWAPXELNVYZMHTBCRGK", 931)),	
+	Test(8,  "./solution.d", "input", format("%s\n%s", 48496, 32850)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
