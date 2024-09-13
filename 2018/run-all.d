@@ -33,6 +33,7 @@ Test[] tests = [
 	Test(6,  "./solution.d", "test-input", format("%s\n%s", 17, 16)),
 	Test(7,  "./solution.d", "test-input", format("%s\n%s", "CABDFE", 15)),
 	Test(8,  "./solution.d", "test-input", format("%s\n%s", 138, 66)),
+	Test(9,  "./solution.d", "test-input", format("%s\n%s", 32, 22563)),
 
 	Test(1,  "./solution.d", "input", format("%s\n%s", 411, 56360)),
 	Test(2,  "./solution.d", "input", format("%s\n%s", 7410, "cnjxoritzhvbosyewrmqhgkul")),
@@ -42,6 +43,7 @@ Test[] tests = [
 	Test(6,  "./solution.d", "input", format("%s\n%s", 4215, 40376)),
 	Test(7,  "./solution.d", "input", format("%s\n%s", "IOFSJQDUWAPXELNVYZMHTBCRGK", 931)),	
 	Test(8,  "./solution.d", "input", format("%s\n%s", 48496, 32850)),
+	Test(9,  "./solution.d", "input", format("%s\n%s", 405143, 3411514667)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
