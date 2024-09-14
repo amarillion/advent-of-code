@@ -43,16 +43,18 @@ auto solve1(Data data) {
 	long prevSize;
 	bool first = true;
 	bool[vec2l] lastGrid;
-	vec2l min;
-	vec2l max; 
+	vec2l prevMin;
+	vec2l prevMax; 
 	long i = 0;
 	while (true) {
 		bool[vec2l] grid;
-		min = vec2l(0);
-		max = vec2l(0);
+
 		foreach(ref p; data) {
 			p.pos += p.delta;
 		}
+
+		vec2l min = data[0].pos;
+		vec2l max = data[0].pos;
 
 		foreach(ref p; data) {
 			grid[p.pos] = true;
@@ -60,7 +62,6 @@ auto solve1(Data data) {
 			max = max.eachMax(p.pos);
 		}
 		
-		writeln(max, " ", min);
 		long newSize = (max.x - min.x) * (max.y - min.y);
 		// if we're increasing in size...
 		if (!first && newSize > prevSize) {
@@ -71,11 +72,13 @@ auto solve1(Data data) {
 		prevSize = newSize;
 		lastGrid = grid.dup;
 		i++;
-		writefln("%02d: %s", i, newSize);
+		prevMin = min;
+		prevMax = max;
+		// writefln("%02d: %s", i, newSize);
 	}
 
-	for(long y = min.y - 1; y < max.y + 2; ++y) {
-		for (long x = min.x - 1; x < max.x + 2; ++x) {
+	for(long y = prevMin.y; y <= prevMax.y; ++y) {
+		for (long x = prevMin.x; x <= prevMax.x; ++x) {
 			vec2l p = vec2l(x, y);
 			write(p in lastGrid ? '#' : '.');
 		}
