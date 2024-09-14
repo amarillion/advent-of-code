@@ -48,7 +48,6 @@ auto solve1(Data data) {
 	long i = 0;
 	while (true) {
 		bool[vec2l] grid;
-		i++;
 		min = vec2l(0);
 		max = vec2l(0);
 		foreach(ref p; data) {
@@ -68,10 +67,11 @@ auto solve1(Data data) {
 			break;
 		}
 
-		writefln("%02d: %s", i, newSize);
 		first = false;
 		prevSize = newSize;
 		lastGrid = grid.dup;
+		i++;
+		writefln("%02d: %s", i, newSize);
 	}
 
 	for(long y = min.y - 1; y < max.y + 2; ++y) {
@@ -82,8 +82,7 @@ auto solve1(Data data) {
 		writeln();
 	}
 
-	long result = 0;
-	return result;
+	return i;
 }
 
 void main(string[] args) {
