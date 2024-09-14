@@ -13,6 +13,7 @@ import common.box;
 import common.vec;
 import common.io;
 import common.coordrange;
+import common.sparsegrid;
 
 alias vec2l = vec!(2, long);
 
@@ -42,27 +43,17 @@ auto solve1(Data data) {
 	
 	long prevSize;
 	bool first = true;
-	bool[vec2l] lastGrid;
-	vec2l prevMin;
-	vec2l prevMax; 
+	SparseInfiniteGrid!(vec2l, bool) lastGrid;
 	long i = 0;
 	while (true) {
-		bool[vec2l] grid;
+		auto nextGrid = new SparseInfiniteGrid!(vec2l, bool)();
 
 		foreach(ref p; data) {
 			p.pos += p.delta;
-		}
-
-		vec2l min = data[0].pos;
-		vec2l max = data[0].pos;
-
-		foreach(ref p; data) {
-			grid[p.pos] = true;
-			min = min.eachMin(p.pos);
-			max = max.eachMax(p.pos);
+			nextGrid.set(p.pos, true);
 		}
 		
-		long newSize = (max.x - min.x) * (max.y - min.y);
+		long newSize = (nextGrid.max.x - nextGrid.min.x) * (nextGrid.max.y - nextGrid.min.y);
 		// if we're increasing in size...
 		if (!first && newSize > prevSize) {
 			break;
@@ -70,21 +61,12 @@ auto solve1(Data data) {
 
 		first = false;
 		prevSize = newSize;
-		lastGrid = grid.dup;
+		lastGrid = nextGrid;
 		i++;
-		prevMin = min;
-		prevMax = max;
 		// writefln("%02d: %s", i, newSize);
 	}
 
-	for(long y = prevMin.y; y <= prevMax.y; ++y) {
-		for (long x = prevMin.x; x <= prevMax.x; ++x) {
-			vec2l p = vec2l(x, y);
-			write(p in lastGrid ? '#' : '.');
-		}
-		writeln();
-	}
-
+	writeln(lastGrid.format!((bool b) { return b ? "#" : "."; })(""));
 	return i;
 }
 
