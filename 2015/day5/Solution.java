@@ -6,79 +6,39 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Solution {
 
 	private static List<String> parse(Path file) throws IOException {
-		return Files.lines(file).filter(l -> !l.isEmpty()).toList();
+		try (Stream<String> s = Files.lines(file)) {
+			return s.filter(l -> !l.isEmpty()).toList();
+		}
 	}
 
 	private static long solve1(List<String> data) {
-		long result = 0;
-		for(String line: data) {
-			int vowels = 0;
-			for(int i = 0; i < line.length(); ++i) {
-				if ("aeiou".contains(line.substring(i, i + 1))) {
-					vowels++;
-				}
-			}
-			boolean hasDoubleLetters = false;
-			boolean noForbiddenPairs = true;
-			for(int i = 1; i < line.length(); ++i) {
-				String pair = line.substring(i-1, i+1);
-				if (pair.charAt(0) == pair.charAt(1)) {
-					hasDoubleLetters = true;
-				}
-				if (pair.equals("ab") || pair.equals("cd") || pair.equals("pq") || pair.equals("xy")) {
-					noForbiddenPairs = false;
-				}
-			}
-
-//			System.out.println(line + " " + vowels + " " + hasDoubleLetters + " " + noForbiddenPairs);
-			if (vowels >= 3 && hasDoubleLetters && noForbiddenPairs) {
-				result++;
-			}
-		}
-
-		return result;
+		return data.stream()
+				.filter(line -> Pattern.compile("([aeiou].*){3}").matcher(line).find())
+				.filter(line -> Pattern.compile("(.)\\1").matcher(line).find())
+				.filter(line -> !Pattern.compile("(ab|cd|pq|xy)").matcher(line).find())
+				.count();
 	}
 
 	private static long solve2(List<String> data) {
-		long result = 0;
-		for(String line: data) {
-			int vowels = 0;
-			boolean hasRepeatingLetter = false;
-			boolean hasRepeatingPair = false;
-			for(int i = 2; i < line.length(); ++i) {
-				if (line.charAt(i-2) == line.charAt((i))) {
-					hasRepeatingLetter = true;
-					break;
-				}
-			}
-
-			for(int i = 1; i < line.length() - 1; ++i) {
-				String pair = line.substring(i-1, i+1);
-				if (line.substring(i + 1).contains(pair)) {
-					hasRepeatingPair = true;
-					break;
-				}
-			}
-
-//			System.out.println(line + " " + vowels + " " + hasDoubleLetters + " " + noForbiddenPairs);
-			if (hasRepeatingPair && hasRepeatingLetter) {
-				result++;
-			}
-		}
-
-		return result;
+		return data.stream()
+				.filter(line -> Pattern.compile("(..).*\\1").matcher(line).find())
+				.filter(line -> Pattern.compile("(.).\\1").matcher(line).find())
+				.count();
 	}
 
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day5/test-input"));
 		Util.assertEqual(solve1(testData), 2);
+		Util.assertEqual(solve2(testData), 2);
+
 		var data = parse(Path.of("day5/input"));
 		System.out.println(solve1(data));
-
 		System.out.println(solve2(data));
 	}
 }
