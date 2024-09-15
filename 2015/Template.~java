@@ -1,0 +1,30 @@
+package dayX;
+
+import common.Util;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Solution {
+
+	private static class Data {
+	}
+
+	private static Data parse(Path file) throws IOException {
+		Files.lines(file).toList();
+		return null;
+	}
+
+	private static long solve1(Data data) {
+		long result = 0;
+		return result;
+	}
+
+	public static void main(String[] args) throws IOException {
+		var testData = parse(Path.of("dayX/test-input"));
+		Util.assertEqual(solve1(testData), XXX);
+		var data = parse(Path.of("dayX/input"));
+		System.out.println(solve1(data));
+	}
+}
