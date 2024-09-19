@@ -1,4 +1,4 @@
-package dayX;
+package day10;
 
 import common.Util;
 
@@ -17,39 +17,39 @@ public class Solution {
 		}
 	}
 
+	public record Part(char ch, int len) {};
+
 	public static String lookAndSay(String input) {
-		List<String> parts = new ArrayList<>();
-		StringBuilder currentPart = new StringBuilder();
-		Character prev = null;
+		List<Part> parts = new ArrayList<>();
+		char prev = '\0';
+		int count = 0;
 		for (int i = 0; i < input.length(); ++i) {
-			Character ch = input.charAt(i);
-			if (currentPart.isEmpty()) {
-				currentPart = new StringBuilder();
-			}
-			else {
-				if (ch != prev) {
-					parts.add(currentPart.toString());
-					currentPart = new StringBuilder();
+			char ch = input.charAt(i);
+			if (ch != prev) {
+				if (count > 0) {
+					parts.add(new Part(prev, count));
 				}
+				count = 0;
 			}
-			currentPart.append(ch);
+			count++;
 			prev = ch;
 		}
-		if (!currentPart.isEmpty()) { parts.add(currentPart.toString()); }
-
-		StringBuilder result = new StringBuilder();
-		for(String part: parts) {
-			result.append(part.length());
-			result.append(part.charAt(0));
+		if (count > 0) {
+			parts.add(new Part(prev, count));
 		}
 
-		System.out.println(result.toString());
+		StringBuilder result = new StringBuilder();
+		for(Part part: parts) {
+			result.append(part.len);
+			result.append(part.ch);
+		}
+
 		return result.toString();
 	}
 
-	private static long solve1(String data) {
+	private static long solve(String data, int num) {
 		String current = data;
-		for (int i = 0; i < 40; ++i) {
+		for (int i = 0; i < num; ++i) {
 			current = lookAndSay(current);
 		}
 		return current.length();
@@ -57,9 +57,10 @@ public class Solution {
 
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day10/test-input"));
-//		Util.assertEqual(solve1(testData), XXX);
-		System.out.println(solve1(testData));
+		Util.assertEqual(solve(testData, 40), 329356);
+
 		var data = parse(Path.of("day10/input"));
-		System.out.println(solve1(data));
+		System.out.println(solve(data, 40));
+		System.out.println(solve(data, 50));
 	}
 }
