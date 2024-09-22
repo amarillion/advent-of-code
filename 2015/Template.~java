@@ -5,6 +5,7 @@ import common.Util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 public class Solution {
 
@@ -12,8 +13,9 @@ public class Solution {
 	}
 
 	private static Data parse(Path file) throws IOException {
-		Files.lines(file).toList();
-		return null;
+		try (Stream<String> s = Files.lines(file)) {
+			s.filter(l -> !l.isEmpty()).toList();
+		}
 	}
 
 	private static long solve1(Data data) {
