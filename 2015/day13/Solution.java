@@ -97,7 +97,7 @@ public class Solution {
 		return data;
 	}
 
-	private static long solve1(DistanceMatrix data) {
+	private static long solve(DistanceMatrix data) {
 		long result = Long.MIN_VALUE;
 		String[] names = data.getPlaces().toArray(new String[0]);
 		for (String[] p : new AllPermutations<>(names)) {
@@ -116,11 +116,23 @@ public class Solution {
 		return result;
 	}
 
+	static void expandMatrix(DistanceMatrix data) {
+		String[] names = data.getPlaces().toArray(new String[0]);
+		for(String name: names) {
+			data.putDistance(name, "Me", 0);
+			data.putDistance("Me", name,0);
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day13/test-input"));
-		Util.assertEqual(solve1(testData), 330);
+		Util.assertEqual(solve(testData), 330);
 
 		var data = parse(Path.of("day13/input"));
-		System.out.println(solve1(data));
+		System.out.println(solve(data));
+
+		expandMatrix(data);
+		System.out.println(solve(data));
+
 	}
 }
