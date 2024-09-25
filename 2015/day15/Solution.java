@@ -76,7 +76,7 @@ public class Solution {
 		return result;
 	}
 
-	private static long solve1(List<Ingredient> data) {
+	private static long solve1(List<Ingredient> data, int calorieLimit) {
 		int[] maxDist = null;
 		long maxVal = Integer.MIN_VALUE;
 		for (var distribution: distributions(100, data.size())) {
@@ -84,15 +84,21 @@ public class Solution {
 			long durability = 0;
 			long flavor = 0;
 			long texture = 0;
+			long calories = 0;
 			for (int j = 0; j < distribution.length; ++j) {
 				capacity += distribution[j] * data.get(j).capacity;
 				durability += distribution[j] * data.get(j).durability;
 				flavor += distribution[j] * data.get(j).flavor;
 				texture += distribution[j] * data.get(j).texture;
+				calories += distribution[j] * data.get(j).calories;
 			}
 			long val = Math.max(0, capacity) * Math.max(0, durability) * Math.max(0, flavor) * Math.max(0, texture);
-			System.out.println(arrayToString(distribution) + " capacity: " + capacity + " durability: " + durability + " flavor: " + flavor + " texture: " + texture + " total: " + val);
+			if (calorieLimit > 0 && calories != calorieLimit) {
+				continue;
+			}
 			if (val > maxVal) {
+				System.out.println(arrayToString(distribution) + " capacity: " + capacity + " durability: " + durability
+						+ " flavor: " + flavor + " texture: " + texture + " calories: " + calories + " total: " + val);
 				maxVal = val;
 				maxDist = distribution.clone();
 			}
@@ -117,8 +123,11 @@ public class Solution {
 
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day15/test-input"));
-		Util.assertEqual(solve1(testData), 62842880);
+		Util.assertEqual(solve1(testData, -1), 62842880);
+		Util.assertEqual(solve1(testData, 500), 57600000);
+
 		var data = parse(Path.of("day15/input"));
-		System.out.println(solve1(data));
+//		System.out.println(solve1(data, -1));
+		System.out.println(solve1(data, 500));
 	}
 }
