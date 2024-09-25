@@ -1,11 +1,13 @@
 package day15;
 
+import common.StringUtils;
 import common.Util;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -32,28 +34,7 @@ public class Solution {
 		}
 	}
 
-/*
-
-100,0,0,0
-
-99,1,0,0
-99,0,1,0
-99,0,0,1
-
-98,2,0,0
-98,1,1,0
-98,1,0,1
-98,0,2,0
-98,0,1,1
-98,0,0,2
-
-97,3,0,0
-...
-
-
-
- */
-
+	// TODO: very wasteful with memory, this can be done smarter - implement an Iterable!
 	static List<int[]> distributions(int amount, int num) {
 		Util.assertTrue(num > 0);
 		List<int[]> result = new ArrayList<>();
@@ -65,9 +46,7 @@ public class Solution {
 				List<int[]> children = distributions(amount - i, num - 1);
 				for (var child: children) {
 					int[] wrap = new int[num];
-					for(int j = 0; j < child.length; j++) {
-						wrap[j+1] = child[j];
-					}
+					System.arraycopy(child, 0, wrap, 1, child.length);
 					wrap[0] = i;
 					result.add(wrap);
 				}
@@ -86,39 +65,26 @@ public class Solution {
 			long texture = 0;
 			long calories = 0;
 			for (int j = 0; j < distribution.length; ++j) {
-				capacity += distribution[j] * data.get(j).capacity;
-				durability += distribution[j] * data.get(j).durability;
-				flavor += distribution[j] * data.get(j).flavor;
-				texture += distribution[j] * data.get(j).texture;
-				calories += distribution[j] * data.get(j).calories;
+				capacity += (long) distribution[j] * data.get(j).capacity;
+				durability += (long) distribution[j] * data.get(j).durability;
+				flavor += (long) distribution[j] * data.get(j).flavor;
+				texture += (long) distribution[j] * data.get(j).texture;
+				calories += (long) distribution[j] * data.get(j).calories;
 			}
 			long val = Math.max(0, capacity) * Math.max(0, durability) * Math.max(0, flavor) * Math.max(0, texture);
 			if (calorieLimit > 0 && calories != calorieLimit) {
 				continue;
 			}
 			if (val > maxVal) {
-				System.out.println(arrayToString(distribution) + " capacity: " + capacity + " durability: " + durability
-						+ " flavor: " + flavor + " texture: " + texture + " calories: " + calories + " total: " + val);
+//				System.out.println(StringUtils.join(", ", distribution) + " capacity: " + capacity + " durability: " + durability
+//						+ " flavor: " + flavor + " texture: " + texture + " calories: " + calories + " total: " + val);
 				maxVal = val;
 				maxDist = distribution.clone();
 			}
 		}
 
-		System.out.println(maxVal + " " + arrayToString(maxDist));
+//		System.out.println(maxVal + " " + StringUtils.join(", ", maxDist));
 		return maxVal;
-	}
-
-	private static String arrayToString(int[] array) {
-		if (array == null) return "null";
-		StringBuilder result = new StringBuilder();
-		boolean first = true;
-		String sep = ", ";
-		for (int i = 0; i < array.length; ++i) {
-			if (!first) { result.append(sep); }
-			else { first = false; }
-			result.append(array[i]);
-		}
-		return result.toString();
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -127,7 +93,7 @@ public class Solution {
 		Util.assertEqual(solve1(testData, 500), 57600000);
 
 		var data = parse(Path.of("day15/input"));
-//		System.out.println(solve1(data, -1));
+		System.out.println(solve1(data, -1));
 		System.out.println(solve1(data, 500));
 	}
 }

@@ -79,6 +79,7 @@ public class Solution {
 		return row.containsKey(key) && row.get(key) >= amount;
 	}
 
+	//TODO: clean up - some parts are redundant with solve1
 	private static long solve2(List<Map<String, Integer>> data) {
 		long idx = 1;
 		for (var row: data) {
