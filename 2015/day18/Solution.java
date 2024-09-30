@@ -64,20 +64,20 @@ public class Solution {
 		}
 	}
 
-	private static long solve1(Grid initial, int steps) {
-		Grid current = initial;
-		for (int step = 0; step < steps; ++step) {
-			Grid next = new Grid(current.width, current.height);
-			for (int y = 0; y < current.height; ++y) {
-				for (int x = 0; x < current.width; ++x) {
-					int value = current.get(x, y);
-					int neighbors = current.countNeighbors(x, y);
-					int nextVal = ((neighbors == 2 && value == 1) || (neighbors == 3)) ? 1 : 0;
-					next.set(x, y, nextVal);
-				}
+	private static Grid applyStep(Grid current) {
+		Grid next = new Grid(current.width, current.height);
+		for (int y = 0; y < current.height; ++y) {
+			for (int x = 0; x < current.width; ++x) {
+				int value = current.get(x, y);
+				int neighbors = current.countNeighbors(x, y);
+				int nextVal = ((neighbors == 2 && value == 1) || (neighbors == 3)) ? 1 : 0;
+				next.set(x, y, nextVal);
 			}
-			current = next;
 		}
+		return next;
+	}
+
+	private static long countCompleteGrid(Grid current) {
 		long result = 0;
 		for (int y = 0; y < current.height; ++y) {
 			for (int x = 0; x < current.width; ++x) {
@@ -87,10 +87,47 @@ public class Solution {
 		return result;
 	}
 
+	private static long solve1(Grid initial, int steps) {
+		Grid current = initial;
+		for (int step = 0; step < steps; ++step) {
+			current = applyStep(current);
+		}
+		return countCompleteGrid(current);
+	}
+
+	private static long solve2(Grid initial, int steps) {
+		Grid current = initial;
+		current.set(0, 0, 1);
+		current.set(0, current.height-1, 1);
+		current.set(current.width-1, 0, 1);
+		current.set(current.width-1, current.height-1, 1);
+		for (int step = 0; step < steps; ++step) {
+			current = applyStep(current);
+			current.set(0, 0, 1);
+			current.set(0, current.height-1, 1);
+			current.set(current.width-1, 0, 1);
+			current.set(current.width-1, current.height-1, 1);
+
+//			System.out.println("Step: " + step);
+//			for (int y = 0; y < current.height; ++y) {
+//				for (int x = 0; x < current.width; ++x) {
+//					System.out.print(current.get(x, y) == 1 ? '#' : '.');
+//				}
+//				System.out.println();
+//			}
+//			System.out.println();
+
+		}
+		return countCompleteGrid(current);
+	}
+
+
 	public static void main(String[] args) throws IOException {
 		var testData = parse(Path.of("day18/test-input"));
 		Util.assertEqual(solve1(testData, 4), 4);
+		Util.assertEqual(solve2(testData, 5), 17);
 		var data = parse(Path.of("day18/input"));
 		System.out.println(solve1(data, 100));
+		System.out.println(solve2(data, 100));
 	}
 }
