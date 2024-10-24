@@ -18,10 +18,9 @@ public class Solution {
 
 	// naive way to find divisors
 	static long sumDivisors(long number) {
-		long result = number > 1 ? 1 : 0;
-		result += number;
+		long result = 0;
 		long root = (long) Math.sqrt(number);
-		for (long i = 2; i <= root; ++i) {
+		for (long i = 1; i <= root; ++i) {
 			if ((number % i) == 0) {
 				result += i;
 				long other = number / i;
@@ -33,26 +32,46 @@ public class Solution {
 		return result;
 	}
 
-	private static long solve1(int data) {
-		long i = 6;
-		while (true) {
-			long sumDiv = sumDivisors(i);
-			System.out.println(i + ": " + sumDiv);
-			// lowest house number where sum of divisors = X / 10
-			// divisors, times 10
-			if (sumDiv * 10 > data) {
-				break;
+	// naive way to find divisors
+	static long sumDivisors50(long number) {
+		long result = 0;
+		long root = (long) Math.sqrt(number);
+		for (long a = 1; a <= Math.min(50, root); ++a) {
+			if ((number % a) == 0) {
+				long b = number / a;
+				if (a == b) { // exception for duplicate divisors... E.g. 9 has divisors 1, 3, 9 - not 1, 3, 3, 9
+					result += a;
+				}
+				else if (b <= 50) {
+					result += a + b;
+				}
+				else {
+					result += b;
+				}
 			}
-
-			i++;
 		}
-		return i;
+		return result;
+	}
+
+	private static long solve1(int data) {
+		for (long i = 1; true; i++) {
+			if (sumDivisors(i) * 10 > data) {
+				return i;
+			}
+		}
+	}
+
+	private static long solve2(int data) {
+		for (long i = 1; true; i++) {
+			if (sumDivisors50(i) * 11 > data) {
+				return i;
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
-//		var testData = parse(Path.of("day20/test-input"));
-//		Util.assertEqual(solve1(testData), XXX);
 		var data = parse(Path.of("day20/input"));
 		System.out.println(solve1(data));
+		System.out.println(solve2(data));
 	}
 }
