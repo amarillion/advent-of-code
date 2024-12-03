@@ -28,9 +28,11 @@ struct Test {
 Test[] tests = [
 	Test(1,  "./solution.ts", "test-input", format("%s\n%s", 11, 31)),
 	Test(2,  "./solution.ts", "test-input", format("%s\n%s", 2, 4)),
+	Test(3,  "./solution.ts", "test-input", format("%s\n%s", 161, 48)),
 
 	Test(1,  "./solution.ts", "input", format("%s\n%s", 2769675, 24643097)),
 	Test(2,  "./solution.ts", "input", format("%s\n%s", 269, 337)),
+	Test(3,  "./solution.ts", "input", format("%s\n%s", 184576302, 118173507)),
 ];
 
 void runTest(PerformanceContext context, Test t) {
