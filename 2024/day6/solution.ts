@@ -66,8 +66,7 @@ function analyseWalk(grid: Grid) {
 		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
 		if (!inRange(grid, newPos.x, newPos.y)) {
 			return {
-				infinite: false,
-				visited
+				infinite: false, visited, grid
 			};
 		}
 
@@ -91,7 +90,7 @@ function analyseWalk(grid: Grid) {
 
 		const state = `${pos.x},${pos.y};${delta.x},${delta.y}`;
 		if (states.has(state)) {
-			return { infinite: true, visited };
+			return { infinite: true, visited, grid };
 		}
 		states.add(state);
 	}
@@ -101,15 +100,26 @@ function solve1(grid: Grid) {
 	return analyseWalk(structuredClone(grid)).visited;
 }
 
+function findAll(grid: Grid, needle: string) {
+	let result: {x: number, y: number}[] = []
+	eachRange(grid[0].length, grid.length, (x, y) => {
+		if (grid[y][x] === needle) {
+			result.push({x, y});
+		}
+	});
+	return result;
+}
+
 function solve2(grid: Grid) {
 	let result = 0;
-	eachRange(grid[0].length, grid.length, (x, y) => {
+	const pointsToCheck = findAll(analyseWalk(structuredClone(grid)).grid, 'X');
+	for(const {x, y} of pointsToCheck) {
 		if (grid[y][x] !== '.') { return; } // skip starting pos and existing crates.
 		const copy = structuredClone(grid)
 		copy[y][x] = 'O';
 		const flag = analyseWalk(copy);
 		if (flag.infinite) result += 1;
-	});
+	};
 	return result;
 }
 
