@@ -51,47 +51,13 @@ function find(grid: Grid, needle: string) {
 			if (grid[y][x] === needle) {
 				return { x, y };
 			}
-			}
+		}
 	}
 	return null;
 }
 
-function solve1(grid: Grid) {
-	let result = 1;
-	let pos = find(grid, '^');
-
-	let delta = { x: 0, y : -1 };
-
-	while(true) {
-		assert(pos !== null);
-		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
-		if (!inRange(grid, newPos.x, newPos.y)) {
-			// console.log(grid.map(l => l.join('')).join('\n'));
-			return result;
-		}
-
-		const char = grid[newPos.y][newPos.x];
-		if (char === '#') {
-			// rotate 90 degrees
-			delta = { x: -delta.y, y: delta.x };
-		}
-		else if (char === '.') {
-			pos = newPos;
-			grid[pos.y][pos.x] = 'X';
-			result += 1;
-		}
-		else if (char === 'X' || char === '^') {
-			pos = newPos;
-			// ok
-		}
-		else {
-			assert(false, `Error: ${char}`);
-		}
-	}
-}
-
-function isInfiniteWalk(grid: Grid) {
-	let retrace = 0;
+function analyseWalk(grid: Grid) {
+	let visited = 1;
 	let pos = find(grid, '^');
 	let delta = { x: 0, y : -1 };
 	const states = new Set<string>()
@@ -99,21 +65,23 @@ function isInfiniteWalk(grid: Grid) {
 		assert(pos !== null);
 		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
 		if (!inRange(grid, newPos.x, newPos.y)) {
-			return false;
+			return {
+				infinite: false,
+				visited
+			};
 		}
 
 		const char = grid[newPos.y][newPos.x];
-		if (char === '#') {
+		if (char === '#' || char === 'O') {
 			// rotate 90 degrees
 			delta = { x: -delta.y, y: delta.x };
 		}
 		else if (char === '.') {
 			pos = newPos;
-			retrace = 0;
 			grid[pos.y][pos.x] = 'X';
+			visited += 1;
 		}
 		else if (char === 'X' || char === '^') {
-			retrace += 1;
 			pos = newPos;
 			// ok
 		}
@@ -123,20 +91,24 @@ function isInfiniteWalk(grid: Grid) {
 
 		const state = `${pos.x},${pos.y};${delta.x},${delta.y}`;
 		if (states.has(state)) {
-			return true;
+			return { infinite: true, visited };
 		}
 		states.add(state);
 	}
 }
 
+function solve1(grid: Grid) {
+	return analyseWalk(structuredClone(grid)).visited;
+}
+
 function solve2(grid: Grid) {
 	let result = 0;
 	eachRange(grid[0].length, grid.length, (x, y) => {
-		if (grid[y][x] === '^') { return; } // skip starting pos.
+		if (grid[y][x] !== '.') { return; } // skip starting pos and existing crates.
 		const copy = structuredClone(grid)
-		copy[y][x] = '#';
-		const flag = isInfiniteWalk(copy);
-		if (flag) result += 1;
+		copy[y][x] = 'O';
+		const flag = analyseWalk(copy);
+		if (flag.infinite) result += 1;
 	});
 	return result;
 }
