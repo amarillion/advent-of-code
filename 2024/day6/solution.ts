@@ -66,7 +66,7 @@ function solve1(grid: Grid) {
 		assert(pos !== null);
 		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
 		if (!inRange(grid, newPos.x, newPos.y)) {
-			console.log(grid.map(l => l.join('')).join('\n'));
+			// console.log(grid.map(l => l.join('')).join('\n'));
 			return result;
 		}
 
@@ -90,14 +90,62 @@ function solve1(grid: Grid) {
 	}
 }
 
-// function solve2(data: Grid) {
-// 	let result = 0;
-// 	return result;
-// }
+function isInfiniteWalk(grid: Grid) {
+	let retrace = 0;
+	let pos = find(grid, '^');
+	let delta = { x: 0, y : -1 };
+	const states = new Set<string>()
+	while(true) {
+		assert(pos !== null);
+		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
+		if (!inRange(grid, newPos.x, newPos.y)) {
+			return false;
+		}
+
+		const char = grid[newPos.y][newPos.x];
+		if (char === '#') {
+			// rotate 90 degrees
+			delta = { x: -delta.y, y: delta.x };
+		}
+		else if (char === '.') {
+			pos = newPos;
+			retrace = 0;
+			grid[pos.y][pos.x] = 'X';
+		}
+		else if (char === 'X' || char === '^') {
+			retrace += 1;
+			pos = newPos;
+			// ok
+		}
+		else {
+			assert(false, `Error: ${char}`);
+		}
+
+		const state = `${pos.x},${pos.y};${delta.x},${delta.y}`;
+		if (states.has(state)) {
+			return true;
+		}
+		states.add(state);
+	}
+}
+
+function solve2(grid: Grid) {
+	let result = 0;
+	eachRange(grid[0].length, grid.length, (x, y) => {
+		if (grid[y][x] === '^') { return; } // skip starting pos.
+		const copy = structuredClone(grid)
+		copy[y][x] = '#';
+		const flag = isInfiniteWalk(copy);
+		if (flag) result += 1;
+	});
+	return result;
+}
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
 console.log(solve1(data));
-// console.log(solve2(data));
+console.log(solve2(data));
 
-// 5241 too low
+// 16490 too high
+// 16439 too high
+// 15847 too high
