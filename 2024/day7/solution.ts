@@ -14,8 +14,7 @@ function parse(fname: string) {
 	return result;
 }
 
-function hasPossibleResults(expected: number, inputs: number[]) {
-	// console.log("Checking", { expected, inputs });
+function hasPossibleResults(expected: number, inputs: number[], part2 = false) {
 	assert(inputs.length > 0);
 	if (inputs.length === 1) {
 		return expected === inputs[0];
@@ -23,50 +22,31 @@ function hasPossibleResults(expected: number, inputs: number[]) {
 	const remain = inputs.slice();
 	const first = remain.pop();
 	assert(first);
-	return hasPossibleResults(expected - first, remain) ||
-		hasPossibleResults(expected / first, remain);
-}
 
-function solve1(data: Data) {
-	let result = 0;
-	for (const row of data) {
-		if (hasPossibleResults(row.answer, row.inputs)) {
-			// console.log("Match", row);
-			result += row.answer;
-		}
+	if (part2) {
+		const expectedStr = `${expected}`;
+		const firstStr = `${first}`;
+		if (`${expected}`.endsWith(`${first}`)) {
+			if (hasPossibleResults(Number(expectedStr.substring(0, expectedStr.length - firstStr.length)), remain, part2)) {
+				return true;
+			}
+		}	
 	}
-	return result;
-}
 
-function hasPossibleResultsExt(expected: number, inputs: number[]) {
-	// console.log("Checking", { expected, inputs });
-	assert(inputs.length > 0);
-	if (inputs.length === 1) {
-		return expected === inputs[0];
-	}
-	const remain = inputs.slice();
-	const first = remain.pop();
-	assert(first);
-	const expectedStr = `${expected}`;
-	const firstStr = `${first}`;
-	if (`${expected}`.endsWith(`${first}`)) {
-		if (hasPossibleResultsExt(Number(expectedStr.substring(0, expectedStr.length - firstStr.length)), remain)) {
+	// only checking integer division
+	if (expected % first === 0) {
+		if (hasPossibleResults(expected / first, remain, part2)) {
 			return true;
 		}
 	}
-	return hasPossibleResultsExt(expected - first, remain) ||
-		hasPossibleResultsExt(expected / first, remain);
+
+	return hasPossibleResults(expected - first, remain, part2);
 }
 
-// 7290
-// 7290 / 15 = 486
-// endsWith first
-
-function solve2(data: Data) {
+function solve(data: Data, part2: boolean) {
 	let result = 0;
 	for (const row of data) {
-		if (hasPossibleResultsExt(row.answer, row.inputs)) {
-			// console.log("Match", row);
+		if (hasPossibleResults(row.answer, row.inputs, part2)) {
 			result += row.answer;
 		}
 	}
@@ -75,5 +55,5 @@ function solve2(data: Data) {
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-console.log(solve1(data));
-console.log(solve2(data));
+console.log(solve(data, false));
+console.log(solve(data, true));
