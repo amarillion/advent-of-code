@@ -2,8 +2,23 @@ import { readFileSync } from 'fs';
 
 export type Grid = string[][];
 
+/** @deprecated */
 export function readGridFromFile(fname: string) {
 	return readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').map(line => [...line]);
+}
+
+export function readGridFromFileEx(fname: string) {
+	const data = readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').map(line => [...line]);
+	return createGrid(data);
+}
+
+export function createGrid(data: string[][]) {
+	return {
+		data,
+		width: data[0].length,
+		height: data.length,
+		inRange: (p: {x: number, y: number}) => inRange(data, p.x, p.y)
+	};
 }
 
 export function inRange(data: string[][], x: number, y: number) {

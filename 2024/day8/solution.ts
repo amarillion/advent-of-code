@@ -1,80 +1,69 @@
 #!/usr/bin/env tsx
 
 import { assert } from '../common/assert.js';
-import { eachRange, find, findAll, inRange, readGridFromFile, type Grid } from '../common/grid.js';
+import { allPairs } from '../common/combinations.js';
+import { eachRange, readGridFromFileEx } from '../common/grid.js';
+import { Point } from '../common/point.js';
+
+type Grid = ReturnType<typeof readGridFromFileEx>;
 
 function parse(fname: string) {
-	const data = readGridFromFile(fname);
-	return data;
+	return readGridFromFileEx(fname);
 }
-
-type Point = { x: number, y: number };
 
 function extractAntennas(grid: Grid) { 
 	const result: Record<string, Point[]> = {};
-	eachRange(grid[0].length, grid.length, (x, y) => {
-		const char = grid[y][x];
+	eachRange(grid.width, grid.height, (x, y) => {
+		const char = grid.data[y][x];
 		if (char !== '.') {
 			if (!(char in result)) {
 				result[char] = [];
 			}
-			result[char].push({x, y});
+			result[char].push(new Point(x, y));
 		}
 	});
-	return result;
+	return Object.values(result);
 }
 
-function getAntinodes(grid: Grid, i: Point, j: Point, part2: boolean) {
-	const delta = { x: j.x - i.x, y: j.y - i.y };
+function *getAntinodes(grid: Grid, i: Point, j: Point, part2: boolean) {
+	const delta = j.minus(i);
 	if (part2) {
-		// extend in both directions until out of range....
-		let times = 1;
-		let currentPos: Point;
-		let currentNeg: Point;
-		let result: Point[] = [];
-		result.push({ ...i });
-		let cont;
-		do {
-			currentPos = { x: i.x + times * delta.x, y: i.y + times * delta.y };
-			currentNeg = { x: i.x - times * delta.x, y: i.y - times * delta.y };
-			result.push(currentPos);
-			result.push(currentNeg);
-			cont = inRange(grid, currentPos.x, currentPos.y) || inRange(grid, currentNeg.x, currentNeg.y);
-			times++;
-		} while (cont)
-		return result;
+		let current = new Point(i.x, i.y);
+		while (grid.inRange(current)) {
+			yield current;
+			current = current.plus(delta);
+		}
+		current = new Point(j.x, j.y);
+		while (grid.inRange(current)) {
+			yield current;
+			current = current.minus(delta);
+		}
 	}
 	else {
-		return [
-			{ x: i.x - delta.x, y: i.y - delta.y },
-			{ x: j.x + delta.x, y: j.y + delta.y }
-		];
+		yield i.minus(delta);
+		yield j.plus(delta);
 	}
 }
 
 function solve(grid: Grid, part2 = false) {
-	const antennas = extractAntennas(grid);
-
-	const antinodes = new Set<string>();
-
-	for (const [k, v] of Object.entries(antennas)) {
-
+	const uniqueAntinodes = new Set<string>();
+	
+	for (const v of extractAntennas(grid)) {
+		
 		// now take each pair of antennae, and create dead points
-		for(let i = 1; i < v.length; i++) {
-			for (let j = 0; j < i; ++j) {
-				
-				// calculate antinodes for pair i,j
-				const aa = getAntinodes(grid, v[i], v[j], part2);
-				for (const p of aa) {
-					if (inRange(data, p.x, p.y)) {
-						antinodes.add(`${p.x},${p.y}`);
-					}
+		for(const pair of allPairs(v)) {
+
+			// calculate antinodes for pair i,j
+			const aa = getAntinodes(grid, pair[0], pair[1], part2);
+			for (const p of aa) {
+				if (grid.inRange(p)) {
+					uniqueAntinodes.add(Point.toString(p));
 				}
 			}
 		}
 	}
 	
-	return antinodes.size;
+	return uniqueAntinodes.size;
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
