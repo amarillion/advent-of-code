@@ -24,15 +24,35 @@ function extractAntennas(grid: Grid) {
 	return result;
 }
 
-function getAntinodes(i: Point, j: Point) {
+function getAntinodes(grid: Grid, i: Point, j: Point, part2: boolean) {
 	const delta = { x: j.x - i.x, y: j.y - i.y };
-	return [
-		{ x: i.x - delta.x, y: i.y - delta.y },
-		{ x: j.x + delta.x, y: j.y + delta.y }
-	];
+	if (part2) {
+		// extend in both directions until out of range....
+		let times = 1;
+		let currentPos: Point;
+		let currentNeg: Point;
+		let result: Point[] = [];
+		result.push({ ...i });
+		let cont;
+		do {
+			currentPos = { x: i.x + times * delta.x, y: i.y + times * delta.y };
+			currentNeg = { x: i.x - times * delta.x, y: i.y - times * delta.y };
+			result.push(currentPos);
+			result.push(currentNeg);
+			cont = inRange(grid, currentPos.x, currentPos.y) || inRange(grid, currentNeg.x, currentNeg.y);
+			times++;
+		} while (cont)
+		return result;
+	}
+	else {
+		return [
+			{ x: i.x - delta.x, y: i.y - delta.y },
+			{ x: j.x + delta.x, y: j.y + delta.y }
+		];
+	}
 }
 
-function solve1(grid: Grid) {
+function solve(grid: Grid, part2 = false) {
 	const antennas = extractAntennas(grid);
 
 	const antinodes = new Set<string>();
@@ -44,7 +64,8 @@ function solve1(grid: Grid) {
 			for (let j = 0; j < i; ++j) {
 				
 				// calculate antinodes for pair i,j
-				for (const p of getAntinodes(v[i], v[j])) {
+				const aa = getAntinodes(grid, v[i], v[j], part2);
+				for (const p of aa) {
 					if (inRange(data, p.x, p.y)) {
 						antinodes.add(`${p.x},${p.y}`);
 					}
@@ -56,12 +77,7 @@ function solve1(grid: Grid) {
 	return antinodes.size;
 }
 
-// function solve2(data: Data) {
-// 	let result = 0;
-// 	return result;
-// }
-
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-console.log(solve1(data));
-// console.log(solve2(data));
+console.log(solve(data));
+console.log(solve(data, true));
