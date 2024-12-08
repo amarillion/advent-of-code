@@ -31,6 +31,7 @@ Test[] tests = [
 	Test(3,  "./solution.ts", "test-input", format("%s\n%s", 161, 48)),
 	Test(4,  "./solution.ts", "test-input", format("%s\n%s", 18, 9)),
 	Test(5,  "./solution.ts", "test-input", format("%s\n%s", 143, 123)),
+	Test(6,  "./simple.ts",   "test-input", format("%s\n%s", 41, 6)),
 	Test(6,  "./solution.ts", "test-input", format("%s\n%s", 41, 6)),
 	Test(7,  "./solution.ts", "test-input", format("%s\n%s", 3749, 11387)),
 	Test(8,  "./solution.ts", "test-input", format("%s\n%s", 14, 34)),
