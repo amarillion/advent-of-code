@@ -4,6 +4,7 @@ import { assert } from '../common/assert.js';
 import { eachRange, find, findAll, inRange, readGridFromFileEx, type Grid } from '../common/grid.js';
 import { DefaultMap } from '../common/DefaultMap.js'
 import { Point } from '../common/point.js';
+import { unique } from '../common/iterableUtils.js';
 
 const NORTH = 1;
 const EAST = 2;
@@ -84,19 +85,6 @@ function *stepWise(grid: Grid, barrierMap: DefaultMap<Dir, DefaultMap<number, nu
 	}
 }
 
-//TODO: merge with takeUnique from puzzles prep
-function uniqueList(generator: Generator<Point>) {
-	let visitedSet = new Set<string>();
-	let visited: Point[] = [];
-	for (const current of generator) {
-		if (!visitedSet.has(current.toString())) {
-			visitedSet.add(current.toString());
-			visited.push(current);
-		}
-	}
-	return visited;
-}
-
 function isInfinite(grid: Grid, extraBarrier: Point, barrierMap: DefaultMap<Dir, DefaultMap<number, number[]>>, start: Point) {
 	const states = new Set<string>();
 	
@@ -157,25 +145,20 @@ function getBarriers(grid: Grid) {
 	return { barrierMap, start }
 } 
 
-function solve1(grid: Grid) {
+function solve(grid: Grid) {
 	const { barrierMap, start } = getBarriers(grid);
-	const visited = uniqueList(stepWise(grid, barrierMap, start));
-	return visited.length;
-}
-
-function solve2(grid: Grid) {
+	const visited = [...unique(stepWise(grid, barrierMap, start), p => p.toString())];
+	
 	let result = 0;
-	const { barrierMap, start } = getBarriers(grid);
-	const pointsToCheck = uniqueList(stepWise(grid, barrierMap, start));
-	for(const p of pointsToCheck) {
+	// try barriers in any visited spot
+	for(const p of visited) {
 		if (grid[p.y][p.x] !== '.') { continue; } // skip starting pos.
 		const flag = isInfinite(grid, p, barrierMap, start);
 		if (flag) result += 1;
 	};
-	return result;
+	return [ visited.length, result ];
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const grid = readGridFromFileEx(process.argv[2]);
-console.log(solve1(grid.data));
-console.log(solve2(grid.data));
+console.log(solve(grid.data).join('\n'));
