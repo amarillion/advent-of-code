@@ -10,3 +10,4 @@ out/
 *.class
 .vscode/
 performance.log
+puzzle
