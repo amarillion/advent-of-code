@@ -42,22 +42,14 @@ function solve1(data: Data) {
 	let result = 0;
 	for (const row of data) {
 		
-		// stelsel van vergelijkingen
-		/*
-		
-		1: p * ax + q * bx = px
-		2: p * ay + q * by = py
-
-		*/
-
 		// brute force...
-		for (let p = 0; p < 100; ++p) {
-			for (let q = 0; q < 100; ++q) {
-				if ((p * row.a.x + q * row.b.x === row.p.x) && 
-					(p * row.a.y + q * row.b.y === row.p.y)
+		for (let u = 0; u < 100; ++u) {
+			for (let v = 0; v < 100; ++v) {
+				if ((u * row.a.x + v * row.b.x === row.p.x) && 
+					(u * row.a.y + v * row.b.y === row.p.y)
 				) {
-					console.log({p, q}, p + q * 3);
-					result += p * 3 + q;
+					console.log({p: u, q: v}, u + v * 3);
+					result += u * 3 + v;
 					break;
 				}
 			} 
@@ -66,12 +58,48 @@ function solve1(data: Data) {
 	return result;
 }
 
-// function solve2(data: Data) {
-// 	let result = 0;
-// 	return result;
-// }
+function solve2(data: Data) {
+	let result = 0;
+	for (const row of data) {
+		
+		row.p.x += 10000000000000;
+		row.p.y += 10000000000000;
+		
+		console.log(row);
+
+		// stelsel van vergelijkingen
+		// system of equations
+		/*
+		1: u * ax + v * bx = px
+		2: u * ay + v * by = py
+		
+		u * 94 + v * 22 = 8400
+		u * 34 + v * 67 = 5400
+		
+		u = 8400/94 - v * 22/94
+		8400/94*34 - v *22/94*34 + v * 67 = 5400
+		v * (67 - 22/94*34) = 5400 - 8400/94*34
+		v = (5400 - 8400/94*34) / (67 - 22/94*34)
+		v = p.y - (p.x/a.x*a.y) / (b.y - (b.x / a.x * a.y))
+		*/
+
+		const { p, a, b } = row;
+		const v = Math.round((p.y - (p.x /a.x *a.y)) / (b.y - (b.x / a.x * a.y)));
+		const u = Math.round((p.x / a.x) - (v * b.x / a.x));
+		console.log(`${u} * ${a.x} + ${v} * ${b.x} = ${u * a.x + v * b.x} (expected ${p.x})`, u * 3 + v);
+
+		if ((u * a.x + v * b.x === p.x) && 
+		(u * a.y + v * b.y === p.y)
+		) {
+			console.log({p: u, q: v}, u + v * 3);
+			result += u * 3 + v;
+		}
+
+	}
+	return result;
+}
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
 console.log(solve1(data));
-// console.log(solve2(data));
+console.log(solve2(data));
