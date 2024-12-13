@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
 import { Point } from '../common/point.js';
 
-
 type RecordType = {
 	a: Point;
 	b: Point;
@@ -23,7 +22,6 @@ function parse(fname: string) {
 		const m2 = block[1].match(/Button B: X(?<bx>[-+0-9]+), Y(?<by>[-+0-9]+)/);
 		const m3 = block[2].match(/Prize: X=(?<px>[-+0-9]+), Y=(?<py>[-+0-9]+)/);
 		
-		console.log(block);
 		assert(m1);
 		assert(m2);
 		assert(m3);
@@ -34,41 +32,19 @@ function parse(fname: string) {
 			p: new Point(Number(m3.groups?.px), Number(m3.groups?.py)),
 		});
 	}
-	console.log(result);
 	return result;
 }
 
-function solve1(data: Data) {
+function solve2(data: Data, part2 = false) {
 	let result = 0;
 	for (const row of data) {
 		
-		// brute force...
-		for (let u = 0; u < 100; ++u) {
-			for (let v = 0; v < 100; ++v) {
-				if ((u * row.a.x + v * row.b.x === row.p.x) && 
-					(u * row.a.y + v * row.b.y === row.p.y)
-				) {
-					console.log({p: u, q: v}, u + v * 3);
-					result += u * 3 + v;
-					break;
-				}
-			} 
-		}
-	}
-	return result;
-}
-
-function solve2(data: Data) {
-	let result = 0;
-	for (const row of data) {
-		
-		row.p.x += 10000000000000;
-		row.p.y += 10000000000000;
-		
-		console.log(row);
+		const { a, b } = row;
+		const p = part2 ? new Point (row.p.x + 10000000000000, row.p.y + 10000000000000) : row.p;
 
 		// stelsel van vergelijkingen
 		// system of equations
+		// TODO: generic matrix solver
 		/*
 		1: u * ax + v * bx = px
 		2: u * ay + v * by = py
@@ -83,17 +59,15 @@ function solve2(data: Data) {
 		v = p.y - (p.x/a.x*a.y) / (b.y - (b.x / a.x * a.y))
 		*/
 
-		const { p, a, b } = row;
 		const v = Math.round((p.y - (p.x /a.x *a.y)) / (b.y - (b.x / a.x * a.y)));
 		const u = Math.round((p.x / a.x) - (v * b.x / a.x));
-		console.log(`${u} * ${a.x} + ${v} * ${b.x} = ${u * a.x + v * b.x} (expected ${p.x})`, u * 3 + v);
 
 		if ((u * a.x + v * b.x === p.x) && 
-		(u * a.y + v * b.y === p.y)
+			(u * a.y + v * b.y === p.y)
 		) {
-			console.log({p: u, q: v}, u + v * 3);
 			result += u * 3 + v;
 		}
+		// else: no integer solution
 
 	}
 	return result;
@@ -101,5 +75,5 @@ function solve2(data: Data) {
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-console.log(solve1(data));
-console.log(solve2(data));
+console.log(solve2(data, false));
+console.log(solve2(data, true));
