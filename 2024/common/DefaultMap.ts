@@ -86,7 +86,7 @@ export class DefaultMap<K, V> {
 	}
 
 	/** customization */
-	update(key: K, updateFunc: (val?: V) => V) {
+	update(key: K, updateFunc: (val: V) => V) {
 		this.set(key, updateFunc(this.get(key)));
 	}
 
