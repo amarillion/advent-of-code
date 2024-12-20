@@ -3,9 +3,8 @@
 import { readFileSync } from 'fs';
 import { assert, notNull } from '../common/assert.js'
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
-import { DefaultMap } from '../common/DefaultMap.js';
 import { Point } from '../common/point.js';
-import { breadthFirstSearch, bfsGenerator, trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
+import { breadthFirstSearch, trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
 
 // TODO: make utility function
 function find<T>(grid: TemplateGrid<T>, predicate: (t: T) => boolean) {
@@ -38,6 +37,19 @@ function parse(fname: string) {
 	return new TemplateGrid<Cell>(data[0].length, data.length, (x, y) => new Cell(x, y, data[y][x]));
 }
 
+// TODO: make utility function
+// visit each point surrounding 0,0 in a diamond shape
+function *diamondRange(size: number) {
+	if (size < 0) return;
+	// going in reverse order to avoid negative zeroes
+	for (let x = size; x >= -size; x--) {
+		const ortho = size - Math.abs(x);
+		for (let y = ortho; y >= -ortho; y--) {
+			yield new Point(x, y);
+		}
+	}
+}
+
 function solve(grid: Data, limit: number, cutoff: number) {	
 	let result = 0;
 
@@ -61,27 +73,24 @@ function solve(grid: Data, limit: number, cutoff: number) {
 	// const frqMap = new DefaultMap<number, number>(0);
 	for (const currentCell of relevantNodes) {
 		
-		// get all neighboring cells crossing a '#' in a diamond shape
-		const possibilities = new Set<Cell>();
-		for (const possibility of bfsGenerator(currentCell, function *(cell) {
-			const distance = Point.manhattan(Point.minus(currentCell, cell));
-			if (distance >= limit) return;
-			yield *grid.getAdjacent(cell);
-		})) {
-			if (possibility.char !== '#' && possibility !== currentCell) {
-				possibilities.add(possibility);
-			}
-		}
+		const currentCost = distanceToEnd.get(currentCell)!.cost; 
 
-		for (const cheatEnd of possibilities) {
-			const cheatCost = Point.manhattan(Point.minus(currentCell, cheatEnd)); 
-			const cheatSavings = distanceToEnd.get(currentCell)!.cost - 
-				distanceToEnd.get(cheatEnd)!.cost - cheatCost;
-			// if (cheatSavings > 0) {
-			// 	frqMap.update(cheatSavings, i => i + 1);
-			// }
-			if (cheatSavings >= cutoff) {
-				result++;
+		// get all neighboring cells in a diamond shape
+		for (const delta of diamondRange(limit)) {
+
+			const pos = delta.plus(currentCell);
+			if (!grid.inRange(pos.x, pos.y)) continue;
+			
+			const cheatEnd = grid.get(pos.x, pos.y);
+			if (cheatEnd.char !== '#' && cheatEnd !== currentCell) {
+				const cheatCost = delta.manhattan(); 
+				const cheatSavings = currentCost - distanceToEnd.get(cheatEnd)!.cost - cheatCost;
+				// if (cheatSavings > 0) {
+				// 	frqMap.update(cheatSavings, i => i + 1);
+				// }
+				if (cheatSavings >= cutoff) {
+					result++;
+				}
 			}
 		}
 	}
