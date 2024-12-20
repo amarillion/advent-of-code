@@ -38,7 +38,7 @@ function parse(fname: string) {
 	return new TemplateGrid<Cell>(data[0].length, data.length, (x, y) => new Cell(x, y, data[y][x]));
 }
 
-function solve(grid: Data, limit: number) {	
+function solve(grid: Data, limit: number, cutoff: number) {	
 	let result = 0;
 
 	// find S and E
@@ -80,7 +80,7 @@ function solve(grid: Data, limit: number) {
 			// if (cheatSavings > 0) {
 			// 	frqMap.update(cheatSavings, i => i + 1);
 			// }
-			if (cheatSavings >= 100) {
+			if (cheatSavings >= cutoff) {
 				result++;
 			}
 		}
@@ -92,5 +92,6 @@ function solve(grid: Data, limit: number) {
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-console.log(solve(data, 2));
-console.log(solve(data, 20));
+const cutoff = process.argv[2].startsWith('test') ? 50: 100;
+console.log(solve(data, 2, cutoff));
+console.log(solve(data, 20, cutoff));
