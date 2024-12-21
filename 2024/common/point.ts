@@ -93,4 +93,17 @@ export class Point implements IPoint {
 	static equals(a: IPoint, b: IPoint) {
 		return a.x === b.x && a.y === b.y;
 	}
+
+	static wrap(value: IPoint, area: IPoint) {
+		const result = new Point(value.x, value.y);
+		while (result.x < 0) { result.x += area.x; }
+		result.x %= area.x;
+		while (result.y < 0) { result.y += area.y; }
+		result.y %= area.y;
+		return result;
+	}
+	
+	wrap(area: IPoint) {
+		return Point.wrap(this, area);
+	}
 }
