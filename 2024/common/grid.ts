@@ -17,7 +17,12 @@ export function createGrid(data: string[][]) {
 		data,
 		width: data[0].length,
 		height: data.length,
-		inRange: (p: {x: number, y: number}) => inRange(data, p.x, p.y)
+		inRange: (p: {x: number, y: number}) => inRange(data, p.x, p.y),
+		find: (needle: string) => find(data, needle),
+		set: (p: { x : number, y: number }, value: string) => data[p.y][p.x] = value,
+		get: (p: { x : number, y: number }) => data[p.y][p.x],
+		toString: () => data.map(line => line.join('')).join('\n'),
+		findAll: (needle: string) => findAll(data, needle),
 	};
 }
 
@@ -48,8 +53,8 @@ export function take<T>(generator: Generator<T>, num: number) {
 }
 
 export function eachRange(width: number, height: number, callback: (x: number, y: number) => void) {
-	for (let y = 0; y < width; ++y) {
-		for (let x = 0; x < height; ++x) {
+	for (let y = 0; y < height; ++y) {
+		for (let x = 0; x < width; ++x) {
 			callback(x, y);
 		}
 	}
@@ -58,8 +63,8 @@ export function eachRange(width: number, height: number, callback: (x: number, y
 export function find(grid: Grid, needle: string) {
 	const width = grid[0].length;
 	const height = grid.length;
-	for (let y = 0; y < width; ++y) {
-		for (let x = 0; x < height; ++x) {
+	for (let y = 0; y < height; ++y) {
+		for (let x = 0; x < width; ++x) {
 			if (grid[y][x] === needle) {
 				return { x, y };
 			}
@@ -69,8 +74,10 @@ export function find(grid: Grid, needle: string) {
 }
 
 export function findAll(grid: Grid, needle: string) {
-	let result: {x: number, y: number}[] = []
-	eachRange(grid[0].length, grid.length, (x, y) => {
+	let result: {x: number, y: number}[] = [];
+	const width = grid[0].length;
+	const height = grid.length;
+	eachRange(width, height, (x, y) => {
 		if (grid[y][x] === needle) {
 			result.push({x, y});
 		}
