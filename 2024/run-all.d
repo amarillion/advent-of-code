@@ -42,6 +42,8 @@ Test[] tests = [
 	Test(12, "./solution.ts", "test-input2", format("%s\n%s", 1184, 368)),
 	Test(13, "./solution.ts", "test-input", format("%s\n%s", 480, 875318608908)),
 
+	Test(15, "./solution.ts", "test-input", format("%s\n%s", 10092, 9021)),
+
 	Test(20, "./solution.ts", "test-input", format("%s\n%s", 1, 285)),
 
 	Test(1,  "./solution.ts", "input", format("%s\n%s", 2769675, 24643097)),
@@ -57,6 +59,8 @@ Test[] tests = [
 	Test(11, "./solution.ts", "input", format("%s\n%s", 183435, 218279375708592)),
 	Test(12, "./solution.ts", "input", format("%s\n%s", 1488414, 911750)),
 	Test(13, "./solution.ts", "input", format("%s\n%s", 33209, 83102355665474)),
+
+	Test(15, "./solution.ts", "input", format("%s\n%s", 1515788, 1516544)),
 
 	Test(20, "./solution.ts", "input", format("%s\n%s", 1411, 1010263)),
 

@@ -22,47 +22,6 @@ const DELTA = {
 	'v': { x: 0, y: 1 },
 	'<': { x: -1, y: 0 },
 }
-function solve1(data: Data) {
-	const { grid, moves } = data;
-	
-	let robot = notNull(grid.find('@'));
-	console.log(grid.toString());
-
-	function tryPush(pos: IPoint, dir: IPoint) {
-		const newPos = Point.plus(pos, dir);
-
-		if (grid.get(newPos) === 'O') {
-			tryPush(newPos, dir);
-		}
-
-		if (grid.get(newPos) === '.') {
-			// push is ok, swap the values
-			grid.set(newPos, grid.get(pos));
-			grid.set(pos, '.');
-		}
-	}
-
-	let i = 0;
-	for (const move of moves) {
-		grid.set(robot, '.');
-		const dir = DELTA[move];
-		assert(dir);
-		// recursively try to move object at x, y into dir
-		const newPos = Point.plus(robot, dir);
-		if (grid.get(newPos) === 'O') {
-			tryPush(newPos, dir);
-		}
-		if (grid.get(newPos) === '.') {
-			robot = newPos;
-		}
-		grid.set(robot, '@');
-		// console.log(`\nStep: ${++i} Move: ${move}`);
-		// console.log(grid.toString());
-	}
-
-	console.log(grid.toString());
-	return sum(grid.findAll('O').map(({ x, y }) => y * 100 + x));
-}
 
 const TRANSFORM = {
 	'O': [...'[]'],
@@ -77,85 +36,66 @@ function transformGrid(grid: Grid) {
 }
 
 function solve2(data: Data) {
-	const { grid: originalGrid, moves } = data;
+	const { grid } = data;
 	
-	const grid = transformGrid(originalGrid);
-
-	console.log(grid.toString());
-
-	let robot = notNull(grid.find('@'));
-	console.log(robot);
-
 	function canPush(pos: IPoint, dir: IPoint) {
 		const newPos = Point.plus(pos, dir);
-
-		if (grid.get(newPos) === '.') {
+		const char = grid.get(newPos);
+		
+		if (char === '.') {
 			return true;
 		}
 		
-		if (dir.y === 0) { // horizontal pushing
-			const char = grid.get(newPos);
-			if ('[]'.includes(char)) {
-				return canPush(newPos, dir);
-			}
-			return (char === '.');
+		if (dir.y === 0 && 'O[]'.includes(char)) { // horizontal pushing
+			return canPush(newPos, dir);
 		}
 		
-		if (grid.get(newPos) === '[') {
+		if (char === '[') {
 			const side = { x: newPos.x + 1, y: newPos.y };
 			return canPush(newPos, dir) && canPush(side, dir);
 		}
-		else if (grid.get(newPos) === ']') {
+		else if (char === ']') {
 			const side = { x: newPos.x - 1, y: newPos.y };
 			return canPush(newPos, dir) && canPush(side, dir);
+		}
+		else if (char === 'O') {
+			return canPush(newPos, dir);
 		}
 		return false;
 	}
 
 	function doPush(pos: IPoint, dir: IPoint) {
-		if (dir.y === 0) { // horizontal pushing
-			const newPos = Point.plus(pos, dir);
-			if (grid.get(newPos) !== '.') {
-				doPush(newPos, dir)
-			}
-			grid.set(newPos, grid.get(pos));
-			grid.set(pos, '.');
-			return;
-		}
-	
-		let leftSide = pos, rightSide = pos;
-		let isBox = false;
+		const char = grid.get(pos);
 		
-		if (grid.get(pos) === '[') {
-			isBox = true;
-			rightSide = { x: pos.x + 1, y: pos.y };
-		}
-		else if (grid.get(pos) === ']') {
-			isBox = true;
-			leftSide = { x: pos.x - 1, y: pos.y };
-		}
+		if ('O[]'.includes(char)) {
+			const positions = [ pos ];
+			if (dir.y !== 0) {
+				if (grid.get(pos) === '[') {
+					positions.push({ x: pos.x + 1, y: pos.y });
+				}
+				else if (grid.get(pos) === ']') {
+					positions.push({ x: pos.x - 1, y: pos.y });
+				}
+			}
 
-		if (isBox) {
-			const leftForward = Point.plus(leftSide, dir);
-			const rightForward = Point.plus(rightSide, dir);
-			doPush(leftForward, dir);
-			doPush(rightForward, dir);
-			grid.set(leftForward, '[');
-			grid.set(rightForward, ']');
-			grid.set(leftSide, '.');
-			grid.set(rightSide, '.');
+			for (const p of positions) {
+				const forward = Point.plus(p, dir);
+				doPush(forward, dir);
+				grid.set(forward, grid.get(p));
+				grid.set(p, '.');
+			}
 		}
 	}
 
-	let i = 0;
-	for (const move of moves) {
+	let robot = notNull(grid.find('@'));
+	for (const move of data.moves) {
 		grid.set(robot, '.');
 		const dir = DELTA[move];
 		assert(dir);
-		// recursively try to move object at x, y into dir
+	
 		const newPos = Point.plus(robot, dir);
 		const newCell = grid.get(newPos); 
-		if ('[]'.includes(newCell)) {
+		if ('O[]'.includes(newCell)) {
 			if (canPush(robot, dir)) {
 				doPush(newPos, dir);
 			}
@@ -164,14 +104,20 @@ function solve2(data: Data) {
 			robot = newPos;
 		}
 		grid.set(robot, '@');
-		console.log(`\nStep: ${++i} Move: ${move}`);
-		console.log(grid.toString());
 	}
 
-	return sum(grid.findAll('[').map(({ x, y }) => y * 100 + x));
+	return (
+		sum(grid.findAll('[').map(({ x, y }) => y * 100 + x)) + 
+		sum(grid.findAll('O').map(({ x, y }) => y * 100 + x))
+	);
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-// console.log(solve1(data));
+
+// transform grid before it's modified by the solver
+const part2Data = { grid: transformGrid(data.grid), moves: data.moves };
+
 console.log(solve2(data));
+
+console.log(solve2(part2Data));
