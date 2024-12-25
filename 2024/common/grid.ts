@@ -1,13 +1,8 @@
 import { readFileSync } from 'fs';
 
-export type Grid = string[][];
+export type Grid = ReturnType<typeof createGrid>
 
-/** @deprecated */
 export function readGridFromFile(fname: string) {
-	return readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').map(line => [...line]);
-}
-
-export function readGridFromFileEx(fname: string) {
 	const data = readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').map(line => [...line]);
 	return createGrid(data);
 }
@@ -60,7 +55,7 @@ export function eachRange(width: number, height: number, callback: (x: number, y
 	}
 }
 
-export function find(grid: Grid, needle: string) {
+export function find(grid: string[][], needle: string) {
 	const width = grid[0].length;
 	const height = grid.length;
 	for (let y = 0; y < height; ++y) {
@@ -73,7 +68,7 @@ export function find(grid: Grid, needle: string) {
 	return null;
 }
 
-export function findAll(grid: Grid, needle: string) {
+export function findAll(grid: string[][], needle: string) {
 	let result: {x: number, y: number}[] = [];
 	const width = grid[0].length;
 	const height = grid.length;

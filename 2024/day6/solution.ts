@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { assert } from '../common/assert.js';
-import { eachRange, find, findAll, inRange, readGridFromFileEx, type Grid } from '../common/grid.js';
+import { eachRange, readGridFromFile, type Grid } from '../common/grid.js';
 import { DefaultMap } from '../common/DefaultMap.js'
 import { Point } from '../common/point.js';
 import { unique } from '../common/iterableUtils.js';
@@ -57,8 +57,8 @@ function *iteration(start: Point, barrierMap: { get: (dir: number) => { get: (pr
 			let exitPos: Point;
 			switch(dir) {
 				case NORTH: exitPos = new Point(pos.x, 0); break;
-				case EAST: exitPos = new Point(grid[0].length - 1, pos.y); break;
-				case SOUTH: exitPos = new Point(pos.x, grid.length - 1); break;
+				case EAST: exitPos = new Point(grid.width - 1, pos.y); break;
+				case SOUTH: exitPos = new Point(pos.x, grid.height - 1); break;
 				default: case WEST: exitPos = new Point(0, pos.y); break;
 			}
 			yield { dir, pos: exitPos, done: true };
@@ -129,8 +129,8 @@ function getBarriers(grid: Grid) {
 		() => new DefaultMap<number, number[]>([])
 	);
 	let start: Point|undefined;
-	eachRange(grid[0].length, grid.length, (x, y) => {
-		const char = grid[y][x];
+	eachRange(grid.width, grid.height, (x, y) => {
+		const char = grid.get({ x, y });
 		if (char === '#') {
 			barrierMap.get(NORTH).get(x).unshift(y)
 			barrierMap.get(EAST).get(y).push(x)
@@ -152,7 +152,7 @@ function solve(grid: Grid) {
 	let result = 0;
 	// try barriers in any visited spot
 	for(const p of visited) {
-		if (grid[p.y][p.x] !== '.') { continue; } // skip starting pos.
+		if (grid.get(p) !== '.') { continue; } // skip starting pos.
 		const flag = isInfinite(grid, p, barrierMap, start);
 		if (flag) result += 1;
 	};
@@ -160,5 +160,5 @@ function solve(grid: Grid) {
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
-const grid = readGridFromFileEx(process.argv[2]);
-console.log(solve(grid.data).join('\n'));
+const grid = readGridFromFile(process.argv[2]);
+console.log(solve(grid).join('\n'));

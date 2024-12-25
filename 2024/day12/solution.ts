@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { eachRange, Grid, inRange, readGridFromFileEx } from '../common/grid.js';
+import { eachRange } from '../common/grid.js';
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { bfsGenerator } from '@amarillion/helixgraph/lib/pathFinding.js';
 import { Point } from '../common/point.js';

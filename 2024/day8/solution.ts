@@ -2,13 +2,11 @@
 
 import { assert } from '../common/assert.js';
 import { allPairs } from '../common/combinations.js';
-import { eachRange, readGridFromFileEx } from '../common/grid.js';
+import { eachRange, readGridFromFile, type Grid } from '../common/grid.js';
 import { Point } from '../common/point.js';
 
-type Grid = ReturnType<typeof readGridFromFileEx>;
-
 function parse(fname: string) {
-	return readGridFromFileEx(fname);
+	return readGridFromFile(fname);
 }
 
 function extractAntennas(grid: Grid) { 

@@ -1,31 +1,30 @@
 #!/usr/bin/env tsx
 
-import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { find, findAll, inRange, readGridFromFile, type Grid } from '../common/grid.js';
+import { createGrid, find, findAll, inRange, readGridFromFile, type Grid } from '../common/grid.js';
 
 function analyseWalk(grid: Grid) {
 	let visited = 1;
-	let pos = find(grid, '^');
+	let pos = grid.find('^');
 	let delta = { x: 0, y : -1 };
 	const states = new Set<string>()
 	while(true) {
 		assert(pos);
 		const newPos = { x: pos.x + delta.x, y: pos.y + delta.y };
-		if (!inRange(grid, newPos.x, newPos.y)) {
+		if (!grid.inRange(newPos)) {
 			return {
 				infinite: false, visited, grid
 			};
 		}
 
-		const char = grid[newPos.y][newPos.x];
+		const char = grid.get(newPos);
 		if (char === '#' || char === 'O') {
 			// rotate 90 degrees
 			delta = { x: -delta.y, y: delta.x };
 		}
 		else if (char === '.') {
 			pos = newPos;
-			grid[pos.y][pos.x] = 'X';
+			grid.set(pos, 'X');
 			visited += 1;
 		}
 		else if (char === 'X' || char === '^') {
@@ -45,16 +44,16 @@ function analyseWalk(grid: Grid) {
 }
 
 function solve1(grid: Grid) {
-	return analyseWalk(structuredClone(grid)).visited;
+	return analyseWalk(createGrid(structuredClone(grid.data))).visited;
 }
 
 function solve2(grid: Grid) {
 	let result = 0;
-	const pointsToCheck = findAll(analyseWalk(structuredClone(grid)).grid, 'X');
+	const pointsToCheck = analyseWalk(createGrid(structuredClone(grid.data))).grid.findAll('X');
 	for(const {x, y} of pointsToCheck) {
-		if (grid[y][x] !== '.') { return; } // skip starting pos and existing crates.
-		const copy = structuredClone(grid)
-		copy[y][x] = 'O';
+		if (grid.get({ x, y }) !== '.') { return; } // skip starting pos and existing crates.
+		const copy = createGrid(structuredClone(grid.data))
+		copy.set({ x, y }, 'O');
 		const flag = analyseWalk(copy);
 		if (flag.infinite) result += 1;
 	};
