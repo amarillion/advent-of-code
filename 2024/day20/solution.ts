@@ -3,21 +3,9 @@
 import { readFileSync } from 'fs';
 import { assert, notNull } from '../common/assert.js'
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
-import { Point } from '../common/point.js';
 import { breadthFirstSearch, trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
-
-// TODO: make utility function
-function find<T>(grid: TemplateGrid<T>, predicate: (t: T) => boolean) {
-	for (let y = 0; y < grid.height; ++y) {
-		for (let x = 0; x < grid.width; ++x) {
-			const cell = grid.get(x, y);
-			if (predicate(cell)) {
-				return cell;
-			}
-		}
-	}
-	return null;
-}
+import { find } from '../common/objectGrid.js';
+import { diamondRange } from '../common/pointRange.js';
 
 type Data = TemplateGrid<Cell>;
 class Cell {
@@ -35,19 +23,6 @@ function parse(fname: string) {
 
 	// TODO: Grid type that tracks <Point, value> instead of <Cell>. Do I need separate Grid classes for reference types and value types?
 	return new TemplateGrid<Cell>(data[0].length, data.length, (x, y) => new Cell(x, y, data[y][x]));
-}
-
-// TODO: make utility function
-// visit each point surrounding 0,0 in a diamond shape
-function *diamondRange(size: number) {
-	if (size < 0) return;
-	// going in reverse order to avoid negative zeroes
-	for (let x = size; x >= -size; x--) {
-		const ortho = size - Math.abs(x);
-		for (let y = ortho; y >= -ortho; y--) {
-			yield new Point(x, y);
-		}
-	}
 }
 
 function solve(grid: Data, limit: number, cutoff: number) {	
