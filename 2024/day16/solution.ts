@@ -150,7 +150,7 @@ function solve2(grid: Data) {
 		}
 		// end condition
 		if (state === startState) {
-			console.log(`${indent}${state}`);
+			// console.log(`${indent}${state}`);
 			yield startState;
 			return;
 		}
@@ -173,12 +173,12 @@ function solve2(grid: Data) {
 	}
 	
 	const states = [...findReachingStates(minEndState)];
-	console.log(visited);
+	// console.log(visited);
 
 	return new Set([...visited.values()].map(state => state.split(',').slice(0,2).join(','))).size;
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-// console.log(solve1(data));
+console.log(solve1(data));
 console.log(solve2(data));
