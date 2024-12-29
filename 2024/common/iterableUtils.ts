@@ -47,3 +47,19 @@ export function sum(array: Iterable<number>) {
 	}
 	return result;
 }
+
+
+/**
+ * Type-safe variant for `array.filter(Boolean)`
+ * 
+ * Suppose you have an array of type (string | undefined)[]
+ * With `array.filter(Boolean)`, undefined values will be filtered out but the resulting type remains the same.
+ * Instead, `array.filter(Truthy)` will allow typeScript infer the type of the resulting expression as string[]
+ * 
+ * See: https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean
+ */
+export type Truthy<T> = T extends false | '' | 0 | null | undefined ? never : T; // from lodash
+export function truthy<T>(value: T): value is Truthy<T> {
+	return !!value;
+}
+
