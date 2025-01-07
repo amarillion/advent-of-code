@@ -1,4 +1,44 @@
 import { readFileSync } from 'fs';
+import { IPoint } from './point';
+
+/**
+ * Distinct from TemplateGrid because it stores literal values rather than objects...
+ */
+class ValueGrid<T> {
+	data: T[][];
+	width: number;
+	height: number;
+
+	constructor(data: T[][], width: number, height: number) {
+		this.data = data;
+		this.width = width;
+		this.height = height;
+	}
+
+	inRange (p: {x: number, y: number}) {
+		return inRange(this.data, p.x, p.y)
+	}
+
+	find (needle: T) {
+		return find(this.data, needle)
+	}
+
+	set(p: IPoint, value: T) {
+		this.data[p.y][p.x] = value;
+	}
+
+	get(p: IPoint) {
+		return this.data[p.y][p.x];
+	}
+
+	toString () {
+		return this.data.map(line => line.join('')).join('\n');
+	}
+
+	findAll(needle: T) {
+		return findAll(this.data, needle);
+	}
+}
 
 export type Grid = ReturnType<typeof createGrid>
 
@@ -7,21 +47,25 @@ export function readGridFromFile(fname: string) {
 	return createGrid(data);
 }
 
-export function createGrid(data: string[][]) {
-	return {
-		data,
-		width: data[0].length,
-		height: data.length,
-		inRange: (p: {x: number, y: number}) => inRange(data, p.x, p.y),
-		find: (needle: string) => find(data, needle),
-		set: (p: { x : number, y: number }, value: string) => data[p.y][p.x] = value,
-		get: (p: { x : number, y: number }) => data[p.y][p.x],
-		toString: () => data.map(line => line.join('')).join('\n'),
-		findAll: (needle: string) => findAll(data, needle),
-	};
+export function createEmptyGrid<T>(size: IPoint, init: (p: IPoint) => T) {
+	const data: T[][] = [];
+
+	for (let y = 0; y < size.y; ++y) {
+		const row: T[] = [];
+		for (let x = 0; x < size.x; ++x) {
+			row.push(init({ x, y }));
+		}
+		data.push(row);
+	}
+
+	return createGrid(data);
 }
 
-export function inRange(data: string[][], x: number, y: number) {
+export function createGrid<T>(data: T[][]): ValueGrid<T> {
+	return new ValueGrid(data, data[0].length, data.length);
+}
+
+export function inRange<T>(data: T[][], x: number, y: number) {
 	return x >= 0 && y >= 0 && x < data[0].length && y < data.length; 
 }
 
@@ -55,7 +99,7 @@ export function eachRange(width: number, height: number, callback: (x: number, y
 	}
 }
 
-export function find(grid: string[][], needle: string) {
+export function find<T>(grid: T[][], needle: T) {
 	const width = grid[0].length;
 	const height = grid.length;
 	for (let y = 0; y < height; ++y) {
@@ -68,7 +112,7 @@ export function find(grid: string[][], needle: string) {
 	return null;
 }
 
-export function findAll(grid: string[][], needle: string) {
+export function findAll<T>(grid: T[][], needle: T) {
 	let result: {x: number, y: number}[] = [];
 	const width = grid[0].length;
 	const height = grid.length;
