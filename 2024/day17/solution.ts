@@ -3,6 +3,7 @@
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
 import { astar } from '@amarillion/helixgraph';
+import { astarEx } from '../common/astar.js';
 
 type Data = ReturnType<typeof parse>;
 
@@ -11,65 +12,66 @@ function parse(fname: string) {
 	const registers = registersRaw.split('\n')
 		.map(line => line.substring('Register '.length)
 		.split(': '))
-		.reduce((arr, [key, val]) => { arr[key] = Number(val); return arr; }, {} as Record<string, number>);
-	const program = programRaw.split('\n')[0].substring('Program: '.length).split(',').map(Number);
+		.reduce((arr, [key, val]) => { arr[key] = BigInt(val); return arr; }, {} as Record<string, bigint>);
+	const program = programRaw.split('\n')[0].substring('Program: '.length).split(',').map(BigInt);
 	return { registers, program };
 }
 
 function solve1({ program, registers }: Data) {
 	let ip = 0;
-	function asCombo(operand: number) {
-		if (operand < 4) return operand;
+	function asCombo(operand: bigint) {
+		if (operand < 4n) return operand;
 		switch(operand) {
-			case 4: return registers.A;
-			case 5: return registers.B;
-			case 6: return registers.C;
+			case 4n: return registers.A;
+			case 5n: return registers.B;
+			case 6n: return registers.C;
 			default: assert(false);
 		}
 	}
 
-	let out: number[] = [];
+	let out: bigint[] = [];
 
 	while(ip < program.length) {
 
 		const inst = program[ip];
 		const operand = program[ip + 1];
 
+		// TODO: simplify by using bigints and shift operations, like the hardcoded program...
 		switch(inst) {
-			case 0: // adv
-				registers.A = Math.floor(registers.A / Math.pow(2, asCombo(operand)))
+			case 0n: // adv
+				registers.A = registers.A >> asCombo(operand);
 				ip += 2;
 				break;
-			case 1: // bxl 
+			case 1n: // bxl 
 				registers.B = registers.B ^ operand;
 				ip += 2;
 				break;
-			case 2: // bst
-				registers.B = asCombo(operand) % 8;
+			case 2n: // bst
+				registers.B = asCombo(operand) % 8n;
 				ip += 2;
 				break;
-			case 3: // jnz
-				if (registers.A === 0) {
+			case 3n: // jnz
+				if (registers.A === 0n) {
 					ip += 2;
 				}
 				else {
-					ip = operand;
+					ip = Number(operand);
 				}
 				break;
-			case 4: // bxc
+			case 4n: // bxc
 				registers.B = registers.B ^ registers.C;
 				ip += 2;
 				break;
-			case 5: // out
-				out.push(asCombo(operand) % 8);
+			case 5n: // out
+				out.push(asCombo(operand) % 8n);
 				ip += 2;
 				break;
-			case 6: // bdv
-				registers.B = Math.floor(registers.A / Math.pow(2, asCombo(operand)))
+			case 6n: // bdv
+				registers.B = registers.A >> asCombo(operand)
 				ip += 2;
 				break;
-			case 7: // cdv 
-				registers.C = Math.floor(registers.A / Math.pow(2, asCombo(operand)))
+			case 7n: // cdv 
+				registers.C = registers.A >> asCombo(operand)
 				ip += 2;
 				break;
 			default: assert(false);
@@ -96,18 +98,25 @@ function solve1b(initial: bigint) {
 }
 
 function solve2(data: Data) {
-	let a = (1n << 47n);
-	astar(a, 0n, function *(a: bigint) {
+	
+	// astar will find the minimum number of bits to flip to get to the result, i.e. the lowest number
+	let a = 0n;
+
+	const { dest } = astarEx(a, n => countResult(data, n) === 16, function *(a: bigint) {
+			// try flipping each bit between position 0 and 48
 			for (let i = 0n; i < 48n; ++i) {
 				let y = a ^ (1n << i);
 				yield [i, y];
 			}
-		}, { getWeight: () => 0, getHeuristic: (a: bigint) => {			
-			let matches = countResult(data, a);
-			assert (matches < 16, `${a}`);
-			return 16 - matches;
-		}}
+		}, { 
+			getWeight: () => 0, 
+			getHeuristic: (a: bigint) => {
+				let matches = countResult(data, a);
+				return 16 - matches;
+			}
+		}
 	);
+	return dest;
 }
 
 function countResult(data: Data, a: bigint) {
@@ -125,4 +134,6 @@ assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
 
 console.log(solve1(structuredClone(data)));
-console.log(solve2(data));
+if (!process.argv[2].startsWith('test')) {
+	console.log(Number(solve2(data)));
+}
