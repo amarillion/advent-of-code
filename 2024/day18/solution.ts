@@ -6,7 +6,7 @@ import { IPoint, Point } from '../common/point.js';
 import { truthy } from '../common/iterableUtils.js';
 import { breadthFirstSearch } from '@amarillion/helixgraph';
 import { trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
-import { createEmptyGrid } from '../common/grid.js';
+import { PredicateFunc } from '@amarillion/helixgraph/lib/definitions.js';
 
 type Data = IPoint[];
 
@@ -24,10 +24,6 @@ function solve1(data: Data, size: number) {
 	const toIndex = (p: IPoint) => p.x + size * p.y;
 	const fromIndex = (idx: number) => ({ x: idx % size, y : Math.floor(idx / size) });
 	const inRange = (p: IPoint) => (p.x >= 0 && p.y >= 0 && p.x < size && p.y < size);
-
-	// const grid = createEmptyGrid({ x: size, y: size }, () => '.');
-	// data.forEach(p => grid.set(p, '#'));
-	// console.log(grid.toString());
 
 	const blocked = new Set(data.map(toIndex));
 
@@ -55,18 +51,38 @@ function solve1(data: Data, size: number) {
 	return path ? path.length - 1 : 0;
 }
 
-function solve2(data: Data, size: number) {
-	// brute force method: repeatedly invoke bfs with longer lists of obstacles.
-	for (let i = 1; i < data.length; ++i) {
-		const result = solve1(data.slice(0, i), size);
-		// console.log(`#${i}: ${data[i].x},${data[i].y} ${result}`)
-		if (result === 0) {
-			// first blocking block
-			const p = data[i-1];
-			return `${p.x},${p.y}`;
+// assuming test(lowerBound) returns true, test(upperBound) returns false
+// TODO: could be turned into a generic utility...
+function bisect(lowerBound: number, upperBound: number, test: PredicateFunc<number>) {
+	// console.log(`Bisect ${lowerBound} ${upperBound}`);
+	const range = upperBound - lowerBound;
+	if (range < 2) {
+		return lowerBound;
+	}
+	else {
+		const middle = lowerBound + Math.floor(range / 2);
+		if (test(middle)) {
+			return bisect(middle, upperBound, test);
+		}
+		else {
+			return bisect(lowerBound, middle, test);
 		}
 	}
-	return 'not found';
+}
+
+function solve2(data: Data, size: number) {
+	const testFunc = (i: number) => {
+		const result = solve1(data.slice(0, i), size);
+		// console.log(`#${i}: ${data[i].x},${data[i].y} ${result}`)
+		return result !== 0;
+	};
+
+	// check bisect-assumption that upper bound fails...
+	assert(testFunc(data.length-1) === false);
+
+	const found = bisect(0, data.length, testFunc);
+	const p = data[found];
+	return `${p.x},${p.y}`;
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
