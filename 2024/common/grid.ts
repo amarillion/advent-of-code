@@ -1,10 +1,11 @@
 import { readFileSync } from 'fs';
 import { IPoint } from './point';
+import { pointRange } from './pointRange';
 
 /**
  * Distinct from TemplateGrid because it stores literal values rather than objects...
  */
-class ValueGrid<T> {
+export class ValueGrid<T> {
 	data: T[][];
 	width: number;
 	height: number;
@@ -15,8 +16,8 @@ class ValueGrid<T> {
 		this.height = height;
 	}
 
-	inRange (p: {x: number, y: number}) {
-		return inRange(this.data, p.x, p.y)
+	inRange ({ x, y }: {x: number, y: number}) {
+		return x >= 0 && y >= 0 && x < this.width && y < this.height;
 	}
 
 	find (needle: T) {
@@ -35,12 +36,17 @@ class ValueGrid<T> {
 		return this.data.map(line => line.join('')).join('\n');
 	}
 
+	forEach(callback: (val: T, pos: { x: number, y: number }) => void) {
+		pointRange(this.width, this.height, (x, y) => {
+			const p = { x, y };
+			callback(this.get(p), p);
+		});
+	}
+
 	findAll(needle: T) {
 		return findAll(this.data, needle);
 	}
 }
-
-export type Grid = ReturnType<typeof createGrid>
 
 export function readGridFromFile(fname: string) {
 	const data = readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').map(line => [...line]);
@@ -65,37 +71,13 @@ export function createGrid<T>(data: T[][]): ValueGrid<T> {
 	return new ValueGrid(data, data[0].length, data.length);
 }
 
-export function inRange<T>(data: T[][], x: number, y: number) {
-	return x >= 0 && y >= 0 && x < data[0].length && y < data.length; 
-}
-
-export function *walk(data: string[][], x: number, y: number, dx: number, dy: number) {
-	let xx = x;
-	let yy = y;
-	while (inRange(data, xx, yy)) {
-		yield data[yy][xx]
-		xx += dx;
-		yy += dy;	
-	}
-}
-
-// TODO: iterator utils
-export function take<T>(generator: Generator<T>, num: number) {
-	const result: T[] = [];
-	let i = 0;
-	for (const val of generator) {
-		result.push(val);
-		i++;
-		if (i === num) { return result; }
-	}
-	return result;
-}
-
-export function eachRange(width: number, height: number, callback: (x: number, y: number) => void) {
-	for (let y = 0; y < height; ++y) {
-		for (let x = 0; x < width; ++x) {
-			callback(x, y);
-		}
+export function *walk<T>(grid: ValueGrid<T>, ix: number, iy: number, dx: number, dy: number) {
+	let x = ix;
+	let y = iy;
+	while (grid.inRange({ x, y })) {
+		yield grid.get({ x, y });
+		x += dx;
+		y += dy;	
 	}
 }
 
@@ -116,7 +98,7 @@ export function findAll<T>(grid: T[][], needle: T) {
 	let result: {x: number, y: number}[] = [];
 	const width = grid[0].length;
 	const height = grid.length;
-	eachRange(width, height, (x, y) => {
+	pointRange(width, height, (x, y) => {
 		if (grid[y][x] === needle) {
 			result.push({x, y});
 		}

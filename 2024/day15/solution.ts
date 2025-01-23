@@ -2,11 +2,11 @@
 
 import { readFileSync } from 'fs';
 import { assert, notNull } from '../common/assert.js';
-import { createGrid } from '../common/grid.js';
+import { createGrid, ValueGrid } from '../common/grid.js';
 import { IPoint, Point } from '../common/point.js';
 import { sum } from '../common/iterableUtils.js';
 
-type Grid = ReturnType<typeof createGrid>;
+type Grid = ValueGrid<string>
 type Data = { grid: Grid, moves: string[] };
 
 function parse(fname: string) {

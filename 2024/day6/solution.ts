@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 
 import { assert } from '../common/assert.js';
-import { eachRange, readGridFromFile, type Grid } from '../common/grid.js';
+import { readGridFromFile, ValueGrid } from '../common/grid.js';
 import { DefaultMap } from '../common/DefaultMap.js'
 import { Point } from '../common/point.js';
 import { unique } from '../common/iterableUtils.js';
+import { pointRange } from '../common/pointRange.js';
 
 const NORTH = 1;
 const EAST = 2;
@@ -12,6 +13,8 @@ const SOUTH = 4;
 const WEST = 8;
 const HORIZONTAL = 10;
 const VERTICAL = 5;
+
+type Grid = ValueGrid<string>;
 
 type Dir = number;
 
@@ -129,8 +132,8 @@ function getBarriers(grid: Grid) {
 		() => new DefaultMap<number, number[]>([])
 	);
 	let start: Point|undefined;
-	eachRange(grid.width, grid.height, (x, y) => {
-		const char = grid.get({ x, y });
+	
+	grid.forEach((char, { x, y }) => {
 		if (char === '#') {
 			barrierMap.get(NORTH).get(x).unshift(y)
 			barrierMap.get(EAST).get(y).push(x)

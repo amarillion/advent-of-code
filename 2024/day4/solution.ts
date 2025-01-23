@@ -1,17 +1,19 @@
 #!/usr/bin/env tsx
 
 import { assert } from '../common/assert.js';
-import { eachRange, Grid, readGridFromFile, take, walk } from '../common/grid.js';
+import { ValueGrid, readGridFromFile, walk } from '../common/grid.js';
+import { take } from '../common/iterableUtils.js';
+import { pointRange } from '../common/pointRange.js';
 
-function search(grid: Grid, x: number, y: number, dx: number, dy: number) {
-	const scan = take(walk(grid.data, x, y, dx, dy), 4).join('');
+function search(grid: ValueGrid<string>, x: number, y: number, dx: number, dy: number) {
+	const scan = take(walk(grid, x, y, dx, dy), 4).join('');
 	return scan === 'XMAS';
 }
 
-function solve1(grid: Grid) {
+function solve1(grid: ValueGrid<string>) {
 	let result = 0;
 
-	eachRange(grid.width, grid.height, ( x, y ) => {
+	pointRange(grid.width, grid.height, ( x, y ) => {
 		// for each position
 		// if it's an X
 		// count xmas in 8 directions
@@ -29,21 +31,21 @@ function solve1(grid: Grid) {
 	return result;
 }
 
-function searchCross(grid: Grid, x: number, y: number) {
+function searchCross(grid: ValueGrid<string>, x: number, y: number) {
 	let dx = 1;
 	let dy = 1;
-	const scan = take(walk(grid.data, x - dx, y - dy, dx, dy), 3).join('');
+	const scan = take(walk(grid, x - dx, y - dy, dx, dy), 3).join('');
 	if (scan === 'MAS' || scan === 'SAM') {
 		[dx, dy] = [-dy, dx];
-		const ortho = take(walk(grid.data, x - dx, y - dy, dx, dy), 3).join('');
+		const ortho = take(walk(grid, x - dx, y - dy, dx, dy), 3).join('');
 		return (ortho === 'MAS' || ortho === 'SAM');
 	}
 	return false;
 }
 
-function solve2(grid: Grid) {
+function solve2(grid: ValueGrid<string>) {
 	let result = 0;
-	eachRange(grid.width, grid.height, (x, y) => {
+	pointRange(grid.width, grid.height, (x, y) => {
 		if (grid.get({ x, y }) === 'A') {
 			if (searchCross(grid, x, y)) {
 				result++;

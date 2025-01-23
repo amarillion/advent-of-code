@@ -30,7 +30,7 @@ export function *unique<T>(generator: Generator<T>, identity: (t: T) => unknown 
 	}
 }
 
-export function take<T>(count: number, generator: Generator<T>) {
+export function take<T>(generator: Generator<T>, count: number) {
 	const result: T[] = [];
 	let i = 0;
 	for (const value of generator) {

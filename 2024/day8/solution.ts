@@ -2,16 +2,19 @@
 
 import { assert } from '../common/assert.js';
 import { allPairs } from '../common/combinations.js';
-import { eachRange, readGridFromFile, type Grid } from '../common/grid.js';
+import { readGridFromFile, ValueGrid } from '../common/grid.js';
 import { Point } from '../common/point.js';
+import { pointRange } from '../common/pointRange.js';
 
 function parse(fname: string) {
 	return readGridFromFile(fname);
 }
 
+type Grid = ValueGrid<string>;
+
 function extractAntennas(grid: Grid) { 
 	const result: Record<string, Point[]> = {};
-	eachRange(grid.width, grid.height, (x, y) => {
+	pointRange(grid.width, grid.height, (x, y) => {
 		const char = grid.data[y][x];
 		if (char !== '.') {
 			if (!(char in result)) {

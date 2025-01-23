@@ -11,3 +11,11 @@ export function *diamondRange(size: number) {
 		}
 	}
 }
+
+export function pointRange(width: number, height: number, callback: (x: number, y: number) => void) {
+	for (let y = 0; y < height; ++y) {
+		for (let x = 0; x < width; ++x) {
+			callback(x, y);
+		}
+	}
+}

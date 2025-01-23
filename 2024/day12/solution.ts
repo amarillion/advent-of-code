@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { eachRange } from '../common/grid.js';
+import { pointRange } from '../common/pointRange.js';
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { bfsGenerator } from '@amarillion/helixgraph/lib/pathFinding.js';
 import { Point } from '../common/point.js';
@@ -36,7 +36,8 @@ function solve(grid: Data) {
 	let nextRegion = 1;
 	const regions: RegionType[] = [];
 
-	eachRange(grid.width, grid.height, (x, y) => {
+	// TODO: grid forEach
+	pointRange(grid.width, grid.height, (x, y) => {
 		const cell = grid.get(x, y);
 		if (!cell.region) {
 			const region = {
@@ -69,7 +70,7 @@ function solve(grid: Data) {
 		}
 	});
 
-	eachRange(grid.width, grid.height, (x, y) => {
+	pointRange(grid.width, grid.height, (x, y) => {
 		const region = grid.get(x, y).region!;
 		const pos = new Point(x, y);
 		
