@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
 import { truthy } from '../common/iterableUtils.js';
-import { memoize } from '../common/memoize.js';
+import { memoize } from '../common/functional/memoize.js';
 
 type Data = ReturnType<typeof parse>;
 

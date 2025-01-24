@@ -3,8 +3,8 @@
 import { assert } from '../common/assert.js';
 import { allPairs } from '../common/combinations.js';
 import { readGridFromFile, ValueGrid } from '../common/grid.js';
-import { Point } from '../common/point.js';
-import { pointRange } from '../common/pointRange.js';
+import { Point } from '../common/geom/point.js';
+import { pointRange } from '../common/geom/pointRange.js';
 
 function parse(fname: string) {
 	return readGridFromFile(fname);
@@ -14,7 +14,7 @@ type Grid = ValueGrid<string>;
 
 function extractAntennas(grid: Grid) { 
 	const result: Record<string, Point[]> = {};
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		const char = grid.data[y][x];
 		if (char !== '.') {
 			if (!(char in result)) {
@@ -22,7 +22,7 @@ function extractAntennas(grid: Grid) {
 			}
 			result[char].push(new Point(x, y));
 		}
-	});
+	}
 	return Object.values(result);
 }
 

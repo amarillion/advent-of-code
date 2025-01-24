@@ -3,7 +3,7 @@
 import { assert } from '../common/assert.js';
 import { ValueGrid, readGridFromFile, walk } from '../common/grid.js';
 import { take } from '../common/iterableUtils.js';
-import { pointRange } from '../common/pointRange.js';
+import { pointRange } from '../common/geom/pointRange.js';
 
 function search(grid: ValueGrid<string>, x: number, y: number, dx: number, dy: number) {
 	const scan = take(walk(grid, x, y, dx, dy), 4).join('');
@@ -13,7 +13,7 @@ function search(grid: ValueGrid<string>, x: number, y: number, dx: number, dy: n
 function solve1(grid: ValueGrid<string>) {
 	let result = 0;
 
-	pointRange(grid.width, grid.height, ( x, y ) => {
+	for (const {x, y} of pointRange(grid.width, grid.height)) {
 		// for each position
 		// if it's an X
 		// count xmas in 8 directions
@@ -27,7 +27,7 @@ function solve1(grid: ValueGrid<string>) {
 				[ddx, ddy] = [-ddy, ddx];
 			}
 		}
-	});
+	}
 	return result;
 }
 
@@ -45,13 +45,13 @@ function searchCross(grid: ValueGrid<string>, x: number, y: number) {
 
 function solve2(grid: ValueGrid<string>) {
 	let result = 0;
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		if (grid.get({ x, y }) === 'A') {
 			if (searchCross(grid, x, y)) {
 				result++;
 			}
 		}
-	});
+	}
 	return result;
 }
 

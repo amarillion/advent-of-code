@@ -1,7 +1,9 @@
 #!/usr/bin/env tsx
 
 import { assert } from '../common/assert.js';
-import { createGrid, find, findAll, inRange, readGridFromFile, type Grid } from '../common/grid.js';
+import { createGrid, readGridFromFile, ValueGrid } from '../common/grid.js';
+
+type Grid = ValueGrid<string>;
 
 function analyseWalk(grid: Grid) {
 	let visited = 1;

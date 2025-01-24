@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
-import { IPoint } from './point';
-import { pointRange } from './pointRange';
+import { IPoint } from './geom/point';
+import { pointRange } from './geom/pointRange';
 
 /**
  * Distinct from TemplateGrid because it stores literal values rather than objects...
@@ -37,10 +37,9 @@ export class ValueGrid<T> {
 	}
 
 	forEach(callback: (val: T, pos: { x: number, y: number }) => void) {
-		pointRange(this.width, this.height, (x, y) => {
-			const p = { x, y };
+		for (const p of pointRange(this.width, this.height)) {
 			callback(this.get(p), p);
-		});
+		};
 	}
 
 	findAll(needle: T) {
@@ -98,10 +97,10 @@ export function findAll<T>(grid: T[][], needle: T) {
 	let result: {x: number, y: number}[] = [];
 	const width = grid[0].length;
 	const height = grid.length;
-	pointRange(width, height, (x, y) => {
+	for (const { x, y } of pointRange(width, height)) {
 		if (grid[y][x] === needle) {
 			result.push({x, y});
 		}
-	});
+	}
 	return result;
 }

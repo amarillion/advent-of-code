@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs';
 import { assert, notNull } from '../common/assert.js';
 import { createGrid, ValueGrid } from '../common/grid.js';
-import { IPoint, Point } from '../common/point.js';
+import { IPoint, Point } from '../common/geom/point.js';
 import { sum } from '../common/iterableUtils.js';
 
 type Grid = ValueGrid<string>

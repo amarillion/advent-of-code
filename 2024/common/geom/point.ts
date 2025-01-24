@@ -1,8 +1,8 @@
-import { assert } from './assert.js';
+import { assert } from '../assert.js';
 
 export interface IPoint {
-	x: number;
-	y: number;
+	x: number,
+	y: number,
 }
 
 export class Point implements IPoint {
@@ -15,6 +15,7 @@ export class Point implements IPoint {
 		this.y = y;
 	}
 	
+	// TODO: rename to turnCcw() to indicate that this is only right turns
 	/**
 	 * @param {*} degrees must be a multiple of 90. Positive: rotate left. Negative: rotate right
 	 * returns a new Point()
@@ -23,32 +24,57 @@ export class Point implements IPoint {
 		return Point.rotate(this, degrees);
 	}
 
+	// TODO: rename to turnCcw() to indicate that this is only right turns
 	static rotate(p: IPoint, degrees: number) {
 		const { x, y } = p;
-		switch((degrees + 360) % 360) {
+		switch ((degrees + 360) % 360) {
 			case 270: return new Point(-y, x);
 			case 180: return new Point(-x, -y);
-			case  90: return new Point(y, -x);
-			case   0: return new Point(x, y);
+			case 90: return new Point(y, -x);
+			case 0: return new Point(x, y);
 			default: assert(false, `Invalid value ${degrees}`);
 		}
+	}
+
+	/** will later be renamed to mul */
+	static times(a: IPoint, b: IPoint) {
+		return new Point(a.x * b.x, a.y * b.y);
+	}
+
+	/** will later be renamed to mul */
+	times(b: IPoint) {
+		return Point.times(this, b);
+	}
+
+	/**
+	Scale the vector by a scalar value
+	returns a new Point
+ 	*/
+	scale(val: number) {
+		return Point.scale(this, val);
+	}
+
+	static scale(p: IPoint, val: number) {
+		return new Point(p.x * val, p.y * val);
 	}
 
 	/**
 		Scale the vector
 		returns a new Point
+		@deprecated use scale, so that we can free this up for multiplying by another point
  	*/
 	mul(val: number) {
 		return Point.mul(this, val);
 	}
 
+	/** @deprecated use scale */
 	static mul(p: IPoint, val: number) {
 		return new Point(p.x * val, p.y * val);
 	}
 
 	/**
 	 * @param {*} p point to add to this
-	 * returns a new Point containing the sum 
+	 * returns a new Point containing the sum
 	 */
 	plus(p: IPoint) {
 		return Point.plus(this, p);
@@ -105,5 +131,26 @@ export class Point implements IPoint {
 	
 	wrap(area: IPoint) {
 		return Point.wrap(this, area);
+	}
+
+	static length(p: IPoint) {
+		return Math.sqrt(p.x * p.x + p.y * p.y);
+	}
+
+	length() {
+		return Point.length(this);
+	}
+
+	// TODO: possible alternative name: inside
+	/**
+	 * returns true if the other point is larger than 0,0 and smaller than this point.
+	 * If the current points coordinates are negative, this will always return false.
+	 */
+	static contains(self: IPoint, other: IPoint) {
+		return (other.x >= 0 && other.y >= 0 && other.x < self.x && other.y < self.y);
+	}
+
+	contains(other: IPoint) {
+		return Point.contains(this, other);
 	}
 }

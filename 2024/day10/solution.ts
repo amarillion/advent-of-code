@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import { bfsGenerator } from '@amarillion/helixgraph/lib/pathFinding.js';
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { assert } from '../common/assert.js';
-import { pointRange } from '../common/pointRange.js';
+import { pointRange } from '../common/geom/pointRange.js';
 
 type Data = TemplateGrid<Cell>;
 class Cell {
@@ -26,7 +26,7 @@ function solve1(grid: Data) {
 	let result = 0;
 
 	// TODO: grid.forEach
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		let singlePathResult = 0;
 		if (grid.get(x, y).value === 0) {
 			// perform a bfs search
@@ -43,7 +43,7 @@ function solve1(grid: Data) {
 			}
 		}
 		result += singlePathResult;
-	});
+	}
 	return result;
 }
 
@@ -51,7 +51,7 @@ function solve2(grid: Data) {
 	let result = 0;
 
 	// TODO: grid.forEach
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		// for each 0
 		if (grid.get(x, y).value === 0) {
 			const source = grid.get(x, y);
@@ -71,7 +71,7 @@ function solve2(grid: Data) {
 			}
 			result += countPathsRecursively(source);
 		}
-	});
+	}
 	return result;
 }
 

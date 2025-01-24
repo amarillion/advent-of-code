@@ -5,7 +5,7 @@ import { assert, notNull } from '../common/assert.js'
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { breadthFirstSearch, trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';
 import { find } from '../common/objectGrid.js';
-import { diamondRange } from '../common/pointRange.js';
+import { diamondRange } from '../common/geom/pointRange.js';
 
 type Data = TemplateGrid<Cell>;
 class Cell {

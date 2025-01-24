@@ -3,9 +3,8 @@
 import { assert } from '../common/assert.js';
 import { readGridFromFile, ValueGrid } from '../common/grid.js';
 import { DefaultMap } from '../common/DefaultMap.js'
-import { Point } from '../common/point.js';
+import { Point } from '../common/geom/point.js';
 import { unique } from '../common/iterableUtils.js';
-import { pointRange } from '../common/pointRange.js';
 
 const NORTH = 1;
 const EAST = 2;

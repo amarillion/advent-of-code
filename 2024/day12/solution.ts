@@ -2,10 +2,10 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { pointRange } from '../common/pointRange.js';
+import { pointRange } from '../common/geom/pointRange.js';
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { bfsGenerator } from '@amarillion/helixgraph/lib/pathFinding.js';
-import { Point } from '../common/point.js';
+import { Point } from '../common/geom/point.js';
 
 type RegionType = {
 	id: number;
@@ -37,7 +37,7 @@ function solve(grid: Data) {
 	const regions: RegionType[] = [];
 
 	// TODO: grid forEach
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		const cell = grid.get(x, y);
 		if (!cell.region) {
 			const region = {
@@ -68,9 +68,9 @@ function solve(grid: Data) {
 				region.permiter += localPerimiter;
 			}
 		}
-	});
+	}
 
-	pointRange(grid.width, grid.height, (x, y) => {
+	for (const { x, y } of pointRange(grid.width, grid.height)) {
 		const region = grid.get(x, y).region!;
 		const pos = new Point(x, y);
 		
@@ -101,7 +101,7 @@ function solve(grid: Data) {
 
 			fan = fan.map(delta => delta.rotate(90));
 		}
-	});
+	}
 
 	// for each region
 	let result = [0, 0];

@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import { assert, notNull } from '../common/assert.js';
 import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { find } from '../common/objectGrid.js';
-import { IPoint, Point } from '../common/point.js';
+import { IPoint, Point } from '../common/geom/point.js';
 import { AdjacencyFunc, Step, WeightFunc } from '@amarillion/helixgraph/lib/definitions.js';
 import { DefaultMap } from '../common/DefaultMap.js';
 import { truthy } from '../common/iterableUtils.js';

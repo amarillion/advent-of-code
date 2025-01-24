@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { IPoint, Point } from '../common/point.js';
+import { IPoint, Point } from '../common/geom/point.js';
 import { truthy } from '../common/iterableUtils.js';
 import { breadthFirstSearch } from '@amarillion/helixgraph';
 import { trackbackNodes } from '@amarillion/helixgraph/lib/pathFinding.js';

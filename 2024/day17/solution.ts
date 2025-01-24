@@ -2,7 +2,6 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { astar } from '@amarillion/helixgraph';
 import { astarEx } from '../common/astar.js';
 
 type Data = ReturnType<typeof parse>;

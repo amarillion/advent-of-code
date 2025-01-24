@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { IPoint, Point } from '../common/point.js';
+import { IPoint, Point } from '../common/geom/point.js';
 import { DefaultMap } from '../common/DefaultMap.js';
 // import { createEmptyGrid } from '../common/grid.js';
 

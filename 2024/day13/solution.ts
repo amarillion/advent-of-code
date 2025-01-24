@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
-import { Point } from '../common/point.js';
+import { Point } from '../common/geom/point.js';
 
 type RecordType = {
 	a: Point;

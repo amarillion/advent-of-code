@@ -1,4 +1,4 @@
-import { Point } from "./point";
+import { Point } from './point.js';
 
 // visit each point surrounding 0,0 in a diamond shape
 export function *diamondRange(size: number) {
@@ -12,10 +12,17 @@ export function *diamondRange(size: number) {
 	}
 }
 
-export function pointRange(width: number, height: number, callback: (x: number, y: number) => void) {
+/**
+ * Go over all points in an area in a fixed order: horizontal row by row.
+ * Yield each coordinate pair.
+ *
+ * @param width
+ * @param height
+ */
+export function *pointRange(width: number, height: number) {
 	for (let y = 0; y < height; ++y) {
 		for (let x = 0; x < width; ++x) {
-			callback(x, y);
+			yield ({ x, y });
 		}
 	}
 }
