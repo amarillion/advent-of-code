@@ -108,7 +108,7 @@ export class Point implements IPoint {
 		return Point.toString(this);
 	}
 
-	static toString(p: IPoint) {
+	static toString(p: IPoint): `${number},${number}` {
 		return `${p.x},${p.y}`;
 	}
 
