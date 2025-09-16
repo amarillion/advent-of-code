@@ -10,7 +10,7 @@ import { DefaultMap } from '../common/DefaultMap.js';
 type Data = string[];
 
 function parse(fname: string) {
-	const data = readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '');
+	const data = readFileSync(fname, { encoding: 'utf-8' }).split('\n').filter(i => i !== '').filter(l => !l.startsWith('#'));
 	return data;
 }
 
@@ -54,7 +54,7 @@ function createMaskedGrid(values: string, mask: string): MaskedGrid {
 	return new MaskedGrid(values, mask);
 }
 
-function trackbackAll(src: NodeType, dest: NodeType, map: DefaultMap<NodeType, { edge: DirType, from: NodeType, to: NodeType, cost: number }[]>) {
+function trackbackAll(src: NodeType, dest: NodeType, map: ReturnType<typeof dijkstraEx<NodeType, DirType>>) {
 	
 	function recursiveHelper(partials: string[], src: NodeType, pos: NodeType, map: DefaultMap<NodeType, { edge: DirType, from: NodeType, to: NodeType, cost: number }[]>) {
 		let result: string[] = [];
@@ -76,44 +76,64 @@ function trackbackAll(src: NodeType, dest: NodeType, map: DefaultMap<NodeType, {
 	// TODO: recursively find all paths...
 }
 
-function findAllSequences(grid: MaskedGrid, code: string) {
+// TODO: make more generic!
+function memoize1<F extends (a: string) => string[][]>(func: F): F {
+	const cache = new Map<string, string[][]>();
+	return ((a: string): string[][] => {
+		if (cache.has(a)) {
+			return cache.get(a)!;
+		}
+		else {
+			const result = func(a);
+			cache.set(a, result);
+			return result;
+		}
+	}) as F; //TODO - how to avoid cast here?
+}
+
+function memoize2<F extends (a: string, b: number) => number>(func: F): F {
+	const cache = new Map<number, Map <string, number>>();
+	return ((a: string, b: number): number => {
+		if (!cache.has(b)) {
+			cache.set(b, new Map<string, number>());
+		}
+		
+		const elt = cache.get(b)!;
+		if (!elt.has(a)) {
+			elt.set(a, func(a, b));
+		}
+
+		return elt.get(a)!;
+	}) as F; //TODO - how to avoid cast here?
+}
+
+function findAllSequences(grid: MaskedGrid, code: string): string[][] {
 	let pos = grid.find('A')
 	assert(pos !== null, `Expected 'A' to be found`)
 
-	let result: string[] = [''];
+	let result: string[][] = [];
 
 	for (const digit of code) {
 		const dest = grid.find(digit);
 		assert(dest !== null, `Expected '${digit}' to be found`);
 		
-		// TODO: return all possible sequences, because it might give better results!
-		const prevMap = dijkstraEx<NodeType, DirType>(Point.toString(pos), Point.toString(dest), (n) => grid.adjacent(n));
-	
-		// console.log(`From ${Point.toString(pos)} ${grid.get(pos)} to ${Point.toString(dest)} ${grid.get(dest)}`);
-		// for (const key of prevMap.keys()) {
-		// 	console.log(key, prevMap.get(key));
-		// }
-
 		if (Point.toString(pos) === Point.toString(dest)) {
-			result = result.map(line => line + 'A');
+			result.push (['A']);
 		}
 		else {
-			const paths = trackbackAll(Point.toString(pos), Point.toString(dest), prevMap);
-
+			// TODO: return all possible sequences, because it might give better results!
+			const prevMap = dijkstraEx<NodeType, DirType>(Point.toString(pos), Point.toString(dest), (n) => grid.adjacent(n));
 			// TODO: should just return an empty list when source === dest
-
-			// console.log(paths);
-			// result += path.join('') + 'A';
-			result = result.flatMap(line => paths.map(p => line + p + 'A'));
+			const paths = trackbackAll(Point.toString(pos), Point.toString(dest), prevMap);
+			result.push(paths.map(p => p + 'A'));
 		}
-
 		pos = dest;
 	}
 	
 	return result;
 }
 
-function solve1(data: Data) {
+function solver(data: Data, nesting: number) {
 	let result = 0;
 
 	const mainKeyPad = createMaskedGrid(`\
@@ -132,42 +152,64 @@ X  `);
 X  
    `);
 
-	const isDigit = (ch: string) => ch >= '0' && ch <= '9';
-	for (const code of data) {
-		console.log(code);
-		const sequences = findAllSequences(mainKeyPad, code);
-		// console.log(sequences);
-		const robot1 = sequences.flatMap(sequence => findAllSequences(directionalKeyPad, sequence));
-		// console.log(robot1);
-		const manualEntry = robot1.flatMap(rr => findAllSequences(directionalKeyPad, rr));
+	const mainKeyPadSequence = memoize1((code: string) => findAllSequences(mainKeyPad, code));
+	const dirKeyPadSequence = memoize1((code: string) => findAllSequences(directionalKeyPad, code));
 
-		let minLen = manualEntry[0].length;
-		let minEntry = manualEntry[0];
-		for (const entry of manualEntry) {
-			if (entry.length < minLen) { 
-				minLen = entry.length; 
-				minEntry = entry;
+	const isDigit = (ch: string) => ch >= '0' && ch <= '9';
+	
+	function getChoice(choice: string, level: number): number {
+		assert(level >= 0, "Unnested beyond root");
+		if (level === 0) {
+			return choice.length;
+		}
+		else {
+			const sections = dirKeyPadSequence(choice);
+			let result = 0;
+			for (const elt of sections.map(section => getMinChoice(section, level - 1))) {
+				result += elt;
+			}
+			return result;
+		}
+	}
+
+	const choiceGetter = memoize2(getChoice);
+
+	function getMinChoice(choices: string[], level: number) {
+		const expanded = choices.flatMap(c => choiceGetter(c, level));
+		let minElt = expanded[0];
+		for (const elt of expanded) {
+			if (elt < minElt) {
+				minElt = elt;
 			}
 		}
-		console.log(minLen, minEntry);
+		return minElt;
+	}
+
+	for (const code of data) {		
+		// console.log(code);
+		const sections = mainKeyPadSequence(code);
+		
+		const minLen = sections.map(section => getMinChoice(section, nesting)).reduce((acc, cur) => cur + acc, 0);
+		// console.log(minLen);
+
 		const id = Number([...code].filter(isDigit).join(''));
 		const complexity = minLen * id;
-
-		console.log(`${id} * ${minLen} = ${complexity}`)
 
 		result += complexity;
 	}
 
-
 	return result;
 }
 
-// function solve2(data: Data) {
-// 	let result = 0;
-// 	return result;
-// }
+function solve2(data: Data) {
+	return solver(data, 25);
+}
+
+function solve1(data: Data) {
+	return solver(data, 2);
+}
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
 console.log(solve1(data));
-// console.log(solve2(data));
+console.log(solve2(data));
