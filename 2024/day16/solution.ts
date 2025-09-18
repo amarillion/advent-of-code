@@ -6,7 +6,7 @@ import { TemplateGrid } from '@amarillion/helixgraph/lib/BaseGrid.js';
 import { find } from '../common/objectGrid.js';
 import { IPoint, Point } from '../common/geom/point.js';
 import { truthy } from '../common/iterableUtils.js';
-import { dijkstraEx } from './dijkstraEx.js';
+import { dijkstraAllShortestPaths } from '../common/dijkstraAllShortestPaths.js';
 
 type Data = TemplateGrid<Cell>;
 class Cell {
@@ -107,7 +107,7 @@ function solve(grid: Data) {
 	// TODO: Dijkstra should accept Predicate function...
 	const endStates = [NORTH, EAST, SOUTH, WEST].map(dir => toState(endCell, dir));
 
-	const prevMap = dijkstraEx<State, Edge>(startState, endStates, state => getAdjacent(grid, state), { getWeight });
+	const prevMap = dijkstraAllShortestPaths<State, Edge>(startState, endStates, state => getAdjacent(grid, state), { getWeight });
 
 	const minCost = Math.min(...endStates.flatMap(endState => prevMap.get(endState)).filter(truthy).map(step => step.cost));
 	const minEndState = notNull(endStates.find(e => prevMap.get(e)?.some(f => f.cost === minCost)));

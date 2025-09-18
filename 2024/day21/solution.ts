@@ -4,8 +4,10 @@ import { readFileSync } from 'fs';
 import { assert } from '../common/assert.js';
 import { Point } from '../common/geom/point.js';
 import { ValueGrid } from '../common/grid.js';
-import { dijkstraEx } from '../day16/dijkstraEx.js';
+import { dijkstraAllShortestPaths } from '../common/dijkstraAllShortestPaths.js';
 import { DefaultMap } from '../common/DefaultMap.js';
+import { memoize, memoize2 } from '../common/functional/memoize.js';
+import { Step } from '@amarillion/helixgraph/lib/definitions.js';
 
 type Data = string[];
 
@@ -54,16 +56,16 @@ function createMaskedGrid(values: string, mask: string): MaskedGrid {
 	return new MaskedGrid(values, mask);
 }
 
-function trackbackAll(src: NodeType, dest: NodeType, map: ReturnType<typeof dijkstraEx<NodeType, DirType>>) {
+function trackbackAll(src: NodeType, dest: NodeType, map: ReturnType<typeof dijkstraAllShortestPaths<NodeType, DirType>>) {
 	
-	function recursiveHelper(partials: string[], src: NodeType, pos: NodeType, map: DefaultMap<NodeType, { edge: DirType, from: NodeType, to: NodeType, cost: number }[]>) {
+	function recursiveHelper(partials: string[], src: NodeType, pos: NodeType, map: DefaultMap<NodeType, Step<NodeType, DirType>[]>) {
 		let result: string[] = [];
 		const edges = map.get(pos);
 		for (const edge of edges) {
 			
 			let child = edge.from;
 			let appended = partials.map(l => edge.edge + l)
-			if (child !== src) {
+			if (child && child !== src) {
 				appended = recursiveHelper(appended, src, child, map);
 			}
 
@@ -74,37 +76,6 @@ function trackbackAll(src: NodeType, dest: NodeType, map: ReturnType<typeof dijk
 
 	return recursiveHelper([ '' ], src, dest, map);
 	// TODO: recursively find all paths...
-}
-
-// TODO: make more generic!
-function memoize1<F extends (a: string) => string[][]>(func: F): F {
-	const cache = new Map<string, string[][]>();
-	return ((a: string): string[][] => {
-		if (cache.has(a)) {
-			return cache.get(a)!;
-		}
-		else {
-			const result = func(a);
-			cache.set(a, result);
-			return result;
-		}
-	}) as F; //TODO - how to avoid cast here?
-}
-
-function memoize2<F extends (a: string, b: number) => number>(func: F): F {
-	const cache = new Map<number, Map <string, number>>();
-	return ((a: string, b: number): number => {
-		if (!cache.has(b)) {
-			cache.set(b, new Map<string, number>());
-		}
-		
-		const elt = cache.get(b)!;
-		if (!elt.has(a)) {
-			elt.set(a, func(a, b));
-		}
-
-		return elt.get(a)!;
-	}) as F; //TODO - how to avoid cast here?
 }
 
 function findAllSequences(grid: MaskedGrid, code: string): string[][] {
@@ -122,7 +93,7 @@ function findAllSequences(grid: MaskedGrid, code: string): string[][] {
 		}
 		else {
 			// TODO: return all possible sequences, because it might give better results!
-			const prevMap = dijkstraEx<NodeType, DirType>(Point.toString(pos), Point.toString(dest), (n) => grid.adjacent(n));
+			const prevMap = dijkstraAllShortestPaths<NodeType, DirType>(Point.toString(pos), Point.toString(dest), (n) => grid.adjacent(n));
 			// TODO: should just return an empty list when source === dest
 			const paths = trackbackAll(Point.toString(pos), Point.toString(dest), prevMap);
 			result.push(paths.map(p => p + 'A'));
@@ -152,8 +123,8 @@ X  `);
 X  
    `);
 
-	const mainKeyPadSequence = memoize1((code: string) => findAllSequences(mainKeyPad, code));
-	const dirKeyPadSequence = memoize1((code: string) => findAllSequences(directionalKeyPad, code));
+	const mainKeyPadSequence = memoize((code: string) => findAllSequences(mainKeyPad, code));
+	const dirKeyPadSequence = memoize((code: string) => findAllSequences(directionalKeyPad, code));
 
 	const isDigit = (ch: string) => ch >= '0' && ch <= '9';
 	

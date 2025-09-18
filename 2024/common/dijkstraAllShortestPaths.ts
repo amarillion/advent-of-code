@@ -1,5 +1,5 @@
 import { AdjacencyFunc, Step, WeightFunc } from '@amarillion/helixgraph/lib/definitions.js';
-import { DefaultMap } from '../common/DefaultMap.js';
+import { DefaultMap } from './DefaultMap.js';
 
 function spliceLowest<T>(queue: Set<T>, comparator: (a: T, b: T) => number) {
 	let minElt: T | null = null;
@@ -35,7 +35,7 @@ function toSet<T>(value: T[] | T) {
  * @returns Map(to, { edge, from[], to, cost }[])
  */
 //TODO: should this alternative dijkstra function be added back to HelixGraph somehow?
-export function dijkstraEx<N, E>(source: N, dest: N | N[], getAdjacent: AdjacencyFunc<N, E>,
+export function dijkstraAllShortestPaths<N, E>(source: N, dest: N | N[], getAdjacent: AdjacencyFunc<N, E>,
 	{
 		maxIterations = 0,
 		getWeight = () => 1,
