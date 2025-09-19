@@ -104,3 +104,25 @@ export class DefaultMap<K, V> {
 		return result;
 	}
 }
+
+export function formatMap<K, V>(map: Map<K, V>, limit: number, valueComparator: (a: V, b: V) => number) {
+	const sortedKeys = [...map.keys()];
+	sortedKeys.sort((a: K, b: K) => valueComparator(map.get(a)!, map.get(b)!));
+
+	let result = 'Map {';
+	let sep = '';
+	const indent = '    ';
+	let i = limit;
+	for (const k of sortedKeys) {
+		const val = `${map.get(k)}`;
+		result += `${sep}\n${indent}${k} => ${val.split('\n').join(`\n${indent}`)}`;
+		sep = ','
+		if (--i <= 0) {
+			result += `\n${sep}...`;
+			break;
+		}
+	}
+	result += '\n}';
+	return result;
+
+}

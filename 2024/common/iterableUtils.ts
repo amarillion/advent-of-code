@@ -40,6 +40,14 @@ export function take<T>(generator: Generator<T>, count: number) {
 	return result;
 }
 
+export function skip<T>(generator: Generator<T>, count: number) {
+	let i = 0;
+	for (const value of generator) {
+		if (++i === count) return value;
+	}
+	return undefined;
+}
+
 export function sum(array: Iterable<number>) {
 	let result = 0;
 	for (const val of array) {
