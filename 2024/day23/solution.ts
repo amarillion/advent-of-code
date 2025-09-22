@@ -19,15 +19,13 @@ function parse(fname: string) {
 	return result;
 }
 
-// TODO: obsoleted by es2024 Set.interset
+// TODO: obsoleted by es2024 Set.intersect
 function intersect<T>(a: Set<T>, b: Set<T>) {
 	return new Set([...a].filter(x => b.has(x)));
 }
 
 function solve1(data: Data) {
 	let result = 0;
-
-	console.log(data);
 
 	const sets = new Set<string>();
 	for (const first of [...data.keys()].filter(name => name.startsWith('t'))) {
@@ -36,66 +34,49 @@ function solve1(data: Data) {
 
 			for (const third of overlap) {
 				const set = [first, second, third].sort();
-				sets.add(JSON.stringify(set))
+				sets.add(set.join(','));
 			}
 		}
 	}
 
 	result = sets.size;
-	console.log(sets);
 	return result;
 }
 
 function solve2(data: Data) {
-	let result = 0;
+	let maxSet = '';
 
-	const sets = new Set<string>();
-	const partials = new Set<string>();
+	function drillDown(parents: string[], overlap: Set<string>) {
+		const treshold = parents[parents.length-1];
+		for (const third of [...overlap].sort()) {
+			// since we go in alphabetical order
+			// every node that is smaller has been already checked
+			if (third <= treshold) continue;
 
-	function drillDown(parents: string[], overlap: Set<string>, indent: string, level: number) {
-		const verify = [...parents].sort();
-		if (partials.has(verify.join(','))) { return; } // this branch is already checked.
-
-		// console.log(`${indent}Calling drillDown ${parents} Set: ${[...overlap]}`)
-		for (const third of overlap) {
 			const overlap3 = intersect(overlap, data.get(third));
-			// console.log(`${indent}  third: ${third} overlap: ${[...overlap3]}`);
 			if (overlap3.size === 0) {
-				const sorted = [...parents, third].sort();
-				sets.add(sorted.join(','));
+				// we've reached the end of this branch
+				// we detected a new fully connected subgraph
+				const subgraph = [...parents, third].join(',');
+				if (subgraph.length > maxSet.length) {
+					maxSet = subgraph;
+				}
 			}
 			else {
-				drillDown([...parents, third], overlap3, indent + '  ', level + 1);
-				const sorted = [...parents, third].sort();
-				partials.add(sorted.join(','));
+				drillDown([...parents, third], overlap3);
 			}
 		}
 	}
 
-	for (const first of data.keys()) {
-		drillDown([first], data.get(first), '  ', 1);
+	for (const first of [...data.keys()].sort()) {
+		drillDown([first], data.get(first));
 	}
 
-	// for (const first of data.keys()) {
-	// 	for (const second of data.get(first)) {
-	// 		const overlap = intersect(data.get(first), data.get(second));
-	// 		drillDown([first, second], overlap, '  ', 1);
-	// 	}
-	// }
-
-	console.log(sets);
-	let maxSet = '';
-	for (const set of sets) {
-		if (set.length > maxSet.length) {
-			maxSet = set;
-		}
-	}
-	console.log(maxSet);
-	return result;
+	return maxSet;
 }
 
 assert(process.argv.length === 3, 'Expected argument: input filename');
 const data = parse(process.argv[2]);
-// console.log(solve1(data));
+console.log(solve1(data));
 console.log(solve2(data));
 

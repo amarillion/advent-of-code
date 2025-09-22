@@ -49,6 +49,8 @@ Test[] tests = [
 	Test(19, "./solution.ts", "test-input", format("%s\n%s", 6, 16)),
 	Test(20, "./solution.ts", "test-input", format("%s\n%s", 1, 285)),
 	Test(21, "./solution.ts", "test-input", format("%s\n%s", 126384, 154115708116294)),
+	Test(22, "./solution.ts", "test-input", format("%s\n%s", 37327623, 24)),
+	Test(23, "./solution.ts", "test-input", format("%s\n%s", 7, "co,de,ka,ta")),
 
 	Test(1,  "./solution.ts", "input", format("%s\n%s", 2769675, 24643097)),
 	Test(2,  "./solution.ts", "input", format("%s\n%s", 269, 337)),
@@ -71,6 +73,9 @@ Test[] tests = [
 	Test(19, "./solution.ts", "input", format("%s\n%s", 283, 615388132411142)),
 	Test(20, "./solution.ts", "input", format("%s\n%s", 1411, 1010263)),
 	Test(21, "./solution.ts", "input", format("%s\n%s", 171596, 209268004868246)),
+	Test(22, "./solution.ts", "input", format("%s\n%s", 18261820068, 2044)),
+	Test(23, "./solution.ts", "input", format("%s\n%s", 1064, "aq,cc,ea,gc,jo,od,pa,rg,rv,ub,ul,vr,yy")),
+
 ];
 
 void runTest(PerformanceContext context, Test t) {
