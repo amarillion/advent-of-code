@@ -18,6 +18,7 @@ public class Solution {
 
 	private record Data(int hitpoints, int damage) {}
 	boolean logging = false;
+	boolean isHard;
 
 	void log(String str) {
 		if (logging) {
@@ -58,14 +59,12 @@ public class Solution {
 					this.shieldTurnsRemaining + shieldTurnsRemaining,
 					this.rechargeTurnsRemaining + rechargeTurnsRemaining
 			);
-			assert (result.valid());
+			assert result.valid() : String.format("Invalid state: %s", result);
 			return result;
 		}
 
 		boolean valid() {
-			return this.playerHp() >= 0
-			&& this.monsterHp() >= 0
-			&& this.mana() >= 0
+			return this.mana() >= 0
 			&& this.poisonTurnsRemaining() >= 0
 			&& this.shieldTurnsRemaining() >= 0
 			&& this.rechargeTurnsRemaining() >= 0;
@@ -109,9 +108,9 @@ public class Solution {
 		for (var spell: Spell.values()) {
 			if (state.mana >= spell.cost) { spells.add(spell); }
 		}
-		if (state.shieldTurnsRemaining > 0) { spells.remove(Spell.SHIELD); }
-		if (state.rechargeTurnsRemaining > 0) { spells.remove(Spell.RECHARGE); }
-		if (state.poisonTurnsRemaining > 0) { spells.remove(Spell.POISON); }
+		if (state.shieldTurnsRemaining > 1) { spells.remove(Spell.SHIELD); }
+		if (state.rechargeTurnsRemaining > 1) { spells.remove(Spell.RECHARGE); }
+		if (state.poisonTurnsRemaining > 1) { spells.remove(Spell.POISON); }
 		return spells;
 	}
 
@@ -214,7 +213,15 @@ public class Solution {
 	private GameState doTurn(GameState state, Spell spell) {
 		printState("Player", state);
 
-		GameState state2 = handleEffects(state);
+		GameState state0 = state;
+		if (isHard) {
+			state0 = state.withDelta(-1, 0, 0, 0, 0, 0);
+			if (state0.playerHp <= 0) {
+				return state0;
+			}
+		}
+
+		GameState state2 = handleEffects(state0);
 		if (state2.isFinished()) {
 			return state2;
 		}
@@ -247,34 +254,23 @@ public class Solution {
 		Map<N, Integer> dist = new HashMap<>();
 		Set<N> visited = new HashSet<>();
 		var prev = new HashMap<N, Step<N, E>>();
-		PriorityQueue<N> open = new PriorityQueue<>(Comparator.comparingInt(n -> dist.getOrDefault(n, -1)));
+		PriorityQueue<N> open = new PriorityQueue<>(Comparator.comparingInt(dist::get));
 
-		open.add(source);
 		dist.put(source, 0);
+		open.add(source);
 
-		final int MAX_ITERATIONS = 1000;
-		var i = MAX_ITERATIONS;
-
-		N current = null;
+		N dest = null;
 
 		while (!open.isEmpty()) {
-			i--; // 0 -> -1 means Infinite.
-			if (i == 0) break;
-
-			current = open.poll();
+			N current = open.poll();
 
 			// check adjacents, calculate distance, or  - if it already had one - check if new path is shorter
-
 			for (var pair: getAdjacent.apply(current).entrySet()) {
 				var edge = pair.getKey();
 				var sibling = pair.getValue();
 
 				if (!(visited.contains(sibling))) {
 					var alt = dist.get(current) + getWeight.apply(edge);
-
-					// any node that is !visited and has a distance assigned should be in open set.
-					open.add (sibling); // may be already in there, that is OK.
-
 					var oldDist = dist.getOrDefault(sibling, Integer.MAX_VALUE);
 
 					if (alt < oldDist) {
@@ -283,6 +279,9 @@ public class Solution {
 						// build back-tracking map
 						prev.put(sibling, new Step<>( edge, current, sibling, alt ));
 					}
+
+					// any node that is !visited and has a distance assigned should be in open set.
+					open.add (sibling); // may be already in there, that is OK.
 				}
 			}
 
@@ -290,17 +289,18 @@ public class Solution {
 			visited.add(current);
 
 			if (isDest.apply(current)) {
+				dest = current;
 				break;
 			}
 		}
 
-		return new DijkstraResult<>(prev, current);
+		return new DijkstraResult<>(prev, dest);
 	}
 
 	private void printRecursive(DijkstraResult<GameState, Spell> dijkstraResult, GameState state, String indent) {
 		// find all the child states...
 		for (var step: dijkstraResult.prev.values()) {
-			if (step.from == state) {
+			if (step.from.equals(state)) {
 				System.out.printf("%s%s: %d %s%n", indent, step.edge, step.cost, step.to);
 				printRecursive(dijkstraResult, step.to, indent + "  ");
 			}
@@ -318,44 +318,34 @@ public class Solution {
 		System.out.println(dijkstraResult.dest);
 	}
 
-	private long solve1(int hitPoints, int mana) {
-		long result = 0;
-
+	private long solve1(int hitPoints, int mana, boolean isHard) {
+		this.isHard = isHard;
 		var start = new GameState(hitPoints, data.hitpoints, mana, 0, 0, 0);
-
-//		GameState current = start;
-//		for (var sp : new Spell[] { Spell.SHIELD }) {
-//			var next = doTurn(current, sp);
-//			if (next.isFinished()) { break; }
-//			current = next;
-//		}
-
 		var dijkstraResult = dijkstra(start,
 				s -> s.monsterHp <= 0,
 				this::allMoves,
 				Solution::getSpellCost
 			);
 
-		var current = dijkstraResult.dest;
-		while(dijkstraResult.prev.containsKey(current)) {
-			System.out.println(current);
-			var step = dijkstraResult.prev.get(current);
-			System.out.printf("Step %s %d\n", step.edge.toString(), step.cost);
-			current = step.from;
-		}
+		// trackback...
+//		var current = dijkstraResult.dest;
+//		while(dijkstraResult.prev.containsKey(current)) {
+//			System.out.println(current);
+//			var step = dijkstraResult.prev.get(current);
+//			System.out.printf("Step %s %d\n", step.edge.toString(), step.cost);
+//			current = step.from;
+//		}
 
 //		debugPrint(dijkstraResult);
-		printRecursive(dijkstraResult, start, "");
-
-		return result;
+//		printRecursive(dijkstraResult, start, "");
+		return dijkstraResult.prev.get(dijkstraResult.dest).cost;
 	}
 
 	public static void main(String[] args) throws IOException {
-		assert(false);
-//		var testRunner = new Solution(Path.of("day22/test-input"));
-//		System.out.println(testRunner.solve1(10, 250));
+		var testRunner = new Solution(Path.of("day22/test-input"));
+		System.out.println(testRunner.solve1(10, 250, false));
 		var runner = new Solution(Path.of("day22/input"));
-		System.out.println(runner.solve1(50, 500));
+		System.out.println(runner.solve1(50, 500, false));
+		System.out.println(runner.solve1(50, 500, true));
 	}
 }
-
