@@ -17,14 +17,7 @@ import java.util.stream.Stream;
 public class Solution {
 
 	private record Data(int hitpoints, int damage) {}
-	boolean logging = false;
 	boolean isHard;
-
-	void log(String str) {
-		if (logging) {
-			System.out.println(str);
-		}
-	}
 
 	private static Data parse(Path file) throws IOException {
 		try (Stream<String> s = Files.lines(file)) {
@@ -44,14 +37,13 @@ public class Solution {
 			int playerHp,
 			int monsterHp,
 			int mana,
-//			boolean playerTurn,
 			int poisonTurnsRemaining,
 			int shieldTurnsRemaining,
 			int rechargeTurnsRemaining
 			) {
 		
 		GameState withDelta(int playerHp, int monsterHp, int mana, int poisonTurnsRemaining, int shieldTurnsRemaining, int rechargeTurnsRemaining) {
-			GameState result = new GameState(
+			return new GameState(
 					this.playerHp + playerHp,
 					this.monsterHp + monsterHp,
 					this.mana + mana,
@@ -59,33 +51,91 @@ public class Solution {
 					this.shieldTurnsRemaining + shieldTurnsRemaining,
 					this.rechargeTurnsRemaining + rechargeTurnsRemaining
 			);
-			assert result.valid() : String.format("Invalid state: %s", result);
-			return result;
 		}
 
-		boolean valid() {
-			return this.mana() >= 0
-			&& this.poisonTurnsRemaining() >= 0
-			&& this.shieldTurnsRemaining() >= 0
-			&& this.rechargeTurnsRemaining() >= 0;
+		public GameState(int playerHp, int monsterHp, int mana, int poisonTurnsRemaining, int shieldTurnsRemaining, int rechargeTurnsRemaining) {
+			this.playerHp = playerHp;
+			this.monsterHp = monsterHp;
+			this.mana = mana;
+			this.poisonTurnsRemaining = poisonTurnsRemaining;
+			this.shieldTurnsRemaining = shieldTurnsRemaining;
+			this.rechargeTurnsRemaining = rechargeTurnsRemaining;
+			if (!(mana >= 0
+					&& poisonTurnsRemaining() >= 0
+					&& shieldTurnsRemaining() >= 0
+					&& rechargeTurnsRemaining() >= 0)) throw new IllegalArgumentException(String.format("Invalid state: " + this));
 		}
 
 		boolean isFinished() {
 			return this.playerHp <= 0 || this.monsterHp <= 0;
 		}
 
-		GameState applyEffects() {
-			GameState result = new GameState(
-					this.playerHp,
-					this.monsterHp ,
-					this.mana,
-					Math.max(0, this.poisonTurnsRemaining - 1),
-					Math.max(0, this.shieldTurnsRemaining - 1),
-					Math.max(0, this.rechargeTurnsRemaining - 1)
-			);
-			assert(result.valid());
-			return result;
+		GameState handleEffects() {
+			if (isFinished()) return this;
+
+			int shieldTurnsRemaining = this.shieldTurnsRemaining;
+			int rechargeTurnsRemaining = this.rechargeTurnsRemaining;
+			int poisonTurnsRemaining = this.poisonTurnsRemaining;
+			int mana = this.mana;
+			int monsterHp = this.monsterHp;
+			if (shieldTurnsRemaining > 0) {
+				shieldTurnsRemaining--;
+			}
+			if (rechargeTurnsRemaining > 0) {
+				rechargeTurnsRemaining--;
+				mana += 101;
+			}
+			if (poisonTurnsRemaining > 0) {
+				poisonTurnsRemaining--;
+				monsterHp -= 3;
+			}
+			return new GameState(playerHp, monsterHp, mana, poisonTurnsRemaining, shieldTurnsRemaining, rechargeTurnsRemaining);
 		}
+
+		public GameState hardMode(boolean isHard) {
+			if (isFinished()) return this;
+			if (isHard) {
+				return this.withDelta(-1, 0, 0, 0, 0, 0);
+			}
+			return this;
+		}
+
+		private GameState doSpell(Spell spell) {
+			if (isFinished()) return this;
+
+			return switch (spell) {
+				case MAGIC_MISSILE -> this.withDelta(
+						0, -4, -spell.cost, 0, 0, 0
+				);
+				case DRAIN -> this.withDelta(
+						2, -2, -spell.cost, 0, 0, 0
+				);
+				case SHIELD -> this.withDelta(
+						0, 0, -spell.cost, 0, 6, 0
+				);
+				case POISON -> this.withDelta(
+						0, 0, -spell.cost, 6, 0, 0
+				);
+				case RECHARGE -> this.withDelta(
+						0, 0, -spell.cost, 0, 0, 5
+				);
+			};
+		}
+
+		private GameState doBossAttack(int bossDamage) {
+			if (isFinished()) return this;
+
+			int damage = (shieldTurnsRemaining > 0 ? Math.max(bossDamage - 7, 0) : bossDamage);
+			return new GameState(
+				Math.max(0, playerHp - damage),
+				monsterHp,
+				mana,
+				poisonTurnsRemaining,
+				shieldTurnsRemaining,
+				rechargeTurnsRemaining
+			);
+		}
+
 	}
 
 	enum Spell {
@@ -129,121 +179,13 @@ public class Solution {
 		return spell.cost;
 	}
 
-	private GameState doSpell(Spell spell, GameState state) {
-		log(String.format("Player casts %s\n", spell.toString()));
-		var result = switch (spell) {
-			case MAGIC_MISSILE -> state.withDelta(
-				0, -4, -spell.cost, 0, 0, 0
-			);
-			case DRAIN -> state.withDelta(
-				2, -2, -spell.cost, 0, 0, 0
-			);
-			case SHIELD -> state.withDelta(
-				0, 0, -spell.cost, 0, 6, 0
-			);
-			case POISON -> state.withDelta(
-				0, 0, -spell.cost, 6, 0, 0
-			);
-			case RECHARGE -> state.withDelta(
-				0, 0, -spell.cost, 0, 0, 5
-			);
-		};
-		if (result.monsterHp <= 0) {
-			log("The boss is killed and the player wins");
-		}
-		return result;
-	}
-
-	private GameState handleEffects(GameState state) {
-		int shieldTurnsRemaining = state.shieldTurnsRemaining;
-		int rechargeTurnsRemaining = state.rechargeTurnsRemaining;
-		int poisonTurnsRemaining = state.poisonTurnsRemaining;
-		int mana = state.mana;
-		int monsterHp = state.monsterHp;
-		if (shieldTurnsRemaining > 0) {
-			shieldTurnsRemaining--;
-			log("Shield's timer is now: " + shieldTurnsRemaining);
-			if (shieldTurnsRemaining == 0) {
-				log("Shield wears off");
-			}
-		}
-		if (rechargeTurnsRemaining > 0) {
-			rechargeTurnsRemaining--;
-			mana += 101;
-			log("Recharge provides 101 mana, its timer is now: " + rechargeTurnsRemaining);
-			if (rechargeTurnsRemaining == 0) {
-				log("Recharge wears off");
-			}
-		}
-		if (poisonTurnsRemaining > 0) {
-			poisonTurnsRemaining--;
-			log("Poison deals 3 damage, its timer is now: " + poisonTurnsRemaining);
-			monsterHp -= 3;
-			if (poisonTurnsRemaining == 0) {
-				log("Poison wears off");
-			}
-			if (monsterHp <= 0) {
-				log("The boss is killed and the player wins");
-			}
-		}
-		return new GameState(state.playerHp, monsterHp, mana, poisonTurnsRemaining, shieldTurnsRemaining, rechargeTurnsRemaining);
-	}
-
-	private void printState(String turn, GameState state) {
-		log(String.format("""
-				-- %s turn --
-				-- Player has %d hit points, %d armor, %d mana --
-				-- Boss has %d hit points.
-				""", turn, state.playerHp, state.shieldTurnsRemaining > 0 ? 7 : 0, state.mana, state.monsterHp));
-	}
-
-	private GameState doBossAttack(GameState state, int bossDamage) {
-		int damage = (state.shieldTurnsRemaining > 0 ? Math.max(bossDamage - 7, 0) : bossDamage);
-		log(String.format("Boss attacks for %d damage\n", damage));
-		return new GameState(
-				Math.max(0, state.playerHp - damage),
-				state.monsterHp,
-				state.mana,
-				state.poisonTurnsRemaining,
-				state.shieldTurnsRemaining,
-				state.rechargeTurnsRemaining
-		);
-	}
-
 	private GameState doTurn(GameState state, Spell spell) {
-		printState("Player", state);
-
-		GameState state0 = state;
-		if (isHard) {
-			state0 = state.withDelta(-1, 0, 0, 0, 0, 0);
-			if (state0.playerHp <= 0) {
-				return state0;
-			}
-		}
-
-		GameState state2 = handleEffects(state0);
-		if (state2.isFinished()) {
-			return state2;
-		}
-
-		GameState state3 = doSpell(spell, state2);
-		if (state3.isFinished()) {
-			return state3;
-		}
-
-		printState("Boss", state3);
-
-		var state4 = handleEffects(state3);
-		if (state4.isFinished()) {
-			return state4;
-		}
-
-		var state5 = doBossAttack(state4, data.damage);
-		if (state5.playerHp <= 0) {
-			log("The player died");
-		}
-
-		return state5;
+		return state
+			.hardMode(isHard)
+			.handleEffects()
+			.doSpell(spell)
+			.handleEffects()
+			.doBossAttack(data.damage);
 	}
 
 	record Step<N, E> (E edge, N from, N to, int cost) {};
@@ -318,7 +260,7 @@ public class Solution {
 		System.out.println(dijkstraResult.dest);
 	}
 
-	private long solve1(int hitPoints, int mana, boolean isHard) {
+	private long solve(int hitPoints, int mana, boolean isHard) {
 		this.isHard = isHard;
 		var start = new GameState(hitPoints, data.hitpoints, mana, 0, 0, 0);
 		var dijkstraResult = dijkstra(start,
@@ -343,9 +285,9 @@ public class Solution {
 
 	public static void main(String[] args) throws IOException {
 		var testRunner = new Solution(Path.of("day22/test-input"));
-		System.out.println(testRunner.solve1(10, 250, false));
+		System.out.println(testRunner.solve(10, 250, false));
 		var runner = new Solution(Path.of("day22/input"));
-		System.out.println(runner.solve1(50, 500, false));
-		System.out.println(runner.solve1(50, 500, true));
+		System.out.println(runner.solve(50, 500, false));
+		System.out.println(runner.solve(50, 500, true));
 	}
 }
