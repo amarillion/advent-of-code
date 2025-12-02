@@ -20,10 +20,33 @@ Data parse(string fname) {
 	return result;
 }
 
+auto numDigits(long value) {
+	return to!string(value).length;
+}
+
+auto simplifyRanges(Data data) {
+	// simplify so that each range starts and ends with the same number of digits.
+	Data result;
+	foreach (row; data) {
+		auto len1 = numDigits(row[0]);
+		auto len2 = numDigits(row[1]);
+		
+		if (len1 != len2) {
+			long pivot = to!long("9".repeat(len1).join(""));
+			result ~= [row[0], pivot];
+			result ~= [pivot + 1, row[1]];
+		}
+		else {
+			result ~= row;
+		}
+	}
+	return result;
+}
+
 auto getRepeats(long[] range, int numParts = 2) {
 	bool[long] result = null;
 
-	auto len = to!string(range[1]).length;
+	auto len = numDigits(range[1]);
 	// assert(len % numParts == 0); // evenly dividable.
 	auto hlen = len / numParts;
 	
@@ -44,28 +67,13 @@ auto getRepeats(long[] range, int numParts = 2) {
 
 auto solve1(Data data) {
 	long result = 0;
-
 	foreach (row; data) {
-		auto len1 = to!string(row[0]).length;
-		auto len2 = to!string(row[1]).length;
-		
-		if (len1 != len2) {
-			// make it two ranges...
-			if (len1 > 1) {
-				foreach(key, value; getRepeats([row[0], to!long("9".repeat(len1).join(""))], 2)) {
-					result += key;
-				}
-			}
-			foreach(key, value; getRepeats([to!long("1" ~ ("0".repeat(len1)).join("")), row[1]], 2)) {
-				result += key;
-			}
-		}
-		else {
+		auto len = numDigits(row[0]);
+		if (len > 1) {
 			foreach(key, value; getRepeats(row, 2)) {
 				result += key;
 			}
 		}
-
 	}
 
 	return result;
@@ -89,33 +97,24 @@ auto processRange(long[] row) {
 	}
 	return result;
 }
+
 auto solve2(Data data) {
 	long result = 0;
 
 	foreach (row; data) {
-		auto len1 = to!string(row[0]).length;
-		auto len2 = to!string(row[1]).length;
-		
-		if (len1 != len2) {
-			// make it two ranges...
-			result += processRange([row[0], to!long("9".repeat(len1).join(""))]);
-			result += processRange([to!long("1" ~ ("0".repeat(len1)).join("")), row[1]]);
-		}
-		else {
-			result += processRange(row);
-		}
+		result += processRange(row);
 	}
 
 	return result;
 }
 
 void main() {
-	auto testData = parse("test-input");
-	
+	auto testData = simplifyRanges(parse("test-input"));
+		
 	assert(solve1(testData) == 1227775554, "Solution incorrect");
 	assert(solve2(testData) == 4174379265, "Solution incorrect");
 
-	auto data = parse("input");
+	auto data = simplifyRanges(parse("input"));
 	writeln(solve1(data));
 	writeln(solve2(data));
 }
