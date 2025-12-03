@@ -31,19 +31,51 @@ auto solve1(Data data) {
 			}
 		}
 
-		writeln(row, " ", max);
+		// writeln(row, " ", max);
 		result += max;
 	}
 
 	return result;
 }
- 
+
+auto solve2(Data data) {
+	long result = 0;
+
+	foreach (string row; data) {
+		// find highest pair of digits for each row
+		char[] max = [];
+
+		int remain = 12;
+		int pos = 0;
+		while (remain > 0) {
+			// find highest digits in strlen - remain
+			char maxDigit = 0; 
+			int maxPos = 0;
+			for (int i = pos; i + remain - 1 < row.length; ++i) {
+				char digit = row[i];
+				if (digit > maxDigit) {
+					maxDigit = digit;
+					maxPos = i;
+				}
+			}
+
+			max ~= maxDigit;
+			remain--;
+			pos = maxPos + 1;
+		}
+
+		// writeln(row, " ", max);
+		result += to!long(max);
+	}
+
+	return result;
+}
+
 void main() {
 	auto testData = parse("test-input");
-	assert(solve1(testData) == 357, "Solution incorrect");
-
+	assert(solve1(testData) == 357, "Solution 1 incorrect");
+	assert(solve2(testData) == 3121910778619, "Solution 2 incorrect");
 	auto data = parse("input");
-	auto result = solve1(data);
-	// assert(result == 1);
-	writeln(result);
+	writeln(solve1(data));
+	writeln(solve2(data));
 }
